@@ -1,0 +1,405 @@
+/*
+ * Admin Text Visibility Fixes
+ * Ensures proper white text color for better readability on colored backgrounds
+ */
+
+/* === STAFF MANAGEMENT PAGE FIXES === */
+/* Search & Filter Staff card title */
+.card-primary .card-header .card-title {
+    color: white !important;
+}
+
+/* Button text fixes for staff management */
+.btn-secondary, .btn-success {
+    color: white !important;
+}
+
+.btn-secondary:hover, .btn-success:hover {
+    color: white !important;
+}
+
+/* === DAILY ATTENDANCE MANAGEMENT PAGE FIXES === */
+/* Report and Export button text */
+.btn-info, .btn-success {
+    color: white !important;
+}
+
+.btn-info:hover, .btn-success:hover {
+    color: white !important;
+}
+
+/* === WEEKLY TRACKER MANAGEMENT PAGE FIXES === */
+/* Clear button text */
+.btn-secondary {
+    color: white !important;
+}
+
+.btn-secondary:hover {
+    color: white !important;
+}
+
+/* === HERO SLIDES MANAGEMENT PAGE FIXES === */
+/* Add new slide button text */
+.btn-primary {
+    color: white !important;
+}
+
+.btn-primary:hover {
+    color: white !important;
+}
+
+/* === ACTIVITY CALENDAR MANAGEMENT PAGE FIXES === */
+/* Add Activity button text */
+.btn-success {
+    color: white !important;
+}
+
+.btn-success:hover {
+    color: white !important;
+}
+
+/* === ACTIVITY REQUESTS MANAGEMENT PAGE FIXES === */
+/* All (X) filter button text when active */
+.btn-primary {
+    color: white !important;
+}
+
+.btn-primary:hover {
+    color: white !important;
+}
+
+/* === COMPREHENSIVE BUTTON TEXT FIXES === */
+/* Ensure all Bootstrap button variants have white text */
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btn-light,
+.btn-dark {
+    color: white !important;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-success:hover,
+.btn-danger:hover,
+.btn-warning:hover,
+.btn-info:hover,
+.btn-light:hover,
+.btn-dark:hover {
+    color: white !important;
+}
+
+.btn-primary:focus,
+.btn-secondary:focus,
+.btn-success:focus,
+.btn-danger:focus,
+.btn-warning:focus,
+.btn-info:focus,
+.btn-light:focus,
+.btn-dark:focus {
+    color: white !important;
+}
+
+.btn-primary:active,
+.btn-secondary:active,
+.btn-success:active,
+.btn-danger:active,
+.btn-warning:active,
+.btn-info:active,
+.btn-light:active,
+.btn-dark:active {
+    color: white !important;
+}
+
+/* === BUTTON OUTLINE FIXES === */
+/* Outline buttons when active should have white text */
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.btn-outline-secondary:active,
+.btn-outline-secondary.active,
+.btn-outline-success:active,
+.btn-outline-success.active,
+.btn-outline-danger:active,
+.btn-outline-danger.active,
+.btn-outline-warning:active,
+.btn-outline-warning.active,
+.btn-outline-info:active,
+.btn-outline-info.active {
+    color: white !important;
+}
+
+/* === CARD HEADER TEXT FIXES === */
+/* All card headers with colored backgrounds should have white text */
+.card-header {
+    color: white !important;
+}
+
+.card-header .card-title {
+    color: white !important;
+}
+
+.card-header .card-title i {
+    color: white !important;
+}
+
+/* === SPECIFIC ADMINLTE OVERRIDES === */
+/* AdminLTE card header variants */
+.card-primary .card-header,
+.card-secondary .card-header,
+.card-success .card-header,
+.card-info .card-header,
+.card-warning .card-header,
+.card-danger .card-header {
+    color: white !important;
+}
+
+.card-primary .card-header .card-title,
+.card-secondary .card-header .card-title,
+.card-success .card-header .card-title,
+.card-info .card-header .card-title,
+.card-warning .card-header .card-title,
+.card-danger .card-header .card-title {
+    color: white !important;
+}
+
+/* === CARD OUTLINE FIXES === */
+/* Card outline headers should have proper text color */
+.card-outline .card-header {
+    color: #212529 !important; /* Dark text for outlined cards */
+}
+
+.card-outline .card-header .card-title {
+    color: #212529 !important;
+}
+
+.card-outline .card-header .card-title i {
+    color: #212529 !important;
+}
+
+/* === BADGE TEXT FIXES === */
+/* Ensure badges have proper contrast */
+.badge-primary,
+.badge-secondary,
+.badge-success,
+.badge-danger,
+.badge-warning,
+.badge-info {
+    color: white !important;
+}
+
+/* === DROPDOWN AND FILTER BUTTON FIXES === */
+/* Dropdown buttons and filter controls */
+.dropdown-toggle {
+    color: white !important;
+}
+
+.dropdown-toggle:hover {
+    color: white !important;
+}
+
+/* === SMALL BOX TEXT FIXES === */
+/* AdminLTE info boxes and small boxes */
+.small-box .inner h3,
+.small-box .inner p {
+    color: white !important;
+}
+
+.info-box .info-box-content .info-box-text,
+.info-box .info-box-content .info-box-number {
+    color: white !important;
+}
+
+/* === NAVIGATION LINK FIXES === */
+/* Breadcrumb and navigation links in headers */
+.breadcrumb-item a {
+    color: #007bff !important;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d !important;
+}
+
+/* === ACCESSIBILITY IMPROVEMENTS === */
+/* Ensure sufficient contrast for accessibility */
+.btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.5) !important;
+}
+
+/* === EXCEPTION FOR LIGHT BUTTONS === */
+/* Light buttons should have dark text for better contrast */
+.btn-light {
+    color: #212529 !important;
+}
+
+.btn-light:hover {
+    color: #212529 !important;
+}
+
+/* === CUSTOM AFRICA CDC BUTTON STYLES === */
+/* Specific styles for Africa CDC themed buttons */
+.btn-africa-green {
+    background-color: #348F41 !important;
+    border-color: #348F41 !important;
+    color: white !important;
+}
+
+.btn-africa-green:hover {
+    background-color: #2d7a36 !important;
+    border-color: #2d7a36 !important;
+    color: white !important;
+}
+
+.btn-africa-gold {
+    background-color: #B4A269 !important;
+    border-color: #B4A269 !important;
+    color: white !important;
+}
+
+.btn-africa-gold:hover {
+    background-color: #9e8c5a !important;
+    border-color: #9e8c5a !important;
+    color: white !important;
+}
+
+/* === CARD TOOLS AND BADGES === */
+/* Card tools and badges in headers */
+.card-tools .badge {
+    color: white !important;
+}
+
+.card-tools .btn {
+    color: white !important;
+}
+
+.card-tools .btn:hover {
+    color: white !important;
+}
+
+/* === FILTER BUTTON GROUPS === */
+/* Button groups used for filtering */
+.btn-group .btn {
+    color: white !important;
+}
+
+.btn-group .btn:hover {
+    color: white !important;
+}
+
+.btn-group .btn.active {
+    color: white !important;
+}
+
+/* === TABLE HEADER FIXES === */
+/* Table headers that might be colored */
+.thead-light th {
+    color: #495057 !important;
+}
+
+.thead-dark th {
+    color: white !important;
+}
+
+/* === ALERT FIXES === */
+/* Alerts with button elements */
+.alert .btn {
+    color: white !important;
+}
+
+.alert .btn:hover {
+    color: white !important;
+}
+
+/* === MODAL HEADER FIXES === */
+/* Modal headers that might be colored */
+.modal-header {
+    color: inherit !important;
+}
+
+.modal-header .modal-title {
+    color: inherit !important;
+}
+
+/* === SPECIFIC PAGE FIXES === */
+/* Reports page export buttons */
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-info,
+.btn-outline-warning,
+.btn-outline-danger {
+    border-width: 2px !important;
+    font-weight: 500 !important;
+}
+
+/* Active filter buttons in activity requests */
+.btn-primary.active,
+.btn-success.active,
+.btn-warning.active,
+.btn-danger.active,
+.btn-info.active {
+    color: white !important;
+}
+
+/* === RESPONSIVE TEXT FIXES === */
+/* Ensure text remains visible on mobile devices */
+@media (max-width: 768px) {
+    .btn {
+        color: white !important;
+    }
+
+    .card-header .card-title {
+        color: white !important;
+        font-size: 0.9rem;
+    }
+
+    .btn-group .btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* === PRINT MEDIA FIXES === */
+/* Ensure proper contrast when printing */
+@media print {
+    .btn {
+        color: #000 !important;
+        background-color: #fff !important;
+        border-color: #000 !important;
+    }
+
+    .card-header {
+        color: #000 !important;
+        background-color: #fff !important;
+    }
+}
+
+/* === HIGH CONTRAST MODE === */
+/* Improvements for high contrast accessibility */
+@media (prefers-contrast: high) {
+    .btn {
+        border-width: 2px !important;
+        font-weight: bold !important;
+    }
+
+    .card-header {
+        border-bottom-width: 3px !important;
+    }
+}
+
+/* === DARK MODE COMPATIBILITY === */
+/* Ensure compatibility with AdminLTE dark mode */
+.dark-mode .btn-light {
+    color: #212529 !important;
+    background-color: #f8f9fa !important;
+}
+
+.dark-mode .card-outline .card-header {
+    color: #dee2e6 !important;
+}
+
+.dark-mode .card-outline .card-header .card-title {
+    color: #dee2e6 !important;
+}

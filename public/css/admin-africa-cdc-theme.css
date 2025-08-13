@@ -1,0 +1,328 @@
+/* Africa CDC Admin Theme */
+:root {
+    --africa-green: #348F41;
+    --africa-gold: #B4A269;
+    --africa-green-light: rgba(52, 143, 65, 0.1);
+    --africa-green-dark: #2d7a36;
+    --africa-green-darker: #1e5e29;
+}
+
+/* Brand Styling - Keep logo area white */
+.brand-link {
+    background-color: white !important;
+    border-bottom: 3px solid var(--africa-green) !important;
+}
+
+.brand-text {
+    color: var(--africa-green) !important;
+    font-weight: 700 !important;
+}
+
+.brand-image {
+    padding: 6px !important;
+    background-color: white !important;
+    border: 2px solid #e9ecef !important;
+    border-radius: 4px !important;
+}
+
+/* Sidebar Dark Success Theme - Green Sidebar */
+.sidebar-dark-success {
+    background-color: var(--africa-green) !important;
+}
+
+.sidebar-dark-success .nav-sidebar > .nav-item > .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+    margin: 1px 6px !important;
+    border-radius: 6px !important;
+    transition: all 0.3s ease !important;
+}
+
+.sidebar-dark-success .nav-sidebar > .nav-item > .nav-link.active {
+    background-color: var(--africa-green-darker) !important;
+    color: white !important;
+    border-radius: 6px !important;
+    margin: 2px 6px !important;
+    font-weight: 500 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+.sidebar-dark-success .nav-sidebar > .nav-item:hover > .nav-link {
+    background-color: var(--africa-green-dark) !important;
+    color: white !important;
+    border-radius: 6px !important;
+    margin: 2px 6px !important;
+    transition: all 0.3s ease !important;
+}
+
+.sidebar-dark-success .nav-sidebar > .nav-item > .nav-link > .nav-icon {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.sidebar-dark-success .nav-sidebar > .nav-item > .nav-link.active > .nav-icon,
+.sidebar-dark-success .nav-sidebar > .nav-item:hover > .nav-link > .nav-icon {
+    color: white !important;
+}
+
+/* Sidebar Headers - Light text on green background */
+.sidebar-dark-success .nav-header {
+    background-color: var(--africa-green-darker) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    letter-spacing: 1px !important;
+    margin: 8px 6px 4px 6px !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Sidebar user panel */
+.sidebar-dark-success .user-panel .info {
+    color: white !important;
+}
+
+.sidebar-dark-success .user-panel .info a {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.sidebar-dark-success .user-panel .info a:hover {
+    color: white !important;
+}
+
+/* Search form in sidebar */
+.sidebar-dark-success .form-control-sidebar {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.sidebar-dark-success .form-control-sidebar:focus {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.sidebar-dark-success .btn-sidebar {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.sidebar-dark-success .btn-sidebar:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Button Theme */
+.btn-primary {
+    background: linear-gradient(135deg, var(--africa-green) 0%, var(--africa-green-dark) 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background: linear-gradient(135deg, var(--africa-green-dark) 0%, var(--africa-green-darker) 100%) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(52, 143, 65, 0.3) !important;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+    background: linear-gradient(135deg, #1e7e34 0%, #155724 100%) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3) !important;
+}
+
+/* Info buttons use gold theme */
+.btn-info {
+    background: linear-gradient(135deg, var(--africa-gold) 0%, #a09558 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-info:hover,
+.btn-info:focus,
+.btn-info:active {
+    background: linear-gradient(135deg, #a09558 0%, #8d8247 100%) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(180, 162, 105, 0.3) !important;
+}
+
+/* Warning buttons with orange theme */
+.btn-warning {
+    background: linear-gradient(135deg, #fd7e14 0%, #e55a00 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active {
+    background: linear-gradient(135deg, #e55a00 0%, #cc4f00 100%) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(253, 126, 20, 0.3) !important;
+}
+
+/* Large button styling for quick actions */
+.btn-lg {
+    padding: 1rem 1.5rem !important;
+    border-radius: 8px !important;
+    font-size: 1.1rem !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.btn-lg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: rgba(255,255,255,0.3);
+    transition: width 0.3s ease;
+}
+
+.btn-lg:hover::before {
+    width: 8px;
+}
+
+/* Cards and Components */
+.card-primary .card-header {
+    background-color: var(--africa-green) !important;
+    border-color: var(--africa-green) !important;
+}
+
+.card-success .card-header {
+    background-color: var(--africa-green) !important;
+    border-color: var(--africa-green) !important;
+}
+
+/* Small boxes theme */
+.small-box.bg-success {
+    background-color: var(--africa-green) !important;
+}
+
+.small-box.bg-info {
+    background-color: var(--africa-gold) !important;
+}
+
+/* Links and anchors - Updated for better contrast */
+.content-wrapper a {
+    color: var(--africa-green) !important;
+}
+
+.content-wrapper a:hover {
+    color: var(--africa-green-dark) !important;
+}
+
+/* Dropdown menu user header */
+.dropdown-header,
+.user-header {
+    background-color: var(--africa-green) !important;
+}
+
+/* Progress bars */
+.progress-bar {
+    background-color: var(--africa-green) !important;
+}
+
+/* Form controls focus */
+.form-control:focus {
+    border-color: var(--africa-green) !important;
+    box-shadow: 0 0 0 0.2rem rgba(52, 143, 65, 0.25) !important;
+}
+
+/* Pagination */
+.page-item.active .page-link {
+    background-color: var(--africa-green) !important;
+    border-color: var(--africa-green) !important;
+}
+
+.page-link {
+    color: var(--africa-green) !important;
+}
+
+.page-link:hover {
+    color: var(--africa-green-dark) !important;
+}
+
+/* Badges */
+.badge-primary {
+    background-color: var(--africa-green) !important;
+}
+
+.badge-success {
+    background-color: var(--africa-green) !important;
+}
+
+.badge-info {
+    background-color: var(--africa-gold) !important;
+}
+
+/* Tables */
+.table-primary {
+    background-color: var(--africa-green-light) !important;
+}
+
+.table-success {
+    background-color: var(--africa-green-light) !important;
+}
+
+/* Alerts */
+.alert-primary {
+    background-color: var(--africa-green-light) !important;
+    border-color: var(--africa-green) !important;
+    color: var(--africa-green-dark) !important;
+}
+
+.alert-success {
+    background-color: var(--africa-green-light) !important;
+    border-color: var(--africa-green) !important;
+    color: var(--africa-green-dark) !important;
+}
+
+/* Content header */
+.content-header h1 {
+    color: var(--africa-green) !important;
+}
+
+/* Navbar */
+.navbar-light .navbar-nav .nav-link {
+    color: var(--africa-green) !important;
+}
+
+.navbar-light .navbar-nav .nav-link:hover {
+    color: var(--africa-green-dark) !important;
+}
+
+/* Custom small box hover effects */
+.small-box:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Icon styling */
+.nav-icon {
+    width: 20px !important;
+}

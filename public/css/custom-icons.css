@@ -1,0 +1,422 @@
+/*
+ * Africa CDC Western RCC - Custom Icon Styles
+ * Enhances iconography throughout the application
+ */
+
+:root {
+    --africa-green: #348F41;
+    --africa-gold: #B4A269;
+    --africa-red: #782C2D;
+    --africa-yellow: #E08F2A;
+    --africa-brown: #6B4C24;
+    --africa-orange: #C45B39;
+}
+
+/* === FAVICON ENHANCEMENTS === */
+.brand-image {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    transition: all 0.3s ease;
+}
+
+.brand-image:hover {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    transform: scale(1.05);
+}
+
+/* === NAVIGATION ICONS === */
+.nav-link i {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover i {
+    transform: scale(1.1);
+    color: var(--africa-gold) !important;
+}
+
+.nav-link.active i {
+    color: var(--africa-gold) !important;
+    text-shadow: 0 0 8px rgba(180, 162, 105, 0.3);
+}
+
+/* === STATUS ICONS === */
+.status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 8px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-icon.present {
+    background-color: var(--africa-green);
+    color: white;
+    box-shadow: 0 2px 4px rgba(52, 143, 65, 0.3);
+}
+
+.status-icon.absent {
+    background-color: var(--africa-red);
+    color: white;
+    box-shadow: 0 2px 4px rgba(120, 44, 45, 0.3);
+}
+
+.status-icon.pending {
+    background-color: var(--africa-yellow);
+    color: white;
+    box-shadow: 0 2px 4px rgba(224, 143, 42, 0.3);
+}
+
+.status-icon.approved {
+    background-color: var(--africa-green);
+    color: white;
+    box-shadow: 0 2px 4px rgba(52, 143, 65, 0.3);
+}
+
+.status-icon.rejected {
+    background-color: var(--africa-red);
+    color: white;
+    box-shadow: 0 2px 4px rgba(120, 44, 45, 0.3);
+}
+
+/* === ACTIVITY ICONS === */
+.activity-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    margin-right: 12px;
+    font-size: 18px;
+    background: linear-gradient(135deg, var(--africa-green), var(--africa-gold));
+    color: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.activity-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.activity-icon.meeting {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.activity-icon.training {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+}
+
+.activity-icon.event {
+    background: linear-gradient(135deg, var(--africa-green), #2d7d3a);
+}
+
+.activity-icon.holiday {
+    background: linear-gradient(135deg, var(--africa-yellow), #d39e00);
+}
+
+.activity-icon.deadline {
+    background: linear-gradient(135deg, var(--africa-red), #5a1f20);
+}
+
+/* === DASHBOARD ICONS === */
+.dashboard-stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.info-box:hover .dashboard-stat-icon {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* === ACTION BUTTON ICONS === */
+.btn i {
+    transition: transform 0.2s ease;
+}
+
+.btn:hover i {
+    transform: scale(1.1);
+}
+
+.btn-primary i {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.btn-success i {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.btn-danger i {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.btn-warning i {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* === CALENDAR ICONS === */
+.calendar-event-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: white;
+    text-align: center;
+    line-height: 20px;
+    font-size: 12px;
+    margin-right: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.fc-event .calendar-event-icon {
+    margin-right: 5px;
+}
+
+/* === NOTIFICATION ICONS === */
+.notification-icon {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-icon .badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    padding: 2px 6px;
+    border-radius: 50px;
+    font-size: 10px;
+    background-color: var(--africa-red);
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* === TIMELINE ICONS === */
+.timeline-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: white;
+    font-size: 14px;
+    position: absolute;
+    left: -15px;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.timeline-icon.created {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.timeline-icon.approved {
+    background: linear-gradient(135deg, var(--africa-green), #2d7d3a);
+}
+
+.timeline-icon.rejected {
+    background: linear-gradient(135deg, var(--africa-red), #5a1f20);
+}
+
+.timeline-icon.pending {
+    background: linear-gradient(135deg, var(--africa-yellow), #d39e00);
+}
+
+/* === LOADING ICONS === */
+.loading-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* === BADGE ICONS === */
+.badge-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-icon i {
+    font-size: 10px;
+}
+
+.badge-icon.staff {
+    background-color: rgba(52, 143, 65, 0.1);
+    color: var(--africa-green);
+    border: 1px solid rgba(52, 143, 65, 0.2);
+}
+
+.badge-icon.admin {
+    background-color: rgba(180, 162, 105, 0.1);
+    color: var(--africa-gold);
+    border: 1px solid rgba(180, 162, 105, 0.2);
+}
+
+/* === CARD HEADER ICONS === */
+.card-header i {
+    margin-right: 8px;
+    opacity: 0.9;
+}
+
+.card-header.bg-primary i {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.card-header.bg-success i {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.card-header.bg-warning i {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.card-header.bg-danger i {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.card-header.bg-info i {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* === TABLE ICONS === */
+.table-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    margin-right: 8px;
+    font-size: 14px;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-icon.edit {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.table-icon.delete {
+    background: linear-gradient(135deg, var(--africa-red), #5a1f20);
+}
+
+.table-icon.view {
+    background: linear-gradient(135deg, #6f42c1, #5a2d91);
+}
+
+.table-icon.approve {
+    background: linear-gradient(135deg, var(--africa-green), #2d7d3a);
+}
+
+/* === SOCIAL ICONS === */
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    margin: 0 5px;
+}
+
+.social-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.social-icon.facebook {
+    background: linear-gradient(135deg, #1877f2, #166fe5);
+}
+
+.social-icon.twitter {
+    background: linear-gradient(135deg, #1da1f2, #0d8bd9);
+}
+
+.social-icon.linkedin {
+    background: linear-gradient(135deg, #0077b5, #005885);
+}
+
+.social-icon.instagram {
+    background: linear-gradient(135deg, #e4405f, #d13144);
+}
+
+/* === RESPONSIVE ADJUSTMENTS === */
+@media (max-width: 768px) {
+    .activity-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        margin-right: 8px;
+    }
+
+    .dashboard-stat-icon {
+        font-size: 2rem;
+    }
+
+    .social-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .notification-icon .badge {
+        top: -6px;
+        right: -6px;
+        padding: 1px 4px;
+        font-size: 9px;
+    }
+}
+
+/* === ACCESSIBILITY === */
+.icon-button:focus {
+    outline: 2px solid var(--africa-gold);
+    outline-offset: 2px;
+}
+
+.icon-button:focus i {
+    color: var(--africa-gold);
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .nav-link i,
+    .activity-icon,
+    .dashboard-stat-icon,
+    .btn i,
+    .notification-icon .badge,
+    .loading-icon,
+    .social-icon {
+        transition: none;
+        animation: none;
+    }
+}

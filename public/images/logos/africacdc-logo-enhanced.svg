@@ -1,0 +1,78 @@
+<svg width="200" height="100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
+  <defs>
+    <!-- Main gradient -->
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#348F41;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#4CAF50;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#B4A269;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E08F2A;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Text gradient -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:0.9" />
+    </linearGradient>
+
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+
+    <!-- Glow effect -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="200" height="100" fill="url(#mainGrad)" rx="12" ry="12" filter="url(#shadow)"/>
+
+  <!-- Africa continent outline (stylized) -->
+  <g transform="translate(15, 15)">
+    <path d="M20 15 C25 10, 35 10, 45 12 C55 14, 65 20, 70 30 C75 40, 70 50, 65 60 C60 68, 50 70, 40 68 C30 66, 20 60, 15 50 C10 40, 12 30, 15 20 Z"
+          fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2" opacity="0.8"/>
+
+    <!-- Medical cross symbol -->
+    <g transform="translate(35, 30)">
+      <rect x="-2" y="-15" width="4" height="30" fill="white" rx="2" filter="url(#glow)"/>
+      <rect x="-15" y="-2" width="30" height="4" fill="white" rx="2" filter="url(#glow)"/>
+
+      <!-- Small circles for decoration -->
+      <circle cx="-10" cy="-10" r="2" fill="rgba(255,255,255,0.7)"/>
+      <circle cx="10" cy="-10" r="2" fill="rgba(255,255,255,0.7)"/>
+      <circle cx="-10" cy="10" r="2" fill="rgba(255,255,255,0.7)"/>
+      <circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.7)"/>
+    </g>
+  </g>
+
+  <!-- Main title -->
+  <text x="105" y="35" font-family="Arial, sans-serif" font-size="18" font-weight="bold"
+        fill="url(#textGrad)" text-anchor="start" filter="url(#shadow)">
+    AFRICA CDC
+  </text>
+
+  <!-- Subtitle -->
+  <text x="105" y="52" font-family="Arial, sans-serif" font-size="12" font-weight="600"
+        fill="rgba(255,255,255,0.9)" text-anchor="start">
+    Western Regional
+  </text>
+
+  <text x="105" y="67" font-family="Arial, sans-serif" font-size="12" font-weight="600"
+        fill="rgba(255,255,255,0.9)" text-anchor="start">
+    Collaborating Centre
+  </text>
+
+  <!-- Tagline -->
+  <text x="105" y="82" font-family="Arial, sans-serif" font-size="9" font-weight="400"
+        fill="rgba(255,255,255,0.7)" text-anchor="start" font-style="italic">
+    Staff Management System
+  </text>
+
+  <!-- Decorative border -->
+  <rect width="200" height="100" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1" rx="12" ry="12"/>
+</svg>
