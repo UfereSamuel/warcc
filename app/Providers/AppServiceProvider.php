@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Laravel\Socialite\Facades\Socialite;
+use SocialiteProviders\Microsoft\Provider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Configure Microsoft Socialite Provider
+        Socialite::extend('microsoft', function ($app) {
+            $config = $app['config']['services.microsoft'];
+            return Socialite::buildProvider(Provider::class, $config);
+        });
     }
 }
