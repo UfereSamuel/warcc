@@ -24,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
         // Configure Microsoft Socialite Provider
         Socialite::extend('microsoft', function ($app) {
             $config = $app['config']['services.microsoft'];
+            
+            // Use tenant-specific endpoint instead of common
+            if (isset($config['tenant'])) {
+                $config['auth_url'] = "https://login.microsoftonline.com/{$config['tenant']}/oauth2/v2.0/authorize";
+                $config['token_url'] = "https://login.microsoftonline.com/{$config['tenant']}/oauth2/v2.0/token";
+            }
+            
             return Socialite::buildProvider(Provider::class, $config);
         });
     }
