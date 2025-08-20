@@ -35,6 +35,13 @@ class AuthController extends Controller
         try {
             $microsoftUser = Socialite::driver('microsoft')->user();
 
+            // Debug: Log the Microsoft user details
+            \Log::info('Microsoft User Details', [
+                'id' => $microsoftUser->id,
+                'email' => $microsoftUser->email,
+                'name' => $microsoftUser->name
+            ]);
+
             // Find staff by Microsoft ID or email
             $staff = Staff::where('microsoft_id', $microsoftUser->id)
                          ->orWhere('email', $microsoftUser->email)
@@ -58,8 +65,14 @@ class AuthController extends Controller
             // Login the staff member
             Auth::guard('staff')->login($staff);
 
-            return redirect()->intended(route('dashboard'))
-                ->with('success', 'Welcome back, ' . $staff->full_name . '!');
+            // Redirect based on admin status
+            if ($staff->is_admin) {
+                return redirect()->intended(route('admin.dashboard'))
+                    ->with('success', 'Welcome back, ' . $staff->full_name . '!');
+            } else {
+                return redirect()->intended(route('staff.dashboard'))
+                    ->with('success', 'Welcome back, ' . $staff->full_name . '!');
+            }
 
         } catch (\Exception $e) {
             return redirect()->route('auth.login')
