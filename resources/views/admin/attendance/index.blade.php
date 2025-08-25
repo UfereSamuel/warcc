@@ -58,11 +58,11 @@
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-search mr-1"></i> Filter
                                     </button>
-                                    <a href="{{ route('admin.attendance.daily-report', ['date' => $date, 'department' => $department]) }}"
+                                    <a href="{{ route('admin.attendance.daily-report', ['date' => $date, 'position_id' => $position_id]) }}"
                                        class="btn btn-info ml-2">
                                         <i class="fas fa-chart-bar mr-1"></i> Report
                                     </a>
-                                    <a href="{{ route('admin.attendance.export', ['date' => $date, 'department' => $department]) }}"
+                                    <a href="{{ route('admin.attendance.export', ['date' => $date, 'position_id' => $position_id]) }}"
                                        class="btn btn-success ml-2">
                                         <i class="fas fa-download mr-1"></i> Export
                                     </a>

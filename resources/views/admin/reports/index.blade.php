@@ -224,11 +224,11 @@
                     Department Overview
                 </h3>
                 <div class="card-tools">
-                    <span class="badge badge-info">{{ $departmentStats->count() }} Departments</span>
+                    <span class="badge badge-info">{{ $position_idStats->count() }} Departments</span>
                 </div>
             </div>
             <div class="card-body">
-                @if($departmentStats->count() > 0)
+                @if($position_idStats->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
                             <thead>
@@ -239,20 +239,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($departmentStats as $dept)
+                                @foreach($position_idStats as $position)
                                     <tr>
                                         <td>
-                                            <strong>{{ $dept->department }}</strong>
+                                            <strong>{{ $position->department }}</strong>
                                         </td>
                                         <td class="text-center">
-                                            <span class="badge badge-primary">{{ $dept->staff_count }}</span>
+                                            <span class="badge badge-primary">{{ $position->staff_count }}</span>
                                         </td>
                                         <td>
                                             <div class="progress progress-sm">
                                                 <div class="progress-bar bg-primary"
-                                                     style="width: {{ round(($dept->staff_count / $totalStaff) * 100) }}%"></div>
+                                                     style="width: {{ round(($position->staff_count / $totalStaff) * 100) }}%"></div>
                                             </div>
-                                            <small class="text-muted">{{ round(($dept->staff_count / $totalStaff) * 100) }}%</small>
+                                            <small class="text-muted">{{ round(($position->staff_count / $totalStaff) * 100) }}%</small>
                                         </td>
                                     </tr>
                                 @endforeach

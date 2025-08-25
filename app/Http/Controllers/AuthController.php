@@ -79,7 +79,9 @@ class AuthController extends Controller
             }
 
             // Redirect based on admin status
-            if ($staff->is_admin) {
+            // Super admin (admin@africacdc.org) goes to admin dashboard only
+            // Other admins go to staff dashboard to access tracker functionality
+            if ($staff->is_admin && $staff->email === 'admin@africacdc.org') {
                 return redirect()->intended(route('admin.dashboard'))
                     ->with('success', 'Welcome back, ' . $staff->full_name . '!');
             } else {

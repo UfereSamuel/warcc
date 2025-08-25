@@ -233,32 +233,32 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($departmentStats as $dept)
+                            @foreach($position_idStats as $position)
                             <tr>
                                 <td>
-                                    <strong>{{ $dept->department }}</strong>
+                                    <strong>{{ $position->department }}</strong>
                                 </td>
-                                <td>{{ $dept->total }}</td>
-                                <td>{{ $dept->active }}</td>
+                                <td>{{ $position->total }}</td>
+                                <td>{{ $position->active }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <span class="mr-2">{{ $dept->attendance_rate }}%</span>
+                                        <span class="mr-2">{{ $position->attendance_rate }}%</span>
                                         <div class="mini-progress">
-                                            <div class="mini-progress-bar" style="width: {{ $dept->attendance_rate }}%"></div>
+                                            <div class="mini-progress-bar" style="width: {{ $position->attendance_rate }}%"></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <span class="mr-2">{{ $dept->tracker_rate }}%</span>
+                                        <span class="mr-2">{{ $position->tracker_rate }}%</span>
                                         <div class="mini-progress">
-                                            <div class="mini-progress-bar tracker" style="width: {{ $dept->tracker_rate }}%"></div>
+                                            <div class="mini-progress-bar tracker" style="width: {{ $position->tracker_rate }}%"></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     @php
-                                        $avgPerformance = ($dept->attendance_rate + $dept->tracker_rate) / 2;
+                                        $avgPerformance = ($position->attendance_rate + $position->tracker_rate) / 2;
                                     @endphp
                                     @if($avgPerformance >= 80)
                                         <span class="badge badge-success">Excellent</span>

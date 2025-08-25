@@ -44,9 +44,9 @@
                                 <label for="department">Department</label>
                                 <select class="form-control" id="department" name="department">
                                     <option value="">All Departments</option>
-                                    @foreach($departments as $dept)
-                                        <option value="{{ $dept }}" {{ $department == $dept ? 'selected' : '' }}>
-                                            {{ $dept }}
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}" {{ $position_id == $position->id ? 'selected' : '' }}>
+                                            {{ $position->title }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -59,7 +59,7 @@
                                     <button type="submit" class="btn btn-info">
                                         <i class="fas fa-chart-bar mr-1"></i> Generate Report
                                     </button>
-                                    <a href="{{ route('admin.attendance.export', ['date' => $date, 'department' => $department]) }}"
+                                    <a href="{{ route('admin.attendance.export', ['date' => $date, 'position_id' => $position_id]) }}"
                                        class="btn btn-success ml-2">
                                         <i class="fas fa-download mr-1"></i> Export CSV
                                     </a>
@@ -84,7 +84,7 @@
                 </h3>
             </div>
             <div class="card-body table-responsive p-0">
-                @if($departmentSummary->count() > 0)
+                @if($position_idSummary->count() > 0)
                     <table class="table table-hover">
                         <thead class="thead-light">
                             <tr>
@@ -98,42 +98,42 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($departmentSummary as $dept)
+                            @foreach($position_idSummary as $position)
                                 <tr>
                                     <td>
-                                        <strong>{{ $dept['department'] }}</strong>
+                                        <strong>{{ $position['department'] }}</strong>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge badge-primary">{{ $dept['total_staff'] }}</span>
+                                        <span class="badge badge-primary">{{ $position['total_staff'] }}</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge badge-success">{{ $dept['present'] }}</span>
+                                        <span class="badge badge-success">{{ $position['present'] }}</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge badge-warning">{{ $dept['late'] }}</span>
+                                        <span class="badge badge-warning">{{ $position['late'] }}</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge badge-danger">{{ $dept['absent'] }}</span>
+                                        <span class="badge badge-danger">{{ $position['absent'] }}</span>
                                     </td>
                                     <td class="text-center">
                                         <div class="progress" style="height: 20px;">
                                             <div class="progress-bar
-                                                @if($dept['attendance_rate'] >= 90) bg-success
-                                                @elseif($dept['attendance_rate'] >= 80) bg-info
-                                                @elseif($dept['attendance_rate'] >= 70) bg-warning
+                                                @if($position['attendance_rate'] >= 90) bg-success
+                                                @elseif($position['attendance_rate'] >= 80) bg-info
+                                                @elseif($position['attendance_rate'] >= 70) bg-warning
                                                 @else bg-danger
                                                 @endif"
-                                                style="width: {{ $dept['attendance_rate'] }}%">
-                                                {{ $dept['attendance_rate'] }}%
+                                                style="width: {{ $position['attendance_rate'] }}%">
+                                                {{ $position['attendance_rate'] }}%
                                             </div>
                                         </div>
                                     </td>
                                     <td class="text-center">
-                                        @if($dept['attendance_rate'] >= 90)
+                                        @if($position['attendance_rate'] >= 90)
                                             <span class="badge badge-success">Excellent</span>
-                                        @elseif($dept['attendance_rate'] >= 80)
+                                        @elseif($position['attendance_rate'] >= 80)
                                             <span class="badge badge-info">Good</span>
-                                        @elseif($dept['attendance_rate'] >= 70)
+                                        @elseif($position['attendance_rate'] >= 70)
                                             <span class="badge badge-warning">Fair</span>
                                         @else
                                             <span class="badge badge-danger">Poor</span>

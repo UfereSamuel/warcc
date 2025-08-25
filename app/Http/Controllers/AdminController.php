@@ -1070,8 +1070,8 @@ class AdminController extends Controller
         $statuses = ['at_duty_station', 'on_mission', 'on_leave'];
 
         return view('admin.weekly-trackers.index', compact(
-            'trackers', 'missingStaff', 'stats', 'departments', 'statuses',
-            'week', 'weekStart', 'weekEnd', 'department', 'status'
+            'trackers', 'missingStaff', 'stats', 'positions', 'statuses',
+            'week', 'weekStart', 'weekEnd', 'position_id', 'status'
         ));
     }
 

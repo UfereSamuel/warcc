@@ -51,9 +51,9 @@
                                 <label for="department">Department</label>
                                 <select class="form-control" id="department" name="department">
                                     <option value="">All Departments</option>
-                                    @foreach($departments as $dept)
-                                        <option value="{{ $dept }}" {{ $department == $dept ? 'selected' : '' }}>
-                                            {{ $dept }}
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}" {{ $position_id == $position->id ? 'selected' : '' }}>
+                                            {{ $position->title }}
                                         </option>
                                     @endforeach
                                 </select>

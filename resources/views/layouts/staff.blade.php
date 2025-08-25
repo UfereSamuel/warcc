@@ -182,6 +182,14 @@
                             <p>Activity Requests</p>
                         </a>
                     </li>
+                    @if(auth()->guard('staff')->user()->is_admin && auth()->guard('staff')->user()->email !== 'admin@africacdc.org')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.dashboard') }}" class="nav-link">
+                            <i class="nav-icon fas fa-cogs"></i>
+                            <p>Admin Panel</p>
+                        </a>
+                    </li>
+                    @endif
                     <li class="nav-item">
                         <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-user-cog"></i>
