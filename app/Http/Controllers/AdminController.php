@@ -910,16 +910,16 @@ class AdminController extends Controller
     public function attendanceIndex(Request $request)
     {
         $date = $request->get('date', today()->format('Y-m-d'));
-        $department = $request->get('department');
+        $position_id = $request->get('position_id');
 
         // Get today's attendance with staff details
         $query = Attendance::with('staff')
             ->whereDate('date', $date)
             ->orderBy('clock_in_time', 'asc');
 
-        if ($department) {
-            $query->whereHas('staff', function($q) use ($department) {
-                $q->where('department', $department);
+        if ($position_id) {
+            $query->whereHas('staff', function($q) use ($position_id) {
+                $q->where('position_id', $position_id);
             });
         }
 
@@ -930,14 +930,14 @@ class AdminController extends Controller
         $absentStaffQuery = Staff::where('status', 'active')
             ->whereNotIn('id', $checkedInStaffIds);
 
-        if ($department) {
-            $absentStaffQuery->where('department', $department);
+        if ($position_id) {
+            $absentStaffQuery->where('position_id', $position_id);
         }
 
         $absentStaff = $absentStaffQuery->get();
 
-        // Get departments for filter
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        // Get positions for filter
+        $positions = \App\Models\Position::orderBy('title')->get();
 
         // Calculate statistics
         $clockInTimes = $attendances->whereNotNull('clock_in_time')->pluck('clock_in_time');
@@ -975,15 +975,15 @@ class AdminController extends Controller
     public function dailyReport(Request $request)
     {
         $date = $request->get('date', today()->format('Y-m-d'));
-        $department = $request->get('department');
+        $position_id = $request->get('position_id');
 
         // Get attendance for the selected date
         $query = Attendance::with('staff')
             ->whereDate('date', $date);
 
-        if ($department) {
-            $query->whereHas('staff', function($q) use ($department) {
-                $q->where('department', $department);
+        if ($position_id) {
+            $query->whereHas('staff', function($q) use ($position_id) {
+                $q->where('position_id', $position_id);
             });
         }
 
@@ -1010,10 +1010,10 @@ class AdminController extends Controller
                 ];
             });
 
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $positions = \App\Models\Position::orderBy('title')->get();
 
         return view('admin.attendance.daily-report', compact(
-            'attendances', 'departmentSummary', 'departments', 'date', 'department'
+            'attendances', 'departmentSummary', 'positions', 'date', 'position_id'
         ));
     }
 
@@ -1025,7 +1025,7 @@ class AdminController extends Controller
     public function weeklyTrackersIndex(Request $request)
     {
         $week = $request->get('week', now()->startOfWeek()->format('Y-m-d'));
-        $department = $request->get('department');
+        $position_id = $request->get('position_id');
         $status = $request->get('status');
 
         $weekStart = \Carbon\Carbon::parse($week)->startOfWeek();
@@ -1034,9 +1034,9 @@ class AdminController extends Controller
         $query = WeeklyTracker::with('staff', 'leaveType')
             ->whereDate('week_start_date', $weekStart);
 
-        if ($department) {
-            $query->whereHas('staff', function($q) use ($department) {
-                $q->where('department', $department);
+        if ($position_id) {
+            $query->whereHas('staff', function($q) use ($position_id) {
+                $q->where('position_id', $position_id);
             });
         }
 
@@ -1051,8 +1051,8 @@ class AdminController extends Controller
         $missingStaffQuery = Staff::where('status', 'active')
             ->whereNotIn('id', $submittedStaffIds);
 
-        if ($department) {
-            $missingStaffQuery->where('department', $department);
+        if ($position_id) {
+            $missingStaffQuery->where('position_id', $position_id);
         }
 
         $missingStaff = $missingStaffQuery->get();
@@ -1066,7 +1066,7 @@ class AdminController extends Controller
             'not_submitted' => $missingStaff->count()
         ];
 
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $positions = \App\Models\Position::orderBy('title')->get();
         $statuses = ['at_duty_station', 'on_mission', 'on_leave'];
 
         return view('admin.weekly-trackers.index', compact(
@@ -1148,7 +1148,7 @@ class AdminController extends Controller
     public function missionsIndex(Request $request)
     {
         $status = $request->get('status');
-        $department = $request->get('department');
+        $position_id = $request->get('position_id');
 
         $query = Mission::with('staff');
 
@@ -1156,15 +1156,15 @@ class AdminController extends Controller
             $query->where('status', $status);
         }
 
-        if ($department) {
-            $query->whereHas('staff', function($q) use ($department) {
-                $q->where('department', $department);
+        if ($position_id) {
+            $query->whereHas('staff', function($q) use ($position_id) {
+                $q->where('position_id', $position_id);
             });
         }
 
         $missions = $query->orderBy('created_at', 'desc')->paginate(20);
 
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $positions = \App\Models\Position::orderBy('title')->get();
         $statuses = ['pending', 'approved', 'rejected', 'completed'];
 
         // Statistics
@@ -1176,7 +1176,7 @@ class AdminController extends Controller
             'completed' => Mission::where('status', 'completed')->count()
         ];
 
-        return view('admin.missions.index', compact('missions', 'departments', 'statuses', 'stats', 'status', 'department'));
+        return view('admin.missions.index', compact('missions', 'positions', 'statuses', 'stats', 'status', 'position_id'));
     }
 
     /**
@@ -1220,7 +1220,7 @@ class AdminController extends Controller
     public function leavesIndex(Request $request)
     {
         $status = $request->get('status');
-        $department = $request->get('department');
+        $position_id = $request->get('position_id');
         $leaveType = $request->get('leave_type');
 
         $query = LeaveRequest::with('staff', 'leaveType');
@@ -1229,9 +1229,9 @@ class AdminController extends Controller
             $query->where('status', $status);
         }
 
-        if ($department) {
-            $query->whereHas('staff', function($q) use ($department) {
-                $q->where('department', $department);
+        if ($position_id) {
+            $query->whereHas('staff', function($q) use ($position_id) {
+                $q->where('position_id', $position_id);
             });
         }
 
@@ -1241,7 +1241,7 @@ class AdminController extends Controller
 
         $leaveRequests = $query->orderBy('created_at', 'desc')->paginate(20);
 
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $positions = \App\Models\Position::orderBy('title')->get();
         $leaveTypes = \App\Models\LeaveType::all();
         $statuses = ['pending', 'approved', 'rejected'];
 
@@ -1253,7 +1253,7 @@ class AdminController extends Controller
             'rejected' => LeaveRequest::where('status', 'rejected')->count()
         ];
 
-        return view('admin.leaves.index', compact('leaveRequests', 'departments', 'leaveTypes', 'statuses', 'stats', 'status', 'department', 'leaveType'));
+        return view('admin.leaves.index', compact('leaveRequests', 'positions', 'leaveTypes', 'statuses', 'stats', 'status', 'position_id', 'leaveType'));
     }
 
     /**
@@ -1617,10 +1617,10 @@ class AdminController extends Controller
         $types = ['meeting', 'training', 'event', 'holiday', 'deadline'];
         $statuses = ['pending', 'approved', 'rejected'];
         
-        // Get departments for filter
-        $departments = \App\Models\Staff::distinct()->pluck('department')->filter()->sort();
+        // Get positions for filter
+        $positions = \App\Models\Position::orderBy('title')->get();
 
-        return view('admin.activity-requests.index', compact('requests', 'stats', 'types', 'statuses', 'status', 'type', 'departments'));
+        return view('admin.activity-requests.index', compact('requests', 'stats', 'types', 'statuses', 'status', 'type', 'positions'));
     }
 
     /**
