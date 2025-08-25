@@ -149,7 +149,7 @@
 
                             <div class="form-group">
                                 <label for="hire_date">Hire Date</label>
-                                <input type="date" class="form-control @error('hire_date') is-invalid @error"
+                                <input type="date" class="form-control @error('hire_date') is-invalid @enderror"
                                        id="hire_date" name="hire_date" value="{{ old('hire_date') }}"
                                        max="{{ date('Y-m-d') }}">
                                 @error('hire_date')
