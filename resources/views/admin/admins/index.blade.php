@@ -57,12 +57,12 @@
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
-                        <label for="department">Department</label>
-                        <select class="form-control" id="department" name="department">
-                            <option value="">All Departments</option>
-                            @foreach($departments as $department)
-                                <option value="{{ $department }}" {{ request('department') === $department ? 'selected' : '' }}>
-                                    {{ $department }}
+                        <label for="position_id">Position</label>
+                        <select class="form-control" id="position_id" name="position_id">
+                            <option value="">All Positions</option>
+                            @foreach($positions as $position)
+                                <option value="{{ $position->id }}" {{ request('position_id') == $position->id ? 'selected' : '' }}>
+                                    {{ $position->title }}
                                 </option>
                             @endforeach
                         </select>

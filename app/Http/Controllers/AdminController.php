@@ -561,7 +561,6 @@ class AdminController extends Controller
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('staff_id', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%")
                   ->orWhereHas('position', function($posQuery) use ($search) {
                       $posQuery->where('title', 'like', "%{$search}%");
                   });
@@ -573,9 +572,9 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by department
-        if ($request->filled('department')) {
-            $query->where('department', $request->department);
+        // Filter by position
+        if ($request->filled('position_id')) {
+            $query->where('position_id', $request->position_id);
         }
 
         // Filter by gender
