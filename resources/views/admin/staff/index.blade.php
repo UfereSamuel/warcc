@@ -79,9 +79,11 @@
                     <a href="{{ route('admin.staff.index') }}" class="btn btn-secondary">
                         <i class="fas fa-times mr-1"></i> Clear
                     </a>
+                    @if(auth()->guard('staff')->user()->email === 'admin@africacdc.org')
                     <a href="{{ route('admin.staff.create') }}" class="btn btn-success ml-2">
                         <i class="fas fa-plus mr-1"></i> Add New Staff
                     </a>
+                    @endif
                 </div>
             </div>
         </form>
@@ -249,9 +251,11 @@
                     @if(request()->hasAny(['search', 'status', 'role', 'department', 'gender']))
                         Try adjusting your search criteria or <a href="{{ route('admin.staff.index') }}">clear filters</a>.
                     @else
+                        @if(auth()->guard('staff')->user()->email === 'admin@africacdc.org')
                         <a href="{{ route('admin.staff.create') }}" class="btn btn-success">
                             <i class="fas fa-plus mr-1"></i> Add First Staff Member
                         </a>
+                        @endif
                     @endif
                 </p>
             </div>

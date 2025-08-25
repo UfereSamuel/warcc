@@ -646,6 +646,11 @@ class AdminController extends Controller
      */
     public function staffCreate()
     {
+        // Only super admin can create new staff
+        if (auth()->guard('staff')->user()->email !== 'admin@africacdc.org') {
+            abort(403, 'Only super admin can create new staff members.');
+        }
+        
         $positions = \App\Models\Position::active()->orderBy('title')->get();
         return view('admin.staff.create', compact('positions'));
     }
@@ -655,6 +660,11 @@ class AdminController extends Controller
      */
     public function staffStore(Request $request)
     {
+        // Only super admin can create new staff
+        if (auth()->guard('staff')->user()->email !== 'admin@africacdc.org') {
+            abort(403, 'Only super admin can create new staff members.');
+        }
+        
         $request->validate([
             'staff_id' => 'required|string|unique:staff,staff_id|max:20',
             'first_name' => 'required|string|max:100',
