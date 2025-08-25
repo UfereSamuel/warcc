@@ -587,10 +587,10 @@ class AdminController extends Controller
 
         // Get filter options
         $statuses = Staff::distinct()->pluck('status')->filter()->sort();
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $positions = \App\Models\Position::orderBy('title')->get();
         $genders = ['male', 'female', 'other'];
 
-        return view('admin.admins.index', compact('admins', 'statuses', 'departments', 'genders'));
+        return view('admin.admins.index', compact('admins', 'statuses', 'positions', 'genders'));
     }
 
     /**
@@ -608,7 +608,6 @@ class AdminController extends Controller
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('staff_id', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%")
                   ->orWhereHas('position', function($posQuery) use ($search) {
                       $posQuery->where('title', 'like', "%{$search}%");
                   });
@@ -623,9 +622,9 @@ class AdminController extends Controller
         // Only show non-admin staff
                 $query->where('is_admin', false);
 
-        // Filter by department
-        if ($request->filled('department')) {
-            $query->where('department', $request->department);
+        // Filter by position
+        if ($request->filled('position_id')) {
+            $query->where('position_id', $request->position_id);
         }
 
         // Filter by gender
@@ -636,11 +635,11 @@ class AdminController extends Controller
         $staff = $query->with('position')->orderBy('created_at', 'desc')->paginate(15);
 
         // Get filter options
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $positions = \App\Models\Position::orderBy('title')->get();
         $statuses = ['active', 'inactive'];
         $genders = ['male', 'female', 'other'];
 
-        return view('admin.staff.index', compact('staff', 'departments', 'statuses', 'genders'));
+        return view('admin.staff.index', compact('staff', 'positions', 'statuses', 'genders'));
     }
 
     /**
@@ -648,9 +647,8 @@ class AdminController extends Controller
      */
     public function staffCreate()
     {
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
         $positions = \App\Models\Position::active()->orderBy('title')->get();
-        return view('admin.staff.create', compact('departments', 'positions'));
+        return view('admin.staff.create', compact('positions'));
     }
 
     /**
@@ -666,7 +664,6 @@ class AdminController extends Controller
             'gender' => 'required|in:male,female,other',
             'phone' => 'nullable|string|max:20',
             'position_id' => 'required|exists:positions,id',
-            'department' => 'required|string|max:100',
             'hire_date' => 'required|date|before_or_equal:today',
             'annual_leave_balance' => 'required|integer|min:0|max:50',
             'status' => 'required|in:active,inactive',
@@ -735,9 +732,8 @@ class AdminController extends Controller
      */
     public function staffEdit(Staff $staff)
     {
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
         $positions = \App\Models\Position::active()->orderBy('title')->get();
-        return view('admin.staff.edit', compact('staff', 'departments', 'positions'));
+        return view('admin.staff.edit', compact('staff', 'positions'));
     }
 
     /**
@@ -753,7 +749,6 @@ class AdminController extends Controller
             'gender' => 'required|in:male,female,other',
             'phone' => 'nullable|string|max:20',
             'position_id' => 'required|exists:positions,id',
-            'department' => 'required|string|max:100',
             'hire_date' => 'required|date|before_or_equal:today',
             'annual_leave_balance' => 'required|integer|min:0|max:50',
             'status' => 'required|in:active,inactive',
