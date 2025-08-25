@@ -56,12 +56,11 @@ class ActivityRequestController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'location' => 'nullable|string|max:255',
             'type' => 'required|in:meeting,training,event,holiday,deadline',
-            'justification' => 'required|string|max:1000',
+            'justification' => 'nullable|string|max:1000',
             'expected_participants' => 'nullable|integer|min:1|max:1000',
             'estimated_budget' => 'nullable|numeric|min:0|max:999999.99',
         ], [
             'start_date.after_or_equal' => 'Start date must be today or in the future.',
-            'justification.required' => 'Please provide a justification for this activity request.',
         ]);
 
         ActivityRequest::create([
@@ -136,12 +135,11 @@ class ActivityRequestController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'location' => 'nullable|string|max:255',
             'type' => 'required|in:meeting,training,event,holiday,deadline',
-            'justification' => 'required|string|max:1000',
+            'justification' => 'nullable|string|max:1000',
             'expected_participants' => 'nullable|integer|min:1|max:1000',
             'estimated_budget' => 'nullable|numeric|min:0|max:999999.99',
         ], [
             'start_date.after_or_equal' => 'Start date must be today or in the future.',
-            'justification.required' => 'Please provide a justification for this activity request.',
         ]);
 
         $activityRequest->update([

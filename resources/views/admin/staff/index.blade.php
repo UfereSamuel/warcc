@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-sm-6">
             <h1 class="m-0 text-dark">Staff Management</h1>
-            <p class="text-muted">Manage all staff members and their information</p>
+            <p class="text-muted">Manage regular staff members and their information</p>
         </div>
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -55,32 +55,8 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label for="role">Role</label>
-                        <select class="form-control" id="role" name="role">
-                            <option value="">All Roles</option>
-                            @foreach($roles as $role)
-                                <option value="{{ $role }}" {{ request('role') == $role ? 'selected' : '' }}>
-                                    {{ ucfirst($role) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <div class="form-group">
-                        <label for="department">Department</label>
-                        <select class="form-control" id="department" name="department">
-                            <option value="">All Departments</option>
-                            @foreach($departments as $department)
-                                <option value="{{ $department }}" {{ request('department') == $department ? 'selected' : '' }}>
-                                    {{ $department }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
+
+
                 <div class="col-md-2">
                     <div class="form-group">
                         <label for="gender">Gender</label>
@@ -134,22 +110,13 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="info-box bg-gradient-info">
-            <span class="info-box-icon"><i class="fas fa-building"></i></span>
-            <div class="info-box-content">
-                <span class="info-box-text">Departments</span>
-                <span class="info-box-number">{{ $departments->count() }}</span>
-                <span class="progress-description">Active departments</span>
-            </div>
-        </div>
-    </div>
+
     <div class="col-lg-3 col-md-6">
         <div class="info-box bg-gradient-warning">
             <span class="info-box-icon"><i class="fas fa-clock"></i></span>
             <div class="info-box-content">
                 <span class="info-box-text">Recent Hires</span>
-                <span class="info-box-number">{{ $staff->where('hire_date', '>=', now()->subMonths(3))->count() }}</span>
+                <span class="info-box-number">{{ $staff->whereNotNull('hire_date')->where('hire_date', '>=', now()->subMonths(3))->count() }}</span>
                 <span class="progress-description">Last 3 months</span>
             </div>
         </div>
@@ -162,7 +129,7 @@
         <h3 class="card-title">
             <i class="fas fa-list mr-2"></i>
             Staff Members
-            @if(request()->hasAny(['search', 'status', 'role', 'department', 'gender']))
+            @if(request()->hasAny(['search', 'status', 'role', 'gender']))
                 <small class="text-muted">(Filtered Results)</small>
             @endif
         </h3>
@@ -178,7 +145,6 @@
                         <th>Photo</th>
                         <th>Staff Info</th>
                         <th>Position</th>
-                        <th>Department</th>
                         <th>Status</th>
                         <th>Role</th>
                         <th>Leave Balance</th>
@@ -207,10 +173,7 @@
                                 </small>
                             </td>
                             <td>
-                                <strong>{{ $member->position }}</strong>
-                            </td>
-                            <td>
-                                <span class="badge badge-info">{{ $member->department }}</span>
+                                <strong>{{ $member->position_title }}</strong>
                             </td>
                             <td>
                                 @if($member->status === 'active')
@@ -230,9 +193,13 @@
                                 <span class="text-bold">{{ $member->annual_leave_balance }}</span> days
                             </td>
                             <td>
-                                <small>{{ $member->hire_date->format('M d, Y') }}</small>
-                                <br>
-                                <small class="text-muted">{{ $member->hire_date->diffForHumans() }}</small>
+                                @if($member->hire_date)
+                                    <small>{{ $member->hire_date->format('M d, Y') }}</small>
+                                    <br>
+                                    <small class="text-muted">{{ $member->hire_date->diffForHumans() }}</small>
+                                @else
+                                    <small class="text-muted">Not set</small>
+                                @endif
                             </td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
@@ -247,6 +214,20 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     @if($member->id !== auth()->guard('staff')->id())
+                                        @if(auth()->guard('staff')->user()->is_admin)
+                                            @if(!$member->is_admin && $member->email !== 'admin@africacdc.org')
+                                                <form action="{{ route('admin.staff.promote', $member) }}" method="POST" style="display: inline;">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <button type="submit" 
+                                                            class="btn btn-success btn-sm" 
+                                                            title="Promote to Administrator"
+                                                            onclick="return confirm('Promote {{ $member->full_name }} to administrator?')">
+                                                        <i class="fas fa-user-plus"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
                                         <button type="button"
                                                 class="btn btn-danger btn-sm"
                                                 title="Delete"
@@ -357,7 +338,7 @@
         }
 
         // Auto-submit form on filter change
-        $('#status, #role, #department, #gender').change(function() {
+        $('#status, #role, #gender').change(function() {
             $(this).closest('form').submit();
         });
 

@@ -81,12 +81,6 @@
                                 <td><i class="fas fa-users text-primary mr-1"></i>{{ $activityRequest->expected_participants }} expected</td>
                             </tr>
                             @endif
-                            @if($activityRequest->estimated_budget)
-                            <tr>
-                                <td><strong>Budget:</strong></td>
-                                <td><strong class="text-success">GHS {{ number_format($activityRequest->estimated_budget, 2) }}</strong></td>
-                            </tr>
-                            @endif
                         </table>
                     </div>
                 </div>
@@ -183,7 +177,7 @@
                     </tr>
                     <tr>
                         <td><strong>Position:</strong></td>
-                        <td>{{ $activityRequest->requester->position }}</td>
+                                                        <td>{{ $activityRequest->requester->position_title }}</td>
                     </tr>
                     <tr>
                         <td><strong>Submitted:</strong></td>

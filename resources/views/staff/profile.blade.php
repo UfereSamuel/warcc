@@ -28,7 +28,7 @@
 
                 <h3 class="profile-username text-center">{{ $staff->full_name }}</h3>
 
-                <p class="text-muted text-center">{{ $staff->position ?? 'Staff Member' }}</p>
+                <p class="text-muted text-center">{{ $staff->position_title ?? 'Staff Member' }}</p>
 
                 <ul class="list-group list-group-unbordered mb-3">
                     <li class="list-group-item">
@@ -145,7 +145,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Position</label>
-                            <p class="form-control-static">{{ $staff->position ?? 'Not specified' }}</p>
+                                                            <p class="form-control-static">{{ $staff->position_title ?? 'Not specified' }}</p>
                         </div>
                     </div>
                 </div>

@@ -45,6 +45,7 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
@@ -63,6 +64,12 @@ return [
 
         'resend' => [
             'transport' => 'resend',
+        ],
+
+        'microsoft-graph' => [
+            'transport' => 'microsoft-graph',
+            'access_token' => env('MICROSOFT_GRAPH_ACCESS_TOKEN'),
+            'tenant_id' => env('MICROSOFT_TENANT_ID'),
         ],
 
         'sendmail' => [

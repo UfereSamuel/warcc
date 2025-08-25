@@ -13,12 +13,16 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
         ]);
 
         // Configure authentication redirects
         $middleware->redirectGuestsTo(fn () => route('auth.login'));
         $middleware->redirectUsersTo('/dashboard');
     })
+    ->withProviders([
+        \App\Providers\MicrosoftGraphServiceProvider::class,
+    ])
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

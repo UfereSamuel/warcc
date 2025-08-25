@@ -20,26 +20,356 @@ use App\Models\ActivityRequest;
 class AdminController extends Controller
 {
     /**
-     * Show admin dashboard
+     * Show admin dashboard with comprehensive analytics
      */
     public function dashboard()
     {
-        // Get activity request statistics
-        $activityRequestStats = [
-            'total' => ActivityRequest::count(),
-            'pending' => ActivityRequest::pending()->count(),
-            'approved' => ActivityRequest::approved()->count(),
-            'rejected' => ActivityRequest::rejected()->count(),
+        // Get current date ranges
+        $today = now();
+        $currentWeek = [
+            'start' => $today->startOfWeek()->copy(),
+            'end' => $today->endOfWeek()->copy()
+        ];
+        $currentMonth = [
+            'start' => $today->startOfMonth()->copy(),
+            'end' => $today->endOfMonth()->copy()
         ];
 
-        // Get recent activity requests
+        // Staff overview statistics
+        $staffStats = [
+            'total' => Staff::count(),
+            'regular' => Staff::where('is_admin', false)->count(),
+            'admins' => Staff::where('is_admin', true)->count(),
+            'active' => Staff::where('status', 'active')->count(),
+        ];
+
+        // Attendance analytics
+        $attendanceStats = [
+            'today_present' => Attendance::whereDate('date', $today)
+                ->whereNotNull('clock_in_time')
+                ->count(),
+            'today_total' => Staff::where('status', 'active')->count(),
+            'week_completion' => $this->getWeeklyAttendanceCompletion(),
+            'month_average' => $this->getMonthlyAttendanceAverage(),
+        ];
+
+        // Weekly tracker analytics
+        $weeklyTrackerStats = [
+            'this_week_submitted' => WeeklyTracker::whereBetween('week_start_date', [$currentWeek['start'], $currentWeek['end']])
+                ->where('status', 'submitted')
+                ->count(),
+            'this_week_pending' => WeeklyTracker::whereBetween('week_start_date', [$currentWeek['start'], $currentWeek['end']])
+                ->whereIn('status', ['draft', 'pending'])
+                ->count(),
+            'completion_rate' => $this->getWeeklyTrackerCompletionRate(),
+            'monthly_trends' => $this->getMonthlyTrackerTrends(),
+        ];
+
+        // Staff status distribution
+        $staffStatusData = [
+            'at_office' => Staff::whereDoesntHave('missions', function($q) {
+                $q->where('status', 'approved')
+                  ->where('start_date', '<=', today())
+                  ->where('end_date', '>=', today());
+            })->whereDoesntHave('leaveRequests', function($q) {
+                $q->where('status', 'approved')
+                  ->where('start_date', '<=', today())
+                  ->where('end_date', '>=', today());
+            })->count(),
+            'on_mission' => Staff::whereHas('missions', function($q) {
+                $q->where('status', 'approved')
+                  ->where('start_date', '<=', today())
+                  ->where('end_date', '>=', today());
+            })->count(),
+            'on_leave' => Staff::whereHas('leaveRequests', function($q) {
+                $q->where('status', 'approved')
+                  ->where('start_date', '<=', today())
+                  ->where('end_date', '>=', today());
+            })->count(),
+        ];
+
+
+
+        // Recent activity requests
         $recentActivityRequests = ActivityRequest::with(['requester'])
             ->pending()
             ->recentFirst()
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact('activityRequestStats', 'recentActivityRequests'));
+        // Position-based statistics instead of department
+        $positionStats = $this->getPositionStats();
+
+        // Chart data for frontend
+        $chartData = [
+            'attendance_trend' => $this->getAttendanceTrendData(),
+            'tracker_completion' => $this->getTrackerCompletionData(),
+            'gender_breakdown' => $this->getGenderBreakdownData(),
+            'monthly_comparison' => $this->getMonthlyComparisonData(),
+        ];
+
+        return view('admin.dashboard', compact(
+            'staffStats',
+            'attendanceStats', 
+            'weeklyTrackerStats',
+            'staffStatusData',
+            'positionStats',
+            'recentActivityRequests',
+            'chartData'
+        ));
+    }
+
+    /**
+     * Get position-based statistics for dashboard
+     */
+    private function getPositionStats()
+    {
+        $today = now();
+        $startOfWeek = $today->copy()->startOfWeek();
+        
+        return \App\Models\Position::with(['staff' => function($query) {
+            $query->where('status', 'active');
+        }])->get()->map(function($position) use ($today, $startOfWeek) {
+            $activeStaff = $position->staff->where('status', 'active');
+            $totalStaff = $activeStaff->count();
+            
+            if ($totalStaff === 0) {
+                return (object)[
+                    'department' => $position->title, // Using 'department' key for compatibility with view
+                    'total' => 0,
+                    'active' => 0,
+                    'attendance_rate' => 0,
+                    'tracker_rate' => 0,
+                ];
+            }
+            
+            // Calculate today's attendance rate
+            $todayAttendance = Attendance::whereDate('date', $today)
+                ->whereIn('staff_id', $activeStaff->pluck('id'))
+                ->whereNotNull('clock_in_time')
+                ->count();
+            $attendanceRate = round(($todayAttendance / $totalStaff) * 100, 1);
+            
+            // Calculate weekly tracker submission rate
+            $weeklyTrackers = WeeklyTracker::whereDate('week_start_date', $startOfWeek)
+                ->whereIn('staff_id', $activeStaff->pluck('id'))
+                ->where('status', '!=', 'draft')
+                ->count();
+            $trackerRate = round(($weeklyTrackers / $totalStaff) * 100, 1);
+            
+            return (object)[
+                'department' => $position->title, // Using 'department' key for compatibility with view
+                'total' => $totalStaff,
+                'active' => $totalStaff, // All staff in this query are active
+                'attendance_rate' => $attendanceRate,
+                'tracker_rate' => $trackerRate,
+            ];
+        })->filter(function($stat) {
+            return $stat->total > 0; // Only show positions that have staff
+        });
+    }
+
+    /**
+     * Get weekly attendance completion rate
+     */
+    private function getWeeklyAttendanceCompletion()
+    {
+        $startOfWeek = now()->startOfWeek();
+        $endOfWeek = now()->endOfWeek();
+        
+        $totalWorkDays = 5; // Monday to Friday
+        $totalStaff = Staff::where('status', 'active')->count();
+        $expectedAttendances = $totalStaff * $totalWorkDays;
+        
+        $actualAttendances = Attendance::whereBetween('date', [$startOfWeek, $endOfWeek])
+            ->whereNotNull('clock_in_time')
+            ->count();
+            
+        return $expectedAttendances > 0 ? round(($actualAttendances / $expectedAttendances) * 100, 1) : 0;
+    }
+
+    /**
+     * Get monthly attendance average
+     */
+    private function getMonthlyAttendanceAverage()
+    {
+        $startOfMonth = now()->startOfMonth();
+        $endOfMonth = now()->endOfMonth();
+        
+        $workDaysInMonth = 22; // Approximate work days
+        $totalStaff = Staff::where('status', 'active')->count();
+        $expectedAttendances = $totalStaff * $workDaysInMonth;
+        
+        $actualAttendances = Attendance::whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->whereNotNull('clock_in_time')
+            ->count();
+            
+        return $expectedAttendances > 0 ? round(($actualAttendances / $expectedAttendances) * 100, 1) : 0;
+    }
+
+    /**
+     * Get weekly tracker completion rate
+     */
+    private function getWeeklyTrackerCompletionRate()
+    {
+        $currentWeekStart = now()->startOfWeek();
+        $totalStaff = Staff::where('status', 'active')->count();
+        
+        $submittedTrackers = WeeklyTracker::where('week_start_date', $currentWeekStart)
+            ->where('status', 'submitted')
+            ->count();
+            
+        return $totalStaff > 0 ? round(($submittedTrackers / $totalStaff) * 100, 1) : 0;
+    }
+
+    /**
+     * Get monthly tracker trends
+     */
+    private function getMonthlyTrackerTrends()
+    {
+        $trends = [];
+        for ($i = 0; $i < 4; $i++) {
+            $weekStart = now()->subWeeks($i)->startOfWeek();
+            $submitted = WeeklyTracker::where('week_start_date', $weekStart)
+                ->where('status', 'submitted')
+                ->count();
+            $trends[] = $submitted;
+        }
+        return array_reverse($trends);
+    }
+
+    /**
+     * Get department analytics
+     */
+    private function getDepartmentAnalytics()
+    {
+        return Staff::select('department')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('COUNT(CASE WHEN status = "active" THEN 1 END) as active')
+            ->groupBy('department')
+            ->get()
+            ->map(function($dept) {
+                $dept->attendance_rate = $this->getDepartmentAttendanceRate($dept->department);
+                $dept->tracker_rate = $this->getDepartmentTrackerRate($dept->department);
+                return $dept;
+            });
+    }
+
+    /**
+     * Get attendance trend data for charts
+     */
+    private function getAttendanceTrendData()
+    {
+        $data = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $attendance = Attendance::whereDate('date', $date)
+                ->whereNotNull('clock_in_time')
+                ->count();
+            $data[] = [
+                'date' => $date->format('M d'),
+                'count' => $attendance
+            ];
+        }
+        return $data;
+    }
+
+    /**
+     * Get tracker completion data for charts
+     */
+    private function getTrackerCompletionData()
+    {
+        $data = [];
+        for ($i = 3; $i >= 0; $i--) {
+            $weekStart = now()->subWeeks($i)->startOfWeek();
+            $submitted = WeeklyTracker::where('week_start_date', $weekStart)
+                ->where('status', 'submitted')
+                ->count();
+            $data[] = [
+                'week' => 'Week ' . ($i + 1),
+                'count' => $submitted
+            ];
+        }
+        return array_reverse($data);
+    }
+
+    /**
+     * Get gender breakdown data
+     */
+    private function getGenderBreakdownData()
+    {
+        return Staff::select('gender')
+            ->selectRaw('COUNT(*) as count')
+            ->groupBy('gender')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'gender' => ucfirst($item->gender),
+                    'count' => $item->count
+                ];
+            });
+    }
+
+    /**
+     * Get monthly comparison data
+     */
+    private function getMonthlyComparisonData()
+    {
+        $thisMonth = Attendance::whereMonth('date', now()->month)
+            ->whereYear('date', now()->year)
+            ->whereNotNull('clock_in_time')
+            ->count();
+            
+        $lastMonth = Attendance::whereMonth('date', now()->subMonth()->month)
+            ->whereYear('date', now()->subMonth()->year)
+            ->whereNotNull('clock_in_time')
+            ->count();
+            
+        return [
+            'this_month' => $thisMonth,
+            'last_month' => $lastMonth,
+            'change' => $lastMonth > 0 ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1) : 0
+        ];
+    }
+
+    /**
+     * Get department attendance rate
+     */
+    private function getDepartmentAttendanceRate($department)
+    {
+        $staffCount = Staff::where('department', $department)
+            ->where('status', 'active')
+            ->count();
+            
+        if ($staffCount == 0) return 0;
+        
+        $attendanceCount = Attendance::whereHas('staff', function($q) use ($department) {
+            $q->where('department', $department);
+        })->whereDate('date', today())
+        ->whereNotNull('clock_in_time')
+        ->count();
+        
+        return round(($attendanceCount / $staffCount) * 100, 1);
+    }
+
+    /**
+     * Get department tracker rate
+     */
+    private function getDepartmentTrackerRate($department)
+    {
+        $staffCount = Staff::where('department', $department)
+            ->where('status', 'active')
+            ->count();
+            
+        if ($staffCount == 0) return 0;
+        
+        $trackerCount = WeeklyTracker::whereHas('staff', function($q) use ($department) {
+            $q->where('department', $department);
+        })->where('week_start_date', now()->startOfWeek())
+        ->where('status', 'submitted')
+        ->count();
+        
+        return round(($trackerCount / $staffCount) * 100, 1);
     }
 
     /**
@@ -217,7 +547,54 @@ class AdminController extends Controller
     // ==================== STAFF MANAGEMENT ====================
 
     /**
-     * Display staff listing with search and filters
+     * Display admin listing with search and filters
+     */
+    public function adminIndex(Request $request)
+    {
+        $query = Staff::where('is_admin', true);
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('staff_id', 'like', "%{$search}%")
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhereHas('position', function($posQuery) use ($search) {
+                      $posQuery->where('title', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by department
+        if ($request->filled('department')) {
+            $query->where('department', $request->department);
+        }
+
+        // Filter by gender
+        if ($request->filled('gender')) {
+            $query->where('gender', $request->gender);
+        }
+
+        $admins = $query->with('position')->orderBy('created_at', 'desc')->paginate(20);
+
+        // Get filter options
+        $statuses = Staff::distinct()->pluck('status')->filter()->sort();
+        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $genders = ['male', 'female', 'other'];
+
+        return view('admin.admins.index', compact('admins', 'statuses', 'departments', 'genders'));
+    }
+
+    /**
+     * Display staff listing with search and filters (non-admin only)
      */
     public function staffIndex(Request $request)
     {
@@ -231,8 +608,10 @@ class AdminController extends Controller
                   ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('staff_id', 'like', "%{$search}%")
-                  ->orWhere('position', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%");
+                  ->orWhere('department', 'like', "%{$search}%")
+                  ->orWhereHas('position', function($posQuery) use ($search) {
+                      $posQuery->where('title', 'like', "%{$search}%");
+                  });
             });
         }
 
@@ -241,14 +620,8 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter by role
-        if ($request->filled('role')) {
-            if ($request->role === 'admin') {
-                $query->where('is_admin', true);
-            } elseif ($request->role === 'staff') {
+        // Only show non-admin staff
                 $query->where('is_admin', false);
-            }
-        }
 
         // Filter by department
         if ($request->filled('department')) {
@@ -260,15 +633,14 @@ class AdminController extends Controller
             $query->where('gender', $request->gender);
         }
 
-        $staff = $query->orderBy('created_at', 'desc')->paginate(15);
+        $staff = $query->with('position')->orderBy('created_at', 'desc')->paginate(15);
 
         // Get filter options
         $departments = Staff::distinct()->pluck('department')->filter()->sort();
         $statuses = ['active', 'inactive'];
-        $roles = ['admin', 'staff'];
         $genders = ['male', 'female', 'other'];
 
-        return view('admin.staff.index', compact('staff', 'departments', 'statuses', 'roles', 'genders'));
+        return view('admin.staff.index', compact('staff', 'departments', 'statuses', 'genders'));
     }
 
     /**
@@ -277,7 +649,8 @@ class AdminController extends Controller
     public function staffCreate()
     {
         $departments = Staff::distinct()->pluck('department')->filter()->sort();
-        return view('admin.staff.create', compact('departments'));
+        $positions = \App\Models\Position::active()->orderBy('title')->get();
+        return view('admin.staff.create', compact('departments', 'positions'));
     }
 
     /**
@@ -292,7 +665,7 @@ class AdminController extends Controller
             'email' => 'required|email|unique:staff,email|max:255',
             'gender' => 'required|in:male,female,other',
             'phone' => 'nullable|string|max:20',
-            'position' => 'required|string|max:150',
+            'position_id' => 'required|exists:positions,id',
             'department' => 'required|string|max:100',
             'hire_date' => 'required|date|before_or_equal:today',
             'annual_leave_balance' => 'required|integer|min:0|max:50',
@@ -323,6 +696,9 @@ class AdminController extends Controller
      */
     public function staffShow(Staff $staff)
     {
+        // Load the position relationship
+        $staff->load('position');
+        
         // Get recent attendance (last 30 days)
         $recentAttendance = $staff->attendances()
             ->where('date', '>=', now()->subDays(30))
@@ -360,7 +736,8 @@ class AdminController extends Controller
     public function staffEdit(Staff $staff)
     {
         $departments = Staff::distinct()->pluck('department')->filter()->sort();
-        return view('admin.staff.edit', compact('staff', 'departments'));
+        $positions = \App\Models\Position::active()->orderBy('title')->get();
+        return view('admin.staff.edit', compact('staff', 'departments', 'positions'));
     }
 
     /**
@@ -375,7 +752,7 @@ class AdminController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('staff')->ignore($staff->id)],
             'gender' => 'required|in:male,female,other',
             'phone' => 'nullable|string|max:20',
-            'position' => 'required|string|max:150',
+            'position_id' => 'required|exists:positions,id',
             'department' => 'required|string|max:100',
             'hire_date' => 'required|date|before_or_equal:today',
             'annual_leave_balance' => 'required|integer|min:0|max:50',
@@ -437,7 +814,34 @@ class AdminController extends Controller
      */
     public function promoteStaff(Staff $staff)
     {
+        // Check if current user is admin
+        $currentUser = auth()->guard('staff')->user();
+        if (!$currentUser->is_admin) {
+            return redirect()->back()
+                ->with('error', 'You do not have permission to promote staff.');
+        }
+
+        // Prevent promoting super admin email to regular admin
+        if ($staff->email === 'admin@africacdc.org') {
+            return redirect()->route('admin.staff.show', $staff)
+                ->with('error', 'This is the super admin account and cannot be modified.');
+        }
+
+        // Update admin status
         $staff->update(['is_admin' => true]);
+
+        // Assign Administrator role if Spatie roles are set up
+        if (class_exists(\Spatie\Permission\Models\Role::class)) {
+            $adminRole = \Spatie\Permission\Models\Role::where('name', 'Administrator')
+                ->where('guard_name', 'staff')
+                ->first();
+            
+            if ($adminRole) {
+                // Remove staff role and assign admin role
+                $staff->removeRole('Staff');
+                $staff->assignRole($adminRole);
+            }
+        }
 
         return redirect()->route('admin.staff.show', $staff)
             ->with('success', 'Staff member promoted to administrator.');
@@ -448,14 +852,44 @@ class AdminController extends Controller
      */
     public function demoteStaff(Staff $staff)
     {
+        // Check if current user is admin
+        $currentUser = auth()->guard('staff')->user();
+        if (!$currentUser->is_admin) {
+            return redirect()->back()
+                ->with('error', 'You do not have permission to demote administrators.');
+        }
+
+        // Prevent demoting super admin
+        if ($staff->email === 'admin@africacdc.org') {
+            return redirect()->route('admin.staff.show', $staff)
+                ->with('error', 'Cannot demote the super administrator.');
+        }
+
         // Prevent demoting the last admin
-        $adminCount = Staff::where('is_admin', true)->count();
+        $adminCount = Staff::where('is_admin', true)
+            ->where('email', '!=', 'admin@africacdc.org') // Exclude super admin from count
+            ->count();
+        
         if ($adminCount <= 1) {
             return redirect()->route('admin.staff.show', $staff)
                 ->with('error', 'Cannot demote the last administrator.');
         }
 
+        // Update admin status
         $staff->update(['is_admin' => false]);
+
+        // Assign Staff role if Spatie roles are set up
+        if (class_exists(\Spatie\Permission\Models\Role::class)) {
+            $staffRole = \Spatie\Permission\Models\Role::where('name', 'Staff')
+                ->where('guard_name', 'staff')
+                ->first();
+            
+            if ($staffRole) {
+                // Remove admin role and assign staff role
+                $staff->removeRole('Administrator');
+                $staff->assignRole($staffRole);
+            }
+        }
 
         return redirect()->route('admin.staff.show', $staff)
             ->with('success', 'Administrator privileges removed.');
@@ -512,12 +946,28 @@ class AdminController extends Controller
         $departments = Staff::distinct()->pluck('department')->filter()->sort();
 
         // Calculate statistics
+        $clockInTimes = $attendances->whereNotNull('clock_in_time')->pluck('clock_in_time');
+        $averageClockIn = null;
+        
+        if ($clockInTimes->count() > 0) {
+            // Convert time strings to minutes for averaging
+            $totalMinutes = $clockInTimes->map(function ($time) {
+                $parts = explode(':', $time);
+                return ($parts[0] * 60) + $parts[1];
+            })->avg();
+            
+            // Convert back to time format
+            $hours = floor($totalMinutes / 60);
+            $minutes = floor($totalMinutes % 60);
+            $averageClockIn = sprintf('%02d:%02d', $hours, $minutes);
+        }
+        
         $stats = [
             'total_staff' => Staff::where('status', 'active')->count(),
             'present' => $attendances->where('status', 'present')->count(),
             'late' => $attendances->where('status', 'late')->count(),
             'absent' => $absentStaff->count(),
-            'average_clock_in' => $attendances->whereNotNull('clock_in_time')->avg('clock_in_time')
+            'average_clock_in' => $averageClockIn
         ];
 
         return view('admin.attendance.index', compact(
@@ -573,57 +1023,7 @@ class AdminController extends Controller
         ));
     }
 
-    /**
-     * Export attendance data
-     */
-    public function exportAttendance(Request $request)
-    {
-        $date = $request->get('date', today()->format('Y-m-d'));
-        $department = $request->get('department');
 
-        $query = Attendance::with('staff')
-            ->whereDate('date', $date);
-
-        if ($department) {
-            $query->whereHas('staff', function($q) use ($department) {
-                $q->where('department', $department);
-            });
-        }
-
-        $attendances = $query->get();
-
-        $filename = 'attendance-report-' . $date . '.csv';
-
-        $headers = [
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        ];
-
-        $callback = function() use ($attendances) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['Staff ID', 'Full Name', 'Department', 'Date', 'Clock In', 'Clock Out', 'Total Hours', 'Status', 'Location']);
-
-            foreach ($attendances as $attendance) {
-                fputcsv($file, [
-                    $attendance->staff->staff_id,
-                    $attendance->staff->full_name,
-                    $attendance->staff->department,
-                    $attendance->date->format('Y-m-d'),
-                    $attendance->clock_in_time ? \Carbon\Carbon::parse($attendance->clock_in_time)->format('H:i:s') : '',
-                    $attendance->clock_out_time ? \Carbon\Carbon::parse($attendance->clock_out_time)->format('H:i:s') : '',
-                    $attendance->total_hours ?? '',
-                    $attendance->status,
-                    $attendance->clock_in_address ?? ''
-                ]);
-            }
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 
     /**
      * Show weekly tracker management
@@ -1222,8 +1622,11 @@ class AdminController extends Controller
 
         $types = ['meeting', 'training', 'event', 'holiday', 'deadline'];
         $statuses = ['pending', 'approved', 'rejected'];
+        
+        // Get departments for filter
+        $departments = \App\Models\Staff::distinct()->pluck('department')->filter()->sort();
 
-        return view('admin.activity-requests.index', compact('requests', 'stats', 'types', 'statuses', 'status', 'type'));
+        return view('admin.activity-requests.index', compact('requests', 'stats', 'types', 'statuses', 'status', 'type', 'departments'));
     }
 
     /**
@@ -1231,7 +1634,7 @@ class AdminController extends Controller
      */
     public function activityRequestShow(\App\Models\ActivityRequest $activityRequest)
     {
-        $activityRequest->load(['requester', 'reviewer', 'approvedActivity']);
+        $activityRequest->load(['requester.position', 'reviewer.position', 'approvedActivity']);
 
         return view('admin.activity-requests.show', compact('activityRequest'));
     }
@@ -1685,6 +2088,717 @@ class AdminController extends Controller
         $actionText = ucfirst($action);
         return redirect()->route('admin.public-events.index')
             ->with('success', "{$processed} events have been {$actionText}d successfully.");
+    }
+
+    // ================================================
+    // ROLES & PERMISSIONS MANAGEMENT
+    // ================================================
+
+    /**
+     * Display roles listing
+     */
+    public function rolesIndex()
+    {
+        $roles = \Spatie\Permission\Models\Role::where('guard_name', 'staff')
+            ->with('permissions')
+            ->get();
+
+        $permissions = \Spatie\Permission\Models\Permission::where('guard_name', 'staff')
+            ->get()
+            ->groupBy(function($permission) {
+                // Group permissions by category (prefix before underscore)
+                $parts = explode('_', $permission->name);
+                return ucfirst($parts[0]);
+            });
+
+        return view('admin.roles.index', compact('roles', 'permissions'));
+    }
+
+    /**
+     * Show create role form
+     */
+    public function rolesCreate()
+    {
+        $permissions = \Spatie\Permission\Models\Permission::where('guard_name', 'staff')
+            ->get()
+            ->groupBy(function($permission) {
+                $parts = explode('_', $permission->name);
+                return ucfirst($parts[0]);
+            });
+
+        return view('admin.roles.create', compact('permissions'));
+    }
+
+    /**
+     * Store new role
+     */
+    public function rolesStore(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name',
+            'permissions' => 'array',
+            'permissions.*' => 'string|exists:permissions,name'
+        ]);
+
+        $role = \Spatie\Permission\Models\Role::create([
+            'name' => $request->name,
+            'guard_name' => 'staff'
+        ]);
+
+        if ($request->has('permissions')) {
+            $role->givePermissionTo($request->permissions);
+        }
+
+        return redirect()->route('admin.roles.index')
+            ->with('success', 'Role created successfully.');
+    }
+
+    /**
+     * Show edit role form
+     */
+    public function rolesEdit(\Spatie\Permission\Models\Role $role)
+    {
+        $permissions = \Spatie\Permission\Models\Permission::where('guard_name', 'staff')
+            ->get()
+            ->groupBy(function($permission) {
+                $parts = explode('_', $permission->name);
+                return ucfirst($parts[0]);
+            });
+
+        return view('admin.roles.edit', compact('role', 'permissions'));
+    }
+
+    /**
+     * Update role
+     */
+    public function rolesUpdate(Request $request, \Spatie\Permission\Models\Role $role)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'permissions' => 'array',
+            'permissions.*' => 'string|exists:permissions,name'
+        ]);
+
+        $role->update(['name' => $request->name]);
+
+        // Sync permissions
+        $role->syncPermissions($request->permissions ?? []);
+
+        return redirect()->route('admin.roles.index')
+            ->with('success', 'Role updated successfully.');
+    }
+
+    /**
+     * Delete role
+     */
+    public function rolesDestroy(\Spatie\Permission\Models\Role $role)
+    {
+        // Prevent deleting core roles
+        if (in_array($role->name, ['Super Admin', 'Administrator', 'Staff'])) {
+            return redirect()->route('admin.roles.index')
+                ->with('error', 'Cannot delete core system roles.');
+        }
+
+        // Check if role is assigned to any users
+        if ($role->users()->count() > 0) {
+            return redirect()->route('admin.roles.index')
+                ->with('error', 'Cannot delete role that is assigned to users.');
+        }
+
+        $role->delete();
+
+        return redirect()->route('admin.roles.index')
+            ->with('success', 'Role deleted successfully.');
+    }
+
+    // ================================================
+    // EXPORT FUNCTIONALITY
+    // ================================================
+
+    /**
+     * Export attendance data
+     */
+    public function exportAttendance(Request $request)
+    {
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->endOfMonth()->format('Y-m-d'));
+        $format = $request->get('format', 'csv');
+
+        $attendances = Attendance::with(['staff'])
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderBy('date', 'desc')
+            ->get();
+
+        if ($format === 'csv') {
+            return $this->exportAttendanceCSV($attendances, $startDate, $endDate);
+        } else {
+            return $this->exportAttendancePDF($attendances, $startDate, $endDate);
+        }
+    }
+
+    /**
+     * Export weekly trackers data
+     */
+    public function exportWeeklyTrackers(Request $request)
+    {
+        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->endOfMonth()->format('Y-m-d'));
+        $format = $request->get('format', 'csv');
+
+        $trackers = WeeklyTracker::with(['staff'])
+            ->whereBetween('week_start_date', [$startDate, $endDate])
+            ->orderBy('week_start_date', 'desc')
+            ->get();
+
+        if ($format === 'csv') {
+            return $this->exportTrackersCSV($trackers, $startDate, $endDate);
+        } else {
+            return $this->exportTrackersPDF($trackers, $startDate, $endDate);
+        }
+    }
+
+    /**
+     * Export analytics dashboard data
+     */
+    public function exportDashboardAnalytics(Request $request)
+    {
+        $format = $request->get('format', 'pdf');
+        
+        // Get comprehensive analytics data
+        $staffStats = [
+            'total' => Staff::count(),
+            'regular' => Staff::where('is_admin', false)->count(),
+            'admins' => Staff::where('is_admin', true)->count(),
+            'active' => Staff::where('status', 'active')->count(),
+        ];
+
+        $attendanceStats = [
+            'today_present' => Attendance::whereDate('date', now())
+                ->whereNotNull('clock_in_time')
+                ->count(),
+            'week_completion' => $this->getWeeklyAttendanceCompletion(),
+            'month_average' => $this->getMonthlyAttendanceAverage(),
+        ];
+
+        $weeklyTrackerStats = [
+            'completion_rate' => $this->getWeeklyTrackerCompletionRate(),
+            'monthly_trends' => $this->getMonthlyTrackerTrends(),
+        ];
+
+        $departmentStats = $this->getDepartmentAnalytics();
+
+        if ($format === 'pdf') {
+            return $this->exportAnalyticsPDF($staffStats, $attendanceStats, $weeklyTrackerStats, $departmentStats);
+        } else {
+            return $this->exportAnalyticsCSV($staffStats, $attendanceStats, $weeklyTrackerStats, $departmentStats);
+        }
+    }
+
+    /**
+     * Export attendance data as CSV
+     */
+    private function exportAttendanceCSV($attendances, $startDate, $endDate)
+    {
+        $filename = "attendance_report_{$startDate}_to_{$endDate}.csv";
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        return response()->stream(function() use ($attendances) {
+            $handle = fopen('php://output', 'w');
+            
+            // CSV headers
+            fputcsv($handle, [
+                'Date',
+                'Staff ID',
+                'Staff Name',
+                'Department',
+                'Clock In Time',
+                'Clock Out Time',
+                'Total Hours',
+                'Status',
+                'Clock In Location',
+                'Clock Out Location'
+            ]);
+
+            // CSV data
+            foreach ($attendances as $attendance) {
+                fputcsv($handle, [
+                    $attendance->date->format('Y-m-d'),
+                    $attendance->staff->staff_id,
+                    $attendance->staff->full_name,
+                    $attendance->staff->department,
+                    $attendance->clock_in_time ?? 'N/A',
+                    $attendance->clock_out_time ?? 'N/A',
+                    $attendance->total_hours ?? 'N/A',
+                    ucfirst($attendance->status),
+                    $attendance->clock_in_address ?? 'N/A',
+                    $attendance->clock_out_address ?? 'N/A'
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    /**
+     * Export weekly trackers data as CSV
+     */
+    private function exportTrackersCSV($trackers, $startDate, $endDate)
+    {
+        $filename = "weekly_trackers_report_{$startDate}_to_{$endDate}.csv";
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        return response()->stream(function() use ($trackers) {
+            $handle = fopen('php://output', 'w');
+            
+            // CSV headers
+            fputcsv($handle, [
+                'Week Start Date',
+                'Week End Date',
+                'Staff ID',
+                'Staff Name',
+                'Department',
+                'Monday Status',
+                'Tuesday Status',
+                'Wednesday Status',
+                'Thursday Status',
+                'Friday Status',
+                'Submission Status',
+                'Submitted At'
+            ]);
+
+            // CSV data
+            foreach ($trackers as $tracker) {
+                fputcsv($handle, [
+                    $tracker->week_start_date->format('Y-m-d'),
+                    $tracker->week_end_date->format('Y-m-d'),
+                    $tracker->staff->staff_id,
+                    $tracker->staff->full_name,
+                    $tracker->staff->department,
+                    $tracker->monday_status ?? 'N/A',
+                    $tracker->tuesday_status ?? 'N/A',
+                    $tracker->wednesday_status ?? 'N/A',
+                    $tracker->thursday_status ?? 'N/A',
+                    $tracker->friday_status ?? 'N/A',
+                    ucfirst($tracker->status),
+                    $tracker->submitted_at ? $tracker->submitted_at->format('Y-m-d H:i:s') : 'N/A'
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    /**
+     * Export analytics data as CSV
+     */
+    private function exportAnalyticsCSV($staffStats, $attendanceStats, $weeklyTrackerStats, $departmentStats)
+    {
+        $filename = "dashboard_analytics_" . now()->format('Y-m-d') . ".csv";
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        return response()->stream(function() use ($staffStats, $attendanceStats, $weeklyTrackerStats, $departmentStats) {
+            $handle = fopen('php://output', 'w');
+            
+            // Staff Statistics
+            fputcsv($handle, ['STAFF STATISTICS']);
+            fputcsv($handle, ['Metric', 'Value']);
+            fputcsv($handle, ['Total Staff', $staffStats['total']]);
+            fputcsv($handle, ['Regular Staff', $staffStats['regular']]);
+            fputcsv($handle, ['Administrators', $staffStats['admins']]);
+            fputcsv($handle, ['Active Staff', $staffStats['active']]);
+            fputcsv($handle, []);
+
+            // Attendance Statistics
+            fputcsv($handle, ['ATTENDANCE STATISTICS']);
+            fputcsv($handle, ['Metric', 'Value']);
+            fputcsv($handle, ['Today Present', $attendanceStats['today_present']]);
+            fputcsv($handle, ['Week Completion Rate', $attendanceStats['week_completion'] . '%']);
+            fputcsv($handle, ['Month Average', $attendanceStats['month_average'] . '%']);
+            fputcsv($handle, []);
+
+            // Weekly Tracker Statistics
+            fputcsv($handle, ['WEEKLY TRACKER STATISTICS']);
+            fputcsv($handle, ['Metric', 'Value']);
+            fputcsv($handle, ['Completion Rate', $weeklyTrackerStats['completion_rate'] . '%']);
+            fputcsv($handle, []);
+
+            // Department Statistics
+            fputcsv($handle, ['DEPARTMENT STATISTICS']);
+            fputcsv($handle, ['Department', 'Total Staff', 'Active Staff', 'Attendance Rate', 'Tracker Rate']);
+            foreach ($departmentStats as $dept) {
+                fputcsv($handle, [
+                    $dept->department,
+                    $dept->total,
+                    $dept->active,
+                    $dept->attendance_rate . '%',
+                    $dept->tracker_rate . '%'
+                ]);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    // ==================== SYSTEM SETTINGS ====================
+
+    /**
+     * Display system settings
+     */
+    public function settingsIndex()
+    {
+        $generalSettings = \App\Models\Setting::getByGroup('general');
+        $contactSettings = \App\Models\Setting::getByGroup('contact');
+        $socialSettings = \App\Models\Setting::getByGroup('social');
+        $mediaSettings = \App\Models\Setting::getByGroup('media');
+        $systemSettings = \App\Models\Setting::getByGroup('system');
+
+        return view('admin.settings.index', compact(
+            'generalSettings',
+            'contactSettings',
+            'socialSettings',
+            'mediaSettings',
+            'systemSettings'
+        ));
+    }
+
+    /**
+     * Update system settings
+     */
+    public function settingsUpdate(Request $request)
+    {
+        $request->validate([
+            'settings' => 'required|array',
+            'settings.*' => 'nullable|string|max:1000',
+        ]);
+
+        try {
+            foreach ($request->settings as $key => $value) {
+                $setting = \App\Models\Setting::where('key', $key)->first();
+                
+                if ($setting) {
+                    // Handle file uploads for image type settings
+                    if ($setting->type === 'image' && $request->hasFile("files.{$key}")) {
+                        $file = $request->file("files.{$key}");
+                        $filename = time() . '_' . $file->getClientOriginalName();
+                        $path = $file->storeAs('settings', $filename, 'public');
+                        $value = $path;
+                    }
+                    
+                    // Handle boolean settings
+                    if ($setting->type === 'boolean') {
+                        $value = $request->has("settings.{$key}") ? '1' : '0';
+                    }
+
+                    $setting->update(['value' => $value]);
+                }
+            }
+
+            // Clear cache
+            \App\Models\Setting::clearCache();
+
+            return redirect()->route('admin.settings.index')
+                ->with('success', 'Settings updated successfully.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to update settings: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Reset settings to default
+     */
+    public function settingsReset()
+    {
+        try {
+            // Run the settings seeder to reset to defaults
+            \Artisan::call('db:seed', ['--class' => 'SettingsSeeder']);
+            
+            // Clear cache
+            \App\Models\Setting::clearCache();
+
+            return redirect()->route('admin.settings.index')
+                ->with('success', 'Settings have been reset to default values.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to reset settings: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show email test form
+     */
+    public function emailTestForm()
+    {
+        $currentConfig = [
+            'mailer' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'username' => config('mail.mailers.smtp.username'),
+            'encryption' => config('mail.mailers.smtp.scheme'),
+            'from_address' => config('mail.from.address'),
+            'from_name' => config('mail.from.name'),
+        ];
+
+        return view('admin.email.test', compact('currentConfig'));
+    }
+
+    /**
+     * Configure email settings
+     */
+    public function configureEmail(Request $request)
+    {
+        $request->validate([
+            'mail_host' => 'required|string',
+            'mail_port' => 'required|integer|between:1,65535',
+            'mail_username' => 'required|email',
+            'mail_password' => 'required|string',
+            'mail_encryption' => 'required|in:tls,ssl',
+            'mail_from_address' => 'required|email',
+            'mail_from_name' => 'required|string|max:255',
+        ]);
+
+        try {
+            // Update .env file
+            $envPath = base_path('.env');
+            $envContent = file_get_contents($envPath);
+
+            $updates = [
+                'MAIL_MAILER' => 'smtp',
+                'MAIL_HOST' => $request->mail_host,
+                'MAIL_PORT' => $request->mail_port,
+                'MAIL_USERNAME' => $request->mail_username,
+                'MAIL_PASSWORD' => $request->mail_password,
+                'MAIL_ENCRYPTION' => $request->mail_encryption,
+                'MAIL_FROM_ADDRESS' => $request->mail_from_address,
+                'MAIL_FROM_NAME' => '"' . $request->mail_from_name . '"',
+            ];
+
+            foreach ($updates as $key => $value) {
+                $pattern = "/^{$key}=.*$/m";
+                if (preg_match($pattern, $envContent)) {
+                    $envContent = preg_replace($pattern, "{$key}={$value}", $envContent);
+                } else {
+                    $envContent .= "\n{$key}={$value}";
+                }
+            }
+
+            file_put_contents($envPath, $envContent);
+
+            // Clear config cache
+            \Artisan::call('config:clear');
+
+            return redirect()->route('admin.email.test')
+                ->with('success', 'Email configuration updated successfully! You can now test sending emails.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to update email configuration: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Send test email
+     */
+    public function sendTestEmail(Request $request)
+    {
+        $request->validate([
+            'test_email' => 'required|email',
+            'test_message' => 'nullable|string|max:500',
+            'mailer_type' => 'required|in:laravel,microsoft-graph',
+        ]);
+
+        try {
+            $testData = [
+                'system_name' => 'WARCC Staff Management System',
+                'test_time' => now()->format('Y-m-d H:i:s T'),
+                'server_info' => php_uname('n'),
+                'test_message' => $request->test_message,
+                'tested_by' => auth()->guard('staff')->user()->full_name,
+            ];
+
+            if ($request->mailer_type === 'microsoft-graph') {
+                // Use Microsoft Graph service
+                $graphService = new \App\Services\MicrosoftGraphService();
+                $response = $graphService->sendEmail(
+                    $request->test_email,
+                    '✅ Email Test - WARCC System (Microsoft Graph)',
+                    view('emails.test', compact('testData'))->render(),
+                    config('mail.from.address')
+                );
+
+                return redirect()->back()
+                    ->with('success', 'Test email sent successfully via Microsoft Graph to ' . $request->test_email . '! Please check the inbox.');
+
+            } else {
+                // Use Laravel mailer
+                \Mail::to($request->test_email)->send(new \App\Mail\TestEmail($testData));
+
+                return redirect()->back()
+                    ->with('success', 'Test email sent successfully via Laravel Mailer to ' . $request->test_email . '! Please check the inbox.');
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Email test failed', [
+                'error' => $e->getMessage(),
+                'email' => $request->test_email,
+                'mailer_type' => $request->mailer_type,
+                'user' => auth()->guard('staff')->user()->email ?? 'unknown'
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Failed to send test email: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Test Microsoft Graph connection
+     */
+    public function testMicrosoftGraph()
+    {
+        try {
+            $graphService = new \App\Services\MicrosoftGraphService();
+            $result = $graphService->testConnection();
+
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $result['message'],
+                    'user' => $result['user']
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message']
+                ], 400);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Microsoft Graph test failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ==================== POSITIONS MANAGEMENT ====================
+
+    /**
+     * Show positions management
+     */
+    public function positionsIndex()
+    {
+        $positions = \App\Models\Position::withCount('staff')
+            ->orderBy('title')
+            ->paginate(20);
+
+        $stats = [
+            'total' => \App\Models\Position::count(),
+            'active' => \App\Models\Position::active()->count(),
+            'inactive' => \App\Models\Position::inactive()->count(),
+            'with_staff' => \App\Models\Position::whereHas('staff')->count(),
+        ];
+
+        return view('admin.positions.index', compact('positions', 'stats'));
+    }
+
+    /**
+     * Show form to create new position
+     */
+    public function positionsCreate()
+    {
+        return view('admin.positions.create');
+    }
+
+    /**
+     * Store new position
+     */
+    public function positionsStore(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255|unique:positions,title',
+        ]);
+
+        \App\Models\Position::create([
+            'title' => $request->title,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('admin.positions.index')
+            ->with('success', 'Position "' . $request->title . '" created successfully.');
+    }
+
+    /**
+     * Show form to edit position
+     */
+    public function positionsEdit(\App\Models\Position $position)
+    {
+        return view('admin.positions.edit', compact('position'));
+    }
+
+    /**
+     * Update position
+     */
+    public function positionsUpdate(Request $request, \App\Models\Position $position)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255|unique:positions,title,' . $position->id,
+        ]);
+
+        $position->update([
+            'title' => $request->title,
+        ]);
+
+        return redirect()->route('admin.positions.index')
+            ->with('success', 'Position updated successfully.');
+    }
+
+    /**
+     * Delete position
+     */
+    public function positionsDestroy(\App\Models\Position $position)
+    {
+        // Check if position is being used by any staff
+        if ($position->staff()->count() > 0) {
+            return redirect()->route('admin.positions.index')
+                ->with('error', 'Cannot delete position "' . $position->title . '" because it is assigned to ' . $position->staff()->count() . ' staff member(s).');
+        }
+
+        $positionTitle = $position->title;
+        $position->delete();
+
+        return redirect()->route('admin.positions.index')
+            ->with('success', 'Position "' . $positionTitle . '" deleted successfully.');
+    }
+
+    /**
+     * Toggle position status
+     */
+    public function positionsToggleStatus(\App\Models\Position $position)
+    {
+        $position->update([
+            'is_active' => !$position->is_active
+        ]);
+
+        $status = $position->is_active ? 'activated' : 'deactivated';
+        return redirect()->route('admin.positions.index')
+            ->with('success', 'Position "' . $position->title . '" ' . $status . ' successfully.');
     }
 
     // ==================== END OF ADMIN CONTROLLER ====================

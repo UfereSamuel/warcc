@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Africa CDC - Western RCC Staff Management')</title>
+    <title>@yield('title', setting('site_name', 'Africa CDC - Western RCC Staff Management'))</title>
 
     <!-- Favicon and App Icons -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicons/favicon.svg') }}">
@@ -42,9 +42,9 @@
     <meta name="apple-mobile-web-app-title" content="RCC Staff">
 
     <!-- SEO and Social Meta Tags -->
-    <meta name="description" content="@yield('meta_description', 'Africa CDC Western Regional Collaborating Centre Staff Management System - Strengthening health security across West Africa')">
+    <meta name="description" content="@yield('meta_description', setting('site_description', 'Africa CDC Western Regional Collaborating Centre Staff Management System - Strengthening health security across West Africa'))">
     <meta name="keywords" content="Africa CDC, West Africa, health security, disease surveillance, staff management, public health">
-    <meta name="author" content="Africa CDC Western RCC">
+    <meta name="author" content="{{ setting('contact_organization', 'Africa CDC Western RCC') }}">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph / Facebook -->
@@ -146,8 +146,12 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-                <img src="{{ asset('images/logos/logo.png') }}" alt="Africa CDC Logo" class="me-2">
-                <span class="fw-bold text-primary">Western RCC</span>
+                @if(setting('site_logo'))
+                    <img src="{{ asset('storage/' . setting('site_logo')) }}" alt="{{ setting('site_name', 'Africa CDC') }} Logo" class="me-2" height="40">
+                @else
+                    <img src="{{ asset('images/logos/logo.png') }}" alt="Africa CDC Logo" class="me-2">
+                @endif
+                <span class="fw-bold text-primary">{{ setting('site_tagline', 'Western RCC') }}</span>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -165,6 +169,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('public.events') }}">Events</a>
                     </li>
+                    @if(setting('youtube_embed_channel', '0') === '1')
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('public.media') }}">Media</a>
+                    </li>
+                    @endif
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('public.contact') }}">Contact</a>
                     </li>
@@ -211,10 +220,14 @@
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <div class="d-flex align-items-center mb-3">
-                        <img src="{{ asset('images/logos/logo.png') }}" alt="Africa CDC Logo" height="40" class="me-2">
-                        <span class="fw-bold">Africa CDC Western RCC</span>
+                        @if(setting('site_logo'))
+                            <img src="{{ asset('storage/' . setting('site_logo')) }}" alt="{{ setting('site_name', 'Africa CDC') }} Logo" height="40" class="me-2">
+                        @else
+                            <img src="{{ asset('images/logos/logo.png') }}" alt="Africa CDC Logo" height="40" class="me-2">
+                        @endif
+                        <span class="fw-bold">{{ setting('contact_organization', 'Africa CDC Western RCC') }}</span>
                     </div>
-                    <p class="mb-0">Strengthening health security and disease surveillance across West Africa through collaborative partnerships and innovative solutions.</p>
+                    <p class="mb-0">{{ setting('site_description', 'Strengthening health security and disease surveillance across West Africa through collaborative partnerships and innovative solutions.') }}</p>
                 </div>
 
                 <div class="col-lg-2 mb-4">
@@ -223,6 +236,9 @@
                         <li><a href="{{ route('home') }}" class="text-light text-decoration-none">Home</a></li>
                         <li><a href="{{ route('public.about') }}" class="text-light text-decoration-none">About</a></li>
                         <li><a href="{{ route('public.events') }}" class="text-light text-decoration-none">Events</a></li>
+                        @if(setting('youtube_embed_channel', '0') === '1')
+                        <li><a href="{{ route('public.media') }}" class="text-light text-decoration-none">Media</a></li>
+                        @endif
                         <li><a href="{{ route('public.contact') }}" class="text-light text-decoration-none">Contact</a></li>
                     </ul>
                 </div>
@@ -231,14 +247,21 @@
                     <h6 class="fw-bold mb-3">Staff Portal</h6>
                     <ul class="list-unstyled">
                         <li><a href="{{ route('auth.login') }}" class="text-light text-decoration-none">Staff Login</a></li>
+                        <li><a href="{{ route('auth.admin.login') }}" class="text-light text-decoration-none" style="font-size: 0.85em; opacity: 0.8;">Admin Access</a></li>
                     </ul>
                 </div>
 
                 <div class="col-lg-3 mb-4">
                     <h6 class="fw-bold mb-3">Contact Info</h6>
-                    <p class="mb-1"><i class="fas fa-envelope me-2"></i> info@africacdc.org</p>
-                    <p class="mb-1"><i class="fas fa-phone me-2"></i> +233 XXX XXX XXX</p>
-                    <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i> Accra, Ghana</p>
+                    @if(setting('contact_email'))
+                        <p class="mb-1"><i class="fas fa-envelope me-2"></i> {{ setting('contact_email') }}</p>
+                    @endif
+                    @if(setting('contact_phone'))
+                        <p class="mb-1"><i class="fas fa-phone me-2"></i> {{ setting('contact_phone') }}</p>
+                    @endif
+                    @if(setting('contact_address'))
+                        <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i> {{ str_replace("\n", ", ", setting('contact_address')) }}</p>
+                    @endif
                 </div>
             </div>
 
@@ -246,10 +269,29 @@
 
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; {{ date('Y') }} Africa CDC Western RCC. All rights reserved.</p>
+                    <p class="mb-0">&copy; {{ date('Y') }} {{ setting('contact_organization', 'Africa CDC Western RCC') }}. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <small>Staff Management System v1.0</small>
+                    <small>{{ setting('site_name', 'Staff Management System') }} v1.0</small>
+                    @if(setting('social_facebook') || setting('social_twitter') || setting('social_linkedin') || setting('social_instagram') || setting('social_youtube'))
+                        <div class="mt-2">
+                            @if(setting('social_facebook'))
+                                <a href="{{ setting('social_facebook') }}" target="_blank" class="text-light me-2"><i class="fab fa-facebook"></i></a>
+                            @endif
+                            @if(setting('social_twitter'))
+                                <a href="{{ setting('social_twitter') }}" target="_blank" class="text-light me-2"><i class="fab fa-twitter"></i></a>
+                            @endif
+                            @if(setting('social_linkedin'))
+                                <a href="{{ setting('social_linkedin') }}" target="_blank" class="text-light me-2"><i class="fab fa-linkedin"></i></a>
+                            @endif
+                            @if(setting('social_instagram'))
+                                <a href="{{ setting('social_instagram') }}" target="_blank" class="text-light me-2"><i class="fab fa-instagram"></i></a>
+                            @endif
+                            @if(setting('social_youtube'))
+                                <a href="{{ setting('social_youtube') }}" target="_blank" class="text-light me-2"><i class="fab fa-youtube"></i></a>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

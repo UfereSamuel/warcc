@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-sm-6">
             <h1 class="m-0 text-dark">Staff Profile</h1>
-            <p class="text-muted">{{ $staff->full_name }} - {{ $staff->position }}</p>
+                            <p class="text-muted">{{ $staff->full_name }} - {{ $staff->position_title }}</p>
         </div>
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -34,7 +34,7 @@
                 <h3 class="profile-username text-center">{{ $staff->full_name }}</h3>
 
                 <p class="text-muted text-center">
-                    {{ $staff->position }}
+                                                    {{ $staff->position_title }}
                     @if($staff->is_admin)
                         <span class="badge badge-warning ml-1">Administrator</span>
                     @endif
@@ -57,7 +57,7 @@
                         <b>Department</b> <a class="float-right">{{ $staff->department }}</a>
                     </li>
                     <li class="list-group-item">
-                        <b>Hire Date</b> <a class="float-right">{{ $staff->hire_date->format('M d, Y') }}</a>
+                        <b>Hire Date</b> <a class="float-right">{{ $staff->hire_date ? $staff->hire_date->format('M d, Y') : 'Not set' }}</a>
                     </li>
                     <li class="list-group-item">
                         <b>Status</b>

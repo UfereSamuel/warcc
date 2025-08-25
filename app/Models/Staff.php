@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Access\Authorizable;
+use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
+use Illuminate\Foundation\Auth\Access\Authorizable as AuthorizableTrait;
 use Spatie\Permission\Traits\HasRoles;
 
-class Staff extends Model implements Authenticatable
+class Staff extends Model implements Authenticatable, Authorizable
 {
-    use HasFactory, HasRoles;
+    use HasFactory, HasRoles, AuthenticatableTrait, AuthorizableTrait;
 
     protected $table = 'staff';
 
@@ -21,8 +24,7 @@ class Staff extends Model implements Authenticatable
         'email',
         'gender',
         'phone',
-        'position',
-        'department',
+        'position_id',
         'microsoft_id',
         'profile_picture',
         'status',
@@ -44,25 +46,10 @@ class Staff extends Model implements Authenticatable
         'microsoft_id',
     ];
 
-    // Authentication Interface Methods
-    public function getAuthIdentifierName()
-    {
-        return 'id';
-    }
-
-    public function getAuthIdentifier()
-    {
-        return $this->getKey();
-    }
-
+    // Override authentication methods for SSO
     public function getAuthPassword()
     {
         return null; // No password for SSO users
-    }
-
-    public function getAuthPasswordName()
-    {
-        return 'password';
     }
 
     public function getRememberToken()
@@ -116,6 +103,11 @@ class Staff extends Model implements Authenticatable
         return $this->hasMany(ActivityCalendar::class, 'updated_by');
     }
 
+    public function position(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Position::class);
+    }
+
     // Accessors
     public function getFullNameAttribute(): string
     {
@@ -127,6 +119,21 @@ class Staff extends Model implements Authenticatable
         return $this->profile_picture
             ? asset('images/uploads/' . $this->profile_picture)
             : asset('images/default-avatar.png');
+    }
+
+    public function getPositionTitleAttribute(): string
+    {
+        if (!$this->position) {
+            return 'Not Assigned';
+        }
+        
+        // If position is loaded as a relationship, return the title
+        if (is_object($this->position) && isset($this->position->title)) {
+            return $this->position->title;
+        }
+        
+        // Fallback for any other cases
+        return 'Position Not Found';
     }
 
     // Scopes
@@ -173,6 +180,6 @@ class Staff extends Model implements Authenticatable
 
     public function adminlte_desc()
     {
-        return $this->position . ' - ' . $this->department;
+        return $this->position_title;
     }
 }

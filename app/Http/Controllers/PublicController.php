@@ -179,6 +179,19 @@ class PublicController extends Controller
     }
 
     /**
+     * Show the media/videos page
+     */
+    public function media()
+    {
+        // Check if YouTube integration is enabled
+        $youtubeEnabled = setting('youtube_embed_channel', '0') === '1';
+        $channelUrl = setting('youtube_channel_url');
+        $channelId = setting('youtube_channel_id');
+        
+        return view('public.media', compact('youtubeEnabled', 'channelUrl', 'channelId'));
+    }
+
+    /**
      * Get event color based on category
      */
     private function getEventColor($category)

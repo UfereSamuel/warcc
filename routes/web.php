@@ -20,6 +20,8 @@ Route::get('/contact', [PublicController::class, 'contact'])->name('public.conta
 Route::get('/events', [PublicController::class, 'events'])->name('public.events');
 Route::get('/events/{event}', [PublicController::class, 'eventShow'])->name('public.events.show');
 Route::get('/api/events', [PublicController::class, 'eventsApi'])->name('public.events.api');
+Route::get('/media', [PublicController::class, 'media'])->name('public.media');
+Route::get('/videos', [PublicController::class, 'media'])->name('public.videos');
 
 // Test Routes for Development (Remove in Production)
 Route::get('/test-accounts', function () {
@@ -64,12 +66,16 @@ Route::prefix('auth')->name('auth.')->group(function () {
 });
 
 // Protected Routes (Requires Authentication)
-Route::middleware(['auth:staff'])->prefix('staff')->name('staff.')->group(function () {
+Route::middleware(['auth:staff', 'profile.complete'])->prefix('staff')->name('staff.')->group(function () {
 
     // Staff Dashboard
     Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [StaffController::class, 'profile'])->name('profile');
     Route::put('/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
+    
+    // Profile Completion (for new SSO users)
+    Route::get('/profile/complete', [StaffController::class, 'showProfileCompletion'])->name('profile.complete');
+    Route::post('/profile/complete', [StaffController::class, 'completeProfile'])->name('profile.complete.post');
 
     // Attendance Management
     Route::prefix('attendance')->name('attendance.')->group(function () {
@@ -133,12 +139,47 @@ Route::middleware(['auth:staff'])->prefix('staff')->name('staff.')->group(functi
 });
 
 // Admin Routes (Requires Admin Privileges)
-Route::middleware(['auth:staff', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
     // Admin Dashboard
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
     Route::get('/reports/export', [AdminController::class, 'exportReports'])->name('reports.export');
+
+    // Export Routes
+    Route::get('/export/attendance', [AdminController::class, 'exportAttendance'])->name('export.attendance');
+    Route::get('/export/weekly-trackers', [AdminController::class, 'exportWeeklyTrackers'])->name('export.weekly-trackers');
+    Route::get('/export/dashboard-analytics', [AdminController::class, 'exportDashboardAnalytics'])->name('export.dashboard-analytics');
+
+    // System Settings
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [AdminController::class, 'settingsIndex'])->name('index');
+        Route::put('/', [AdminController::class, 'settingsUpdate'])->name('update');
+        Route::delete('/reset', [AdminController::class, 'settingsReset'])->name('reset');
+    });
+
+    // Email Testing
+    Route::prefix('email')->name('email.')->group(function () {
+        Route::get('/test', [AdminController::class, 'emailTestForm'])->name('test');
+        Route::post('/test', [AdminController::class, 'sendTestEmail'])->name('test.send');
+        Route::post('/configure', [AdminController::class, 'configureEmail'])->name('configure');
+        Route::post('/test-graph', [AdminController::class, 'testMicrosoftGraph'])->name('test.graph');
+    });
+
+    // Admin Management
+    Route::prefix('admins')->name('admins.')->group(function () {
+        Route::get('/', [AdminController::class, 'adminIndex'])->name('index');
+    });
+
+    // Roles & Permissions Management
+    Route::prefix('roles')->name('roles.')->group(function () {
+        Route::get('/', [AdminController::class, 'rolesIndex'])->name('index');
+        Route::get('/create', [AdminController::class, 'rolesCreate'])->name('create');
+        Route::post('/', [AdminController::class, 'rolesStore'])->name('store');
+        Route::get('/{role}/edit', [AdminController::class, 'rolesEdit'])->name('edit');
+        Route::put('/{role}', [AdminController::class, 'rolesUpdate'])->name('update');
+        Route::delete('/{role}', [AdminController::class, 'rolesDestroy'])->name('destroy');
+    });
 
     // Staff Management
     Route::prefix('staff')->name('staff.')->group(function () {
@@ -201,6 +242,17 @@ Route::middleware(['auth:staff', 'admin'])->prefix('admin')->name('admin.')->gro
         Route::get('/{leaveType}/edit', [AdminController::class, 'leaveTypesEdit'])->name('edit');
         Route::put('/{leaveType}', [AdminController::class, 'leaveTypesUpdate'])->name('update');
         Route::delete('/{leaveType}', [AdminController::class, 'leaveTypesDestroy'])->name('destroy');
+    });
+
+    // Positions Management
+    Route::prefix('positions')->name('positions.')->group(function () {
+        Route::get('/', [AdminController::class, 'positionsIndex'])->name('index');
+        Route::get('/create', [AdminController::class, 'positionsCreate'])->name('create');
+        Route::post('/', [AdminController::class, 'positionsStore'])->name('store');
+        Route::get('/{position}/edit', [AdminController::class, 'positionsEdit'])->name('edit');
+        Route::put('/{position}', [AdminController::class, 'positionsUpdate'])->name('update');
+        Route::delete('/{position}', [AdminController::class, 'positionsDestroy'])->name('destroy');
+        Route::post('/{position}/toggle-status', [AdminController::class, 'positionsToggleStatus'])->name('toggle-status');
     });
 
     // Activity Calendar Management

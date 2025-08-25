@@ -334,12 +334,22 @@ return [
             'icon' => 'fas fa-fw fa-tachometer-alt',
         ],
 
-        // Staff Management
-        ['header' => 'STAFF MANAGEMENT'],
+        // User Management
+        ['header' => 'USER MANAGEMENT'],
         [
-            'text' => 'All Staff',
+            'text' => 'Administrators',
+            'route' => 'admin.admins.index',
+            'icon' => 'fas fa-fw fa-user-shield',
+        ],
+        [
+            'text' => 'Staff Members',
             'route' => 'admin.staff.index',
             'icon' => 'fas fa-fw fa-users',
+        ],
+        [
+            'text' => 'Roles & Permissions',
+            'url' => '/admin/roles',
+            'icon' => 'fas fa-fw fa-key',
         ],
         [
             'text' => 'Attendance',
@@ -388,9 +398,24 @@ return [
         // System Settings
         ['header' => 'SYSTEM SETTINGS'],
         [
+            'text' => 'Website Settings',
+            'route' => 'admin.settings.index',
+            'icon' => 'fas fa-fw fa-cogs',
+        ],
+        [
             'text' => 'Leave Types',
             'route' => 'admin.leave-types.index',
             'icon' => 'fas fa-fw fa-list',
+        ],
+        [
+            'text' => 'Positions Management',
+            'route' => 'admin.positions.index',
+            'icon' => 'fas fa-fw fa-briefcase',
+        ],
+        [
+            'text' => 'Email Configuration',
+            'route' => 'admin.email.test',
+            'icon' => 'fas fa-fw fa-envelope-open-text',
         ],
         [
             'text' => 'Reports & Analytics',

@@ -92,7 +92,7 @@ class WeeklyTrackerController extends Controller
             $rules = array_merge($rules, [
                 'mission_title' => 'required|string|max:255',
                 'mission_type' => 'required|in:regional,continental,incountry',
-                'mission_start_date' => 'required|date|after_or_equal:today',
+                'mission_start_date' => 'required|date',
                 'mission_end_date' => 'required|date|after_or_equal:mission_start_date',
                 'mission_purpose' => 'required|string|max:1000',
                 'mission_documents.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120', // 5MB max
@@ -100,7 +100,7 @@ class WeeklyTrackerController extends Controller
         } elseif ($request->status === 'on_leave') {
             $rules = array_merge($rules, [
                 'leave_type_id' => 'required|exists:leave_types,id',
-                'leave_start_date' => 'required|date|after_or_equal:today',
+                'leave_start_date' => 'required|date',
                 'leave_end_date' => 'required|date|after_or_equal:leave_start_date',
                 'leave_approval_document' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120', // 5MB max
             ]);
@@ -235,7 +235,7 @@ class WeeklyTrackerController extends Controller
             $rules = array_merge($rules, [
                 'mission_title' => 'required|string|max:255',
                 'mission_type' => 'required|in:regional,continental,incountry',
-                'mission_start_date' => 'required|date|after_or_equal:today',
+                'mission_start_date' => 'required|date',
                 'mission_end_date' => 'required|date|after_or_equal:mission_start_date',
                 'mission_purpose' => 'required|string|max:1000',
                 'mission_documents.*' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
@@ -243,7 +243,7 @@ class WeeklyTrackerController extends Controller
         } elseif ($request->status === 'on_leave') {
             $rules = array_merge($rules, [
                 'leave_type_id' => 'required|exists:leave_types,id',
-                'leave_start_date' => 'required|date|after_or_equal:today',
+                'leave_start_date' => 'required|date',
                 'leave_end_date' => 'required|date|after_or_equal:leave_start_date',
                 'leave_approval_document' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
             ]);

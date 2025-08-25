@@ -313,11 +313,7 @@
                     Sign in with Microsoft
                 </a>
 
-                <div class="text-center mb-3">
-                    <a href="{{ route('auth.admin.login') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-user-shield me-2"></i>Administrator Login
-                    </a>
-                </div>
+
 
                 <div class="text-center">
                     <a href="{{ route('home') }}" class="back-link">

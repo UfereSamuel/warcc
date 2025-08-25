@@ -129,47 +129,33 @@
                             <h5 class="mb-3 text-primary border-bottom pb-2">Professional Information</h5>
 
                             <div class="form-group">
-                                <label for="position">Position <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('position') is-invalid @enderror"
-                                       id="position" name="position" value="{{ old('position') }}"
-                                       placeholder="e.g., Program Officer" required>
-                                @error('position')
-                                    <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <div class="form-group">
-                                <label for="department">Department <span class="text-danger">*</span></label>
-                                <select class="form-control @error('department') is-invalid @enderror"
-                                        id="department" name="department" required>
-                                    <option value="">Select Department</option>
-                                    @foreach($departments as $department)
-                                        <option value="{{ $department }}" {{ old('department') == $department ? 'selected' : '' }}>
-                                            {{ $department }}
+                                <label for="position_id">Position <span class="text-danger">*</span></label>
+                                <select class="form-control @error('position_id') is-invalid @enderror"
+                                        id="position_id" name="position_id" required>
+                                    <option value="">Select Position</option>
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}" {{ old('position_id') == $position->id ? 'selected' : '' }}>
+                                            {{ $position->title }}
                                         </option>
                                     @endforeach
-                                    <option value="other">Other (please specify below)</option>
                                 </select>
-                                @error('department')
+                                @error('position_id')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                 @enderror
-                                <small class="form-text text-muted">Select "Other" to add a new department</small>
+                                <small class="form-text text-muted">Select the appropriate job position for this staff member</small>
                             </div>
 
-                            <div class="form-group" id="other-department-group" style="display: none;">
-                                <label for="new_department">New Department Name</label>
-                                <input type="text" class="form-control" id="new_department"
-                                       placeholder="Enter new department name">
-                            </div>
+                            <!-- Department field removed -->
 
                             <div class="form-group">
-                                <label for="hire_date">Hire Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control @error('hire_date') is-invalid @enderror"
+                                <label for="hire_date">Hire Date</label>
+                                <input type="date" class="form-control @error('hire_date') is-invalid @error"
                                        id="hire_date" name="hire_date" value="{{ old('hire_date') }}"
-                                       max="{{ date('Y-m-d') }}" required>
+                                       max="{{ date('Y-m-d') }}">
                                 @error('hire_date')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                 @enderror
+                                <small class="form-text text-muted">Optional: Set the date when this staff member was hired</small>
                             </div>
 
                             <div class="form-group">

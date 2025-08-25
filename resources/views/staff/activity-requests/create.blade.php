@@ -97,38 +97,26 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="location">Location</label>
-                                <input type="text" class="form-control @error('location') is-invalid @enderror"
-                                       id="location" name="location" value="{{ old('location') }}"
-                                       placeholder="Enter venue or location">
-                                @error('location')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="estimated_budget">Estimated Budget (GHS)</label>
-                                <input type="number" step="0.01" class="form-control @error('estimated_budget') is-invalid @enderror"
-                                       id="estimated_budget" name="estimated_budget" value="{{ old('estimated_budget') }}"
-                                       min="0" max="999999.99" placeholder="0.00">
-                                @error('estimated_budget')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" class="form-control @error('location') is-invalid @enderror"
+                               id="location" name="location" value="{{ old('location') }}"
+                               placeholder="Enter venue or location">
+                        @error('location')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
 
+                    <!-- Hidden budget field - keeping for backend compatibility -->
+                    <input type="hidden" id="estimated_budget" name="estimated_budget" value="0">
+
                     <div class="form-group">
-                        <label for="justification">Justification <span class="text-danger">*</span></label>
+                        <label for="justification">Remark</label>
                         <textarea class="form-control @error('justification') is-invalid @enderror"
-                                  id="justification" name="justification" rows="4" required
-                                  placeholder="Explain why this activity is needed, its benefits, and how it aligns with organizational goals">{{ old('justification') }}</textarea>
+                                  id="justification" name="justification" rows="4"
+                                  placeholder="Add any additional remarks or notes about this activity (optional)">{{ old('justification') }}</textarea>
                         <small class="form-text text-muted">
-                            Please provide a compelling justification for this activity. Include benefits, alignment with organizational goals, and why it should be approved.
+                            Optional: Add any additional remarks, notes, or comments about this activity.
                         </small>
                         @error('justification')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -200,11 +188,7 @@
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-check text-success mr-2"></i>
-                        <strong>Include budget</strong> estimates for better planning
-                    </li>
-                    <li class="mb-2">
-                        <i class="fas fa-check text-success mr-2"></i>
-                        <strong>Justify clearly</strong> how it benefits the organization
+                        <strong>Add remarks</strong> with any additional notes or details
                     </li>
                     <li class="mb-2">
                         <i class="fas fa-check text-success mr-2"></i>
@@ -236,30 +220,32 @@
         }
     });
 
-    // Character counter for justification
-    const justificationField = document.getElementById('justification');
+    // Character counter for remark
+    const remarkField = document.getElementById('justification');
     const maxLength = 1000;
 
-    justificationField.addEventListener('input', function() {
-        const remaining = maxLength - this.value.length;
-        let feedbackElement = document.getElementById('justification-feedback');
+    if (remarkField) {
+        remarkField.addEventListener('input', function() {
+            const remaining = maxLength - this.value.length;
+            let feedbackElement = document.getElementById('remark-feedback');
 
-        if (!feedbackElement) {
-            feedbackElement = document.createElement('small');
-            feedbackElement.id = 'justification-feedback';
-            feedbackElement.className = 'form-text text-muted';
-            this.parentNode.appendChild(feedbackElement);
-        }
+            if (!feedbackElement) {
+                feedbackElement = document.createElement('small');
+                feedbackElement.id = 'remark-feedback';
+                feedbackElement.className = 'form-text text-muted';
+                this.parentNode.appendChild(feedbackElement);
+            }
 
-        feedbackElement.textContent = `${remaining} characters remaining`;
+            feedbackElement.textContent = `${remaining} characters remaining`;
 
-        if (remaining < 100) {
-            feedbackElement.className = 'form-text text-warning';
-        } else if (remaining < 0) {
-            feedbackElement.className = 'form-text text-danger';
-        } else {
-            feedbackElement.className = 'form-text text-muted';
-        }
-    });
+            if (remaining < 100) {
+                feedbackElement.className = 'form-text text-warning';
+            } else if (remaining < 0) {
+                feedbackElement.className = 'form-text text-danger';
+            } else {
+                feedbackElement.className = 'form-text text-muted';
+            }
+        });
+    }
 </script>
 @stop

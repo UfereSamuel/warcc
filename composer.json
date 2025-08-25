@@ -14,7 +14,7 @@
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "^3.1",
-        "socialiteproviders/microsoft": "^4.7",
+        "microsoft/microsoft-graph": "^2.45",
         "spatie/laravel-permission": "^6.20"
     },
     "require-dev": {
@@ -31,7 +31,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

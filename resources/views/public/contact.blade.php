@@ -52,8 +52,8 @@
             <div class="col-lg-8">
                 <h1 class="display-4 fw-bold mb-3">Contact Us</h1>
                 <p class="lead mb-4">
-                    Get in touch with the Africa CDC Western Regional Collaborating Centre.
-                    We're here to support health security initiatives across West Africa.
+                    Get in touch with {{ setting('contact_organization', 'the Africa CDC Western Regional Collaborating Centre') }}.
+                    {{ setting('site_description', 'We\'re here to support health security initiatives across West Africa.') }}
                 </p>
             </div>
             <div class="col-lg-4 text-center">
@@ -74,10 +74,7 @@
                     </div>
                     <h5 class="fw-bold">Our Location</h5>
                     <p class="text-muted mb-0">
-                        University of Ghana Medical School<br>
-                        College of Health Sciences<br>
-                        Korle-Bu, Accra<br>
-                        Ghana
+                        {!! setting('contact_address', 'University of Ghana Medical School<br>College of Health Sciences<br>Korle-Bu, Accra<br>Ghana') !!}
                     </p>
                 </div>
             </div>
@@ -89,9 +86,16 @@
                     </div>
                     <h5 class="fw-bold">Phone</h5>
                     <p class="text-muted mb-0">
-                        Main Office: <a href="tel:+233302681109" class="text-primary">+233 30 268 1109</a><br>
-                        Emergency Line: <a href="tel:+233544334455" class="text-primary">+233 54 433 4455</a><br>
-                        Fax: +233 30 268 1110
+                        @if(setting('contact_phone'))
+                            Main Office: <a href="tel:{{ str_replace([' ', '-', '(', ')'], '', setting('contact_phone')) }}" class="text-primary">{{ setting('contact_phone') }}</a><br>
+                        @else
+                            Main Office: <a href="tel:+233302681109" class="text-primary">+233 30 268 1109</a><br>
+                        @endif
+                        @if(setting('contact_fax'))
+                            Fax: {{ setting('contact_fax') }}
+                        @else
+                            Fax: +233 30 268 1110
+                        @endif
                     </p>
                 </div>
             </div>
@@ -103,9 +107,14 @@
                     </div>
                     <h5 class="fw-bold">Email</h5>
                     <p class="text-muted mb-0">
-                        General: <a href="mailto:info@africacdc-western.org" class="text-primary">info@africacdc-western.org</a><br>
-                        Director: <a href="mailto:director@africacdc-western.org" class="text-primary">director@africacdc-western.org</a><br>
-                        Emergency: <a href="mailto:emergency@africacdc-western.org" class="text-primary">emergency@africacdc-western.org</a>
+                        @if(setting('contact_email'))
+                            General: <a href="mailto:{{ setting('contact_email') }}" class="text-primary">{{ setting('contact_email') }}</a><br>
+                        @else
+                            General: <a href="mailto:info@africacdc-western.org" class="text-primary">info@africacdc-western.org</a><br>
+                        @endif
+                        @if(setting('contact_website'))
+                            Website: <a href="{{ setting('contact_website') }}" target="_blank" class="text-primary">{{ setting('contact_website') }}</a>
+                        @endif
                     </p>
                 </div>
             </div>
@@ -181,62 +190,6 @@
                         loading="lazy"
                         referrerpolicy="no-referrer-when-downgrade">
                     </iframe>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Regional Offices -->
-<section class="py-5">
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <h3 class="fw-bold text-primary text-center mb-5">Regional Presence</h3>
-                <div class="row g-4">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="contact-card text-center">
-                            <h6 class="fw-bold">Ghana Hub</h6>
-                            <p class="text-muted small mb-0">
-                                University of Ghana<br>
-                                Accra, Ghana<br>
-                                <a href="tel:+233302681109" class="text-primary">+233 30 268 1109</a>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6">
-                        <div class="contact-card text-center">
-                            <h6 class="fw-bold">Nigeria Office</h6>
-                            <p class="text-muted small mb-0">
-                                Coming Soon<br>
-                                Abuja, Nigeria<br>
-                                <span class="text-muted">In Development</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6">
-                        <div class="contact-card text-center">
-                            <h6 class="fw-bold">Senegal Office</h6>
-                            <p class="text-muted small mb-0">
-                                Coming Soon<br>
-                                Dakar, Senegal<br>
-                                <span class="text-muted">In Development</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6">
-                        <div class="contact-card text-center">
-                            <h6 class="fw-bold">Côte d'Ivoire Office</h6>
-                            <p class="text-muted small mb-0">
-                                Coming Soon<br>
-                                Abidjan, Côte d'Ivoire<br>
-                                <span class="text-muted">In Development</span>
-                            </p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

@@ -22,6 +22,7 @@ class StaffController extends Controller
     public function dashboard()
     {
         $staff = Auth::guard('staff')->user();
+        $staff->load('position');
 
         // Get today's attendance
         $todayAttendance = $staff->getTodayAttendance();
@@ -88,6 +89,7 @@ class StaffController extends Controller
     public function profile()
     {
         $staff = Auth::guard('staff')->user();
+        $staff->load('position');
         return view('staff.profile', compact('staff'));
     }
 
@@ -97,6 +99,7 @@ class StaffController extends Controller
     public function updateProfile(Request $request)
     {
         $staff = Auth::guard('staff')->user();
+        $staff->load('position');
 
         $request->validate([
             'first_name' => 'required|string|max:255',
@@ -179,6 +182,95 @@ class StaffController extends Controller
         // Admins can access all documents
         if ($staff->is_admin) {
             return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Show profile completion form for new SSO users
+     */
+    public function showProfileCompletion()
+    {
+        $staff = Auth::guard('staff')->user();
+        $staff->load('position');
+        
+        // If profile is already complete, redirect to dashboard
+        if (!$this->requiresProfileCompletion($staff)) {
+            if ($staff->is_admin) {
+                return redirect()->route('admin.dashboard');
+            } else {
+                return redirect()->route('staff.dashboard');
+            }
+        }
+
+        $positions = \App\Models\Position::active()->orderBy('title')->get();
+        return view('staff.profile-complete', compact('staff', 'positions'));
+    }
+
+    /**
+     * Handle profile completion form submission
+     */
+    public function completeProfile(Request $request)
+    {
+        $staff = Auth::guard('staff')->user();
+
+        $request->validate([
+            'position_id' => 'required|exists:positions,id',
+            'department' => 'required|string|max:100',
+            'gender' => 'required|in:male,female,other',
+            'phone' => 'nullable|string|max:20',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        // Update staff profile
+        $staff->position_id = $request->position_id;
+        $staff->department = $request->department;
+        $staff->gender = $request->gender;
+        $staff->phone = $request->phone;
+
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            $image = $request->file('profile_picture');
+            $filename = 'profile_' . $staff->id . '_' . time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('images/uploads', $filename, 'public');
+            $staff->profile_picture = $filename;
+        }
+
+        $staff->save();
+
+        // Log profile completion
+        \Log::info('Staff profile completed after SSO registration', [
+            'staff_id' => $staff->staff_id,
+            'email' => $staff->email,
+        ]);
+
+        // Redirect to appropriate dashboard
+        if ($staff->is_admin) {
+            return redirect()->route('admin.dashboard')
+                ->with('success', 'Welcome! Your profile has been completed successfully.');
+        } else {
+            return redirect()->route('staff.dashboard')
+                ->with('success', 'Welcome! Your profile has been completed successfully.');
+        }
+    }
+
+    /**
+     * Check if staff profile requires completion (same logic as AuthController)
+     */
+    private function requiresProfileCompletion(Staff $staff)
+    {
+        $requiredFields = [
+            'position_id' => [null, ''],
+            'department' => ['Pending', null, ''],
+            'phone' => [null, ''],
+            'gender' => [null, ''],
+        ];
+
+        foreach ($requiredFields as $field => $invalidValues) {
+            if (in_array($staff->$field, $invalidValues)) {
+                return true;
+            }
         }
 
         return false;

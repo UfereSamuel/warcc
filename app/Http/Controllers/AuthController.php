@@ -43,13 +43,20 @@ class AuthController extends Controller
             ]);
 
             // Find staff by Microsoft ID or email
-            $staff = Staff::where('microsoft_id', $microsoftUser->id)
+            $staff = Staff::with('position')->where('microsoft_id', $microsoftUser->id)
                          ->orWhere('email', $microsoftUser->email)
                          ->first();
 
             if (!$staff) {
-                return redirect()->route('auth.login')
-                    ->with('error', 'Your account is not registered in the system. Please contact the administrator.');
+                // Auto-register new staff from Microsoft SSO
+                $staff = $this->createStaffFromMicrosoftUser($microsoftUser);
+                
+                // Log new staff registration
+                \Log::info('New staff auto-registered from Microsoft SSO', [
+                    'email' => $microsoftUser->email,
+                    'name' => $microsoftUser->name,
+                    'staff_id' => $staff->staff_id
+                ]);
             }
 
             // Update Microsoft ID if not set
@@ -65,6 +72,12 @@ class AuthController extends Controller
             // Login the staff member
             Auth::guard('staff')->login($staff);
 
+            // Check if profile needs completion
+            if ($this->requiresProfileCompletion($staff)) {
+                return redirect()->route('staff.profile.complete')
+                    ->with('info', 'Welcome! Please complete your profile to access the system.');
+            }
+
             // Redirect based on admin status
             if ($staff->is_admin) {
                 return redirect()->intended(route('admin.dashboard'))
@@ -76,7 +89,7 @@ class AuthController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->route('auth.login')
-                ->with('error', 'Authentication failed. Please try again.');
+                ->with('error', 'Authentication failed:' .$e->getMessage());
         }
     }
 
@@ -108,7 +121,7 @@ class AuthController extends Controller
         }
 
         // Find corresponding staff record
-        $staff = Staff::where('email', $request->email)->first();
+        $staff = Staff::with('position')->where('email', $request->email)->first();
 
         if (!$staff || !$staff->is_admin) {
             return back()->withErrors([
@@ -141,5 +154,72 @@ class AuthController extends Controller
 
         return redirect()->route('home')
             ->with('success', 'Goodbye, ' . $staffName . '. You have been logged out successfully.');
+    }
+
+    /**
+     * Create a new staff record from Microsoft SSO user data
+     */
+    private function createStaffFromMicrosoftUser($microsoftUser)
+    {
+        // Parse name parts
+        $nameParts = explode(' ', trim($microsoftUser->name), 2);
+        $firstName = $nameParts[0] ?? '';
+        $lastName = $nameParts[1] ?? '';
+
+        // Generate unique staff ID
+        $staffId = $this->generateUniqueStaffId();
+
+        // Create new staff record with minimal required data
+        $staff = Staff::create([
+            'staff_id' => $staffId,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $microsoftUser->email,
+            'microsoft_id' => $microsoftUser->id,
+            'position_id' => null, // Will be set during profile completion
+            'department' => 'Pending', // Default value, will be updated in profile completion
+            'hire_date' => now()->toDateString(),
+            'status' => 'active',
+            'is_admin' => false,
+            'annual_leave_balance' => 28,
+        ]);
+
+        return $staff;
+    }
+
+    /**
+     * Generate a unique staff ID
+     */
+    private function generateUniqueStaffId()
+    {
+        do {
+            // Generate format: RCC-XXX (where XXX is a 3-digit number)
+            $number = str_pad(rand(100, 999), 3, '0', STR_PAD_LEFT);
+            $staffId = 'RCC-' . $number;
+        } while (Staff::where('staff_id', $staffId)->exists());
+
+        return $staffId;
+    }
+
+    /**
+     * Check if staff profile requires completion
+     */
+    private function requiresProfileCompletion(Staff $staff)
+    {
+        // Check if any required fields are missing or have default values
+        $requiredFields = [
+            'position_id' => [null, ''],
+            'department' => ['Pending', null, ''],
+            'phone' => [null, ''],
+            'gender' => [null, ''],
+        ];
+
+        foreach ($requiredFields as $field => $invalidValues) {
+            if (in_array($staff->$field, $invalidValues)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

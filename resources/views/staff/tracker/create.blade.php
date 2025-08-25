@@ -120,7 +120,8 @@
                                                    class="form-control @error('mission_start_date') is-invalid @enderror"
                                                    id="mission_start_date"
                                                    name="mission_start_date"
-                                                   value="{{ old('mission_start_date') }}">
+                                                   value="{{ old('mission_start_date') }}"
+                                                   onchange="updateMissionEndDateMin()">
                                             @error('mission_start_date')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -137,6 +138,7 @@
                                             @error('mission_end_date')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
+                                            <small class="form-text text-muted">Must be on or after start date</small>
                                         </div>
                                     </div>
                                 </div>
@@ -202,7 +204,8 @@
                                                    class="form-control @error('leave_start_date') is-invalid @enderror"
                                                    id="leave_start_date"
                                                    name="leave_start_date"
-                                                   value="{{ old('leave_start_date') }}">
+                                                   value="{{ old('leave_start_date') }}"
+                                                   onchange="updateLeaveEndDateMin()">
                                             @error('leave_start_date')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
@@ -219,6 +222,7 @@
                                             @error('leave_end_date')
                                                 <span class="invalid-feedback">{{ $message }}</span>
                                             @enderror
+                                            <small class="form-text text-muted">Must be on or after start date</small>
                                         </div>
                                     </div>
                                 </div>
@@ -341,6 +345,34 @@ function updateStatusFields() {
         leaveFields.style.display = 'block';
     } else if (status === 'at_duty_station') {
         remarksRequired.style.display = 'inline';
+    }
+}
+
+function updateMissionEndDateMin() {
+    const startDate = document.getElementById('mission_start_date').value;
+    const endDateField = document.getElementById('mission_end_date');
+    
+    if (startDate) {
+        endDateField.min = startDate;
+        
+        // Clear end date if it's before the new start date
+        if (endDateField.value && endDateField.value < startDate) {
+            endDateField.value = '';
+        }
+    }
+}
+
+function updateLeaveEndDateMin() {
+    const startDate = document.getElementById('leave_start_date').value;
+    const endDateField = document.getElementById('leave_end_date');
+    
+    if (startDate) {
+        endDateField.min = startDate;
+        
+        // Clear end date if it's before the new start date
+        if (endDateField.value && endDateField.value < startDate) {
+            endDateField.value = '';
+        }
     }
 }
 
