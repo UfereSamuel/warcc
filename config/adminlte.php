@@ -334,6 +334,18 @@ return [
             'icon' => 'fas fa-fw fa-tachometer-alt',
         ],
 
+        // Staff Dashboard for promoted admins (excluding super admin)
+        [
+            'text' => 'Staff Dashboard',
+            'route' => 'staff.dashboard',
+            'icon' => 'fas fa-fw fa-user-friends',
+            'can' => function() {
+                return auth()->guard('staff')->check() && 
+                       auth()->guard('staff')->user()->is_admin && 
+                       auth()->guard('staff')->user()->email !== 'admin@africacdc.org';
+            }
+        ],
+
         // User Management
         ['header' => 'USER MANAGEMENT'],
         [
