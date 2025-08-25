@@ -44,8 +44,7 @@ class EnsureProfileComplete
     private function requiresProfileCompletion($staff)
     {
         $requiredFields = [
-            'position' => ['Pending', null, ''],
-            'department' => ['Pending', null, ''],
+            'position_id' => [null, ''],
             'phone' => [null, ''],
             'gender' => [null, ''],
         ];

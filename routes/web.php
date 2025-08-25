@@ -65,17 +65,19 @@ Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-// Protected Routes (Requires Authentication)
+// Profile Completion Routes (No profile.complete middleware to avoid circular dependency)
+Route::middleware(['auth:staff'])->prefix('staff')->name('staff.')->group(function () {
+    Route::get('/profile/complete', [StaffController::class, 'showProfileCompletion'])->name('profile.complete');
+    Route::post('/profile/complete', [StaffController::class, 'completeProfile'])->name('profile.complete.post');
+});
+
+// Protected Routes (Requires Authentication and Profile Completion)
 Route::middleware(['auth:staff', 'profile.complete'])->prefix('staff')->name('staff.')->group(function () {
 
     // Staff Dashboard
     Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [StaffController::class, 'profile'])->name('profile');
     Route::put('/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
-    
-    // Profile Completion (for new SSO users)
-    Route::get('/profile/complete', [StaffController::class, 'showProfileCompletion'])->name('profile.complete');
-    Route::post('/profile/complete', [StaffController::class, 'completeProfile'])->name('profile.complete.post');
 
     // Attendance Management
     Route::prefix('attendance')->name('attendance.')->group(function () {
