@@ -117,16 +117,16 @@
                 </div>
                 <div class="col-md-2">
                     <div class="form-group">
-                        <label for="department"><strong>Department</strong></label>
-                        <select class="form-control form-control-lg" id="department" name="department">
-                            <option value="">All Departments</option>
-                            @foreach($departments as $department)
-                                <option value="{{ $department }}" {{ request('department') === $department ? 'selected' : '' }}>
-                                    {{ $department }}
+                        <label for="position_id"><strong>Position</strong></label>
+                        <select class="form-control form-control-lg" id="position_id" name="position_id">
+                            <option value="">All Positions</option>
+                            @foreach($positions as $position)
+                                <option value="{{ $position->id }}" {{ request('position_id') == $position->id ? 'selected' : '' }}>
+                                    {{ $position->title }}
                                 </option>
                             @endforeach
                         </select>
-                        <small class="form-text text-muted">Filter by staff department</small>
+                        <small class="form-text text-muted">Filter by staff position</small>
                     </div>
                 </div>
                 <div class="col-md-2">

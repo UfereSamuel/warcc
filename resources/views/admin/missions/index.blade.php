@@ -86,12 +86,12 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="department">Department</label>
-                                <select class="form-control" id="department" name="department">
-                                    <option value="">All Departments</option>
-                                    @foreach($departments as $dept)
-                                        <option value="{{ $dept }}" {{ $department == $dept ? 'selected' : '' }}>
-                                            {{ $dept }}
+                                <label for="position_id">Position</label>
+                                <select class="form-control" id="position_id" name="position_id">
+                                    <option value="">All Positions</option>
+                                    @foreach($positions as $position)
+                                        <option value="{{ $position->id }}" {{ $position_id == $position->id ? 'selected' : '' }}>
+                                            {{ $position->title }}
                                         </option>
                                     @endforeach
                                 </select>
