@@ -965,7 +965,7 @@ class AdminController extends Controller
         ];
 
         return view('admin.attendance.index', compact(
-            'attendances', 'absentStaff', 'departments', 'stats', 'date', 'department'
+            'attendances', 'absentStaff', 'positions', 'stats', 'date', 'position_id'
         ));
     }
 
