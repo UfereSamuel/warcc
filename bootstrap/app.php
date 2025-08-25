@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
+            'restrict.superadmin' => \App\Http\Middleware\RestrictSuperAdminFromStaff::class,
         ]);
 
         // Configure authentication redirects

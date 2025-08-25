@@ -72,7 +72,7 @@ Route::middleware(['auth:staff'])->prefix('staff')->name('staff.')->group(functi
 });
 
 // Protected Routes (Requires Authentication and Profile Completion)
-Route::middleware(['auth:staff', 'profile.complete'])->prefix('staff')->name('staff.')->group(function () {
+Route::middleware(['auth:staff', 'profile.complete', 'restrict.superadmin'])->prefix('staff')->name('staff.')->group(function () {
 
     // Staff Dashboard
     Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('dashboard');
