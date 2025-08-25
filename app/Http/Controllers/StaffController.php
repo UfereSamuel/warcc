@@ -217,7 +217,6 @@ class StaffController extends Controller
 
         $request->validate([
             'position_id' => 'required|exists:positions,id',
-            'department' => 'required|string|max:100',
             'gender' => 'required|in:male,female,other',
             'phone' => 'nullable|string|max:20',
             'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -225,7 +224,6 @@ class StaffController extends Controller
 
         // Update staff profile
         $staff->position_id = $request->position_id;
-        $staff->department = $request->department;
         $staff->gender = $request->gender;
         $staff->phone = $request->phone;
 
@@ -262,7 +260,6 @@ class StaffController extends Controller
     {
         $requiredFields = [
             'position_id' => [null, ''],
-            'department' => ['Pending', null, ''],
             'phone' => [null, ''],
             'gender' => [null, ''],
         ];

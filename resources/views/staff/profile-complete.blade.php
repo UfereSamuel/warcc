@@ -224,7 +224,7 @@
                     <div class="col-md-6">
                         <h6><i class="fas fa-user-tie text-primary mr-2"></i>Admin Assistance</h6>
                         <p class="small text-muted">
-                            Your department and position can be updated by administrators 
+                            Your position can be updated by administrators 
                             after you complete the initial setup.
                         </p>
                     </div>
@@ -288,8 +288,6 @@
             $('#gender').focus();
         } else if (!$('#position_id').val()) {
             $('#position_id').focus();
-        } else if (!$('#department').val()) {
-            $('#department').focus();
         }
     });
 </script>

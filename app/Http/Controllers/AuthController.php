@@ -177,7 +177,6 @@ class AuthController extends Controller
             'email' => $microsoftUser->email,
             'microsoft_id' => $microsoftUser->id,
             'position_id' => null, // Will be set during profile completion
-            'department' => 'Pending', // Default value, will be updated in profile completion
             'hire_date' => now()->toDateString(),
             'status' => 'active',
             'is_admin' => false,
@@ -209,7 +208,6 @@ class AuthController extends Controller
         // Check if any required fields are missing or have default values
         $requiredFields = [
             'position_id' => [null, ''],
-            'department' => ['Pending', null, ''],
             'phone' => [null, ''],
             'gender' => [null, ''],
         ];
