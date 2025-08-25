@@ -8,6 +8,23 @@
 @endsection
 
 @section('content')
+<!-- Admin Access Banner for promoted admins -->
+@if(auth()->guard('staff')->user()->is_admin && auth()->guard('staff')->user()->email !== 'admin@africacdc.org')
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-info alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <h5><i class="icon fas fa-cogs"></i> Admin Access Available</h5>
+            You have administrative privileges. 
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-outline-info ml-2">
+                <i class="fas fa-tools mr-1"></i>
+                Go to Admin Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Quick Actions Row -->
 <div class="row mb-4">
     <div class="col-12">
