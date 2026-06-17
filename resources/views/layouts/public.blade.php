@@ -180,6 +180,19 @@
                 </ul>
 
                 <ul class="navbar-nav">
+                    @php
+                        $systemSettings = \Illuminate\Support\Facades\DB::table('system_settings')->first();
+                        $complaintsEnabled = $systemSettings ? $systemSettings->complaints_system_enabled : false;
+                    @endphp
+                    
+                    @if($complaintsEnabled)
+                    <li class="nav-item me-2">
+                        <a class="btn btn-danger btn-lg" href="{{ route('complaints.create') }}">
+                            <i class="fas fa-exclamation-circle me-1"></i> <strong>SUBMIT COMPLAINT</strong>
+                        </a>
+                    </li>
+                    @endif
+                    
                     <li class="nav-item">
                         <a class="btn btn-primary" href="{{ route('auth.login') }}">
                             <i class="fas fa-sign-in-alt me-1"></i> Staff Login

@@ -373,6 +373,16 @@ return [
             'route' => 'admin.weekly-trackers.index',
             'icon' => 'fas fa-fw fa-calendar-week',
         ],
+        [
+            'text' => 'Complaints',
+            'route' => 'admin.complaints.index',
+            'icon' => 'fas fa-fw fa-exclamation-triangle',
+        ],
+        [
+            'text' => 'Countries',
+            'route' => 'admin.countries.index',
+            'icon' => 'fas fa-fw fa-globe-africa',
+        ],
         // [
         //     'text' => 'Leave Requests',
         //     'route' => 'admin.leaves.index',

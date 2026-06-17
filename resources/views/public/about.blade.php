@@ -166,107 +166,19 @@
             <div class="col-lg-6">
                 <h2 class="display-5 fw-bold text-primary mb-4">Coverage Area</h2>
                 <p class="lead text-muted mb-4">
-                    The Western RCC serves 15 countries across West Africa, providing technical support
+                    The Western RCC serves {{ $countries->count() }} countries across West Africa, providing technical support
                     and coordination for health security initiatives.
                 </p>
 
                 <div class="row g-3">
+                    @foreach($countries as $country)
                     <div class="col-6">
                         <div class="d-flex align-items-center">
                             <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Benin</span>
+                            <span>{{ $country->name }}</span>
                         </div>
                     </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Burkina Faso</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Cape Verde</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Côte d'Ivoire</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Gambia</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Ghana</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Guinea</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Guinea-Bissau</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Liberia</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Mali</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Mauritania</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Niger</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Nigeria</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Senegal</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Sierra Leone</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                            <span>Togo</span>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
 

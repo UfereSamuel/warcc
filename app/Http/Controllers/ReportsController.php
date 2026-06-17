@@ -23,7 +23,7 @@ class ReportsController extends Controller
 
         // Key statistics
         $totalStaff = Staff::where('status', 'active')->count();
-        $totalDepartments = Staff::distinct('department')->count();
+        $totalPositions = \App\Models\Position::count();
 
         // Attendance overview
         $attendanceStats = [
@@ -40,16 +40,21 @@ class ReportsController extends Controller
             'approved' => WeeklyTracker::whereBetween('week_start_date', [$startDate, $endDate])->where('status', 'approved')->count()
         ];
 
-        // Department performance
-        $departmentStats = Staff::select('department')
-            ->selectRaw('COUNT(*) as staff_count')
-            ->where('status', 'active')
-            ->groupBy('department')
-            ->get();
+        // Position performance
+        $positionStats = \App\Models\Position::with(['staff' => function($query) {
+                $query->where('status', 'active');
+            }])
+            ->get()
+            ->map(function($position) {
+                return [
+                    'position' => $position->title,
+                    'staff_count' => $position->staff->count()
+                ];
+            });
 
         return view('admin.reports.index', compact(
             'totalStaff', 'totalDepartments', 'attendanceStats', 'trackerStats',
-            'departmentStats', 'startDate', 'endDate'
+            'positionStats', 'startDate', 'endDate'
         ));
     }
 
@@ -60,12 +65,12 @@ class ReportsController extends Controller
     {
         $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->format('Y-m-d'));
-        $department = $request->get('department');
+        $position_id = $request->get('position_id');
 
         $query = Staff::where('status', 'active');
 
-        if ($department) {
-            $query->where('department', $department);
+        if ($position_id) {
+            $query->where('position_id', $position_id);
         }
 
         $staff = $query->get()->map(function ($member) use ($startDate, $endDate) {
@@ -103,10 +108,10 @@ class ReportsController extends Controller
             ];
         })->sortByDesc('performance_score');
 
-        $departments = Staff::distinct()->pluck('department')->filter()->sort();
+        $positions = \App\Models\Position::orderBy('title')->get();
 
         return view('admin.reports.staff-performance', compact(
-            'staff', 'departments', 'startDate', 'endDate', 'department'
+            'staff', 'positions', 'startDate', 'endDate', 'position_id'
         ));
     }
 
@@ -117,15 +122,15 @@ class ReportsController extends Controller
     {
         $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->format('Y-m-d'));
-        $department = $request->get('department');
+        $position_id = $request->get('position_id');
         $status = $request->get('status');
 
         $query = WeeklyTracker::with('staff')
             ->whereBetween('week_start_date', [$startDate, $endDate]);
 
-        if ($department) {
-            $query->whereHas('staff', function($q) use ($department) {
-                $q->where('department', $department);
+        if ($position_id) {
+            $query->whereHas('staff', function($q) use ($position_id) {
+                $q->where('position_id', $position_id);
             });
         }
 

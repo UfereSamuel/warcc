@@ -12,6 +12,7 @@ use App\Http\Controllers\ActivityCalendarController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ActivityRequestController;
+use App\Http\Controllers\ComplaintController;
 
 // Public Routes
 Route::get('/', [PublicController::class, 'index'])->name('home');
@@ -22,6 +23,14 @@ Route::get('/events/{event}', [PublicController::class, 'eventShow'])->name('pub
 Route::get('/api/events', [PublicController::class, 'eventsApi'])->name('public.events.api');
 Route::get('/media', [PublicController::class, 'media'])->name('public.media');
 Route::get('/videos', [PublicController::class, 'media'])->name('public.videos');
+
+// Complaints Routes (Public)
+Route::get('/complaints', function() {
+    return redirect()->route('complaints.create');
+})->name('complaints.index');
+Route::get('/complaints/submit', [ComplaintController::class, 'create'])->name('complaints.create');
+Route::post('/complaints/submit', [ComplaintController::class, 'store'])->name('complaints.store');
+Route::get('/complaints/success/{id}', [ComplaintController::class, 'success'])->name('complaints.success');
 
 // Test Routes for Development (Remove in Production)
 Route::get('/test-accounts', function () {
@@ -128,6 +137,11 @@ Route::middleware(['auth:staff', 'profile.complete', 'restrict.superadmin'])->pr
         Route::get('/api/events', [ActivityCalendarController::class, 'apiEvents'])->name('api.events');
     });
 
+    // Staff Complaint Submission
+    Route::get('/complaints/submit', [ComplaintController::class, 'create'])->name('complaints.create');
+    Route::post('/complaints/submit', [ComplaintController::class, 'store'])->name('complaints.store');
+    Route::get('/complaints/success/{id}', [ComplaintController::class, 'success'])->name('complaints.success');
+
     // Activity Requests (Staff)
     Route::prefix('activity-requests')->name('activity-requests.')->group(function () {
         Route::get('/', [ActivityRequestController::class, 'index'])->name('index');
@@ -171,6 +185,36 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')-
     // Admin Management
     Route::prefix('admins')->name('admins.')->group(function () {
         Route::get('/', [AdminController::class, 'adminIndex'])->name('index');
+    });
+
+    // Countries Management
+    Route::prefix('countries')->name('countries.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\CountryController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Admin\CountryController::class, 'store'])->name('store');
+        Route::put('/{country}', [\App\Http\Controllers\Admin\CountryController::class, 'update'])->name('update');
+        Route::post('/{country}/toggle', [\App\Http\Controllers\Admin\CountryController::class, 'toggle'])->name('toggle');
+        Route::delete('/{country}', [\App\Http\Controllers\Admin\CountryController::class, 'destroy'])->name('destroy');
+    });
+
+    // Complaints Management
+    Route::prefix('complaints')->name('complaints.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\ComplaintController::class, 'index'])->name('index');
+        
+        // Categories Management
+        Route::get('/categories', [\App\Http\Controllers\Admin\ComplaintController::class, 'categoriesIndex'])->name('categories.index');
+        Route::post('/categories', [\App\Http\Controllers\Admin\ComplaintController::class, 'categoriesStore'])->name('categories.store');
+        Route::put('/categories/{category}', [\App\Http\Controllers\Admin\ComplaintController::class, 'categoriesUpdate'])->name('categories.update');
+        Route::delete('/categories/{category}', [\App\Http\Controllers\Admin\ComplaintController::class, 'categoriesDestroy'])->name('categories.destroy');
+        Route::post('/categories/{category}/toggle', [\App\Http\Controllers\Admin\ComplaintController::class, 'categoriesToggle'])->name('categories.toggle');
+        
+        Route::get('/{complaint}', [\App\Http\Controllers\Admin\ComplaintController::class, 'show'])->name('show');
+        Route::post('/{complaint}/toggle-review', [\App\Http\Controllers\Admin\ComplaintController::class, 'toggleReview'])->name('toggle-review');
+        Route::put('/{complaint}/notes', [\App\Http\Controllers\Admin\ComplaintController::class, 'updateNotes'])->name('update-notes');
+        Route::put('/{complaint}/category', [\App\Http\Controllers\Admin\ComplaintController::class, 'updateCategory'])->name('update-category');
+        Route::delete('/{complaint}', [\App\Http\Controllers\Admin\ComplaintController::class, 'destroy'])->name('destroy');
+        Route::get('/{complaint}/download', [\App\Http\Controllers\Admin\ComplaintController::class, 'downloadPdf'])->name('download');
+        Route::get('/bulk/download', [\App\Http\Controllers\Admin\ComplaintController::class, 'downloadBulkPdf'])->name('bulk-download');
+        Route::post('/toggle-system', [\App\Http\Controllers\Admin\ComplaintController::class, 'toggleSystem'])->name('toggle-system');
     });
 
     // Roles & Permissions Management

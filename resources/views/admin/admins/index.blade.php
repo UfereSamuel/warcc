@@ -206,7 +206,7 @@
                         <div>
                                                             <strong>{{ $admin->position_title }}</strong>
                         </div>
-                        <small class="text-muted">{{ $admin->department }}</small>
+                        <small class="text-muted">{{ $admin->position ? $admin->position->title : 'No Position' }}</small>
                     </td>
                     <td>
                         @if(str_contains($admin->staff_id, 'ADMIN'))

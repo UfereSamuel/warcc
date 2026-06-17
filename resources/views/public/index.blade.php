@@ -204,207 +204,31 @@
             <div class="col-lg-8 mx-auto text-center">
                 <h2 class="display-5 fw-bold text-primary mb-3">Serving West Africa</h2>
                 <p class="lead text-muted">
-                    The Western RCC serves 15 countries across West Africa, working together to strengthen
+                    The Western RCC serves {{ $countries->count() }} countries across West Africa, working together to strengthen
                     regional health security and build resilient health systems.
                 </p>
             </div>
         </div>
 
         <div class="row g-4">
-            <!-- Benin -->
+            @forelse($countries as $country)
             <div class="col-lg-3 col-md-4 col-sm-6">
                 <div class="card text-center h-100 p-3">
                     <div class="card-body">
                         <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/bj.png" alt="Benin Flag" class="img-fluid" style="height: 40px;">
+                            <img src="{{ $country->flag_url }}" alt="{{ $country->name }} Flag" class="img-fluid" style="height: 40px;">
                         </div>
-                        <h6 class="fw-bold text-primary">Benin</h6>
-                        <small class="text-muted">Republic of Benin</small>
+                        <h6 class="fw-bold text-primary">{{ $country->name }}</h6>
+                        <small class="text-muted">{{ $country->official_name }}</small>
                     </div>
                 </div>
             </div>
-
-            <!-- Burkina Faso -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/bf.png" alt="Burkina Faso Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Burkina Faso</h6>
-                        <small class="text-muted">Burkina Faso</small>
-                    </div>
-                </div>
+            @empty
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-globe fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No countries configured yet.</p>
             </div>
-
-            <!-- Cape Verde -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/cv.png" alt="Cape Verde Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Cape Verde</h6>
-                        <small class="text-muted">Republic of Cabo Verde</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Côte d'Ivoire -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/ci.png" alt="Côte d'Ivoire Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Côte d'Ivoire</h6>
-                        <small class="text-muted">Republic of Côte d'Ivoire</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gambia -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/gm.png" alt="Gambia Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Gambia</h6>
-                        <small class="text-muted">Republic of The Gambia</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ghana -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/gh.png" alt="Ghana Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Ghana</h6>
-                        <small class="text-muted">Republic of Ghana</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Guinea -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/gn.png" alt="Guinea Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Guinea</h6>
-                        <small class="text-muted">Republic of Guinea</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Guinea-Bissau -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/gw.png" alt="Guinea-Bissau Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Guinea-Bissau</h6>
-                        <small class="text-muted">Republic of Guinea-Bissau</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Liberia -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/lr.png" alt="Liberia Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Liberia</h6>
-                        <small class="text-muted">Republic of Liberia</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mali -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/ml.png" alt="Mali Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Mali</h6>
-                        <small class="text-muted">Republic of Mali</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mauritania -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/mr.png" alt="Mauritania Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Mauritania</h6>
-                        <small class="text-muted">Islamic Republic of Mauritania</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Niger -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/ne.png" alt="Niger Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Niger</h6>
-                        <small class="text-muted">Republic of Niger</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Nigeria -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/ng.png" alt="Nigeria Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Nigeria</h6>
-                        <small class="text-muted">Federal Republic of Nigeria</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Senegal -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/sn.png" alt="Senegal Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Senegal</h6>
-                        <small class="text-muted">Republic of Senegal</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sierra Leone -->
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card text-center h-100 p-3">
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <img src="https://flagcdn.com/w80/sl.png" alt="Sierra Leone Flag" class="img-fluid" style="height: 40px;">
-                        </div>
-                        <h6 class="fw-bold text-primary">Sierra Leone</h6>
-                        <small class="text-muted">Republic of Sierra Leone</small>
-                    </div>
-                </div>
-            </div>
+            @endforelse
         </div>
     </div>
 </section>

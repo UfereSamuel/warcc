@@ -25,15 +25,22 @@ class AttendanceController extends Controller
 
         $todayAttendance = $staff->getTodayAttendance();
 
-        // Get this week's attendance
-        $weekAttendance = $staff->attendances()
-            ->thisWeek()
-            ->orderBy('date', 'desc')
-            ->get();
+        // Get this week's attendance summary
+        $weekSummary = [
+            'working_days' => 5, // Assuming 5 working days per week
+            'present_days' => $staff->attendances()
+                ->thisWeek()
+                ->where('status', 'present')
+                ->count(),
+            'total_hours' => $staff->attendances()
+                ->thisWeek()
+                ->whereNotNull('total_hours')
+                ->sum('total_hours'),
+        ];
 
         // Get attendance summary for current month
         $monthSummary = [
-            'total_days' => now()->day,
+            'working_days' => now()->weekday() > 0 ? ceil(now()->day * 5/7) : floor(now()->day * 5/7), // Rough estimate of working days
             'present_days' => $staff->attendances()
                 ->thisMonth()
                 ->where('status', 'present')
@@ -42,13 +49,24 @@ class AttendanceController extends Controller
                 ->thisMonth()
                 ->whereNotNull('total_hours')
                 ->sum('total_hours'),
+            'average_hours' => $staff->attendances()
+                ->thisMonth()
+                ->whereNotNull('total_hours')
+                ->avg('total_hours') ?? 0,
         ];
+
+        // Get recent attendance history (last 7 days)
+        $recentAttendance = $staff->attendances()
+            ->where('date', '>=', now()->subDays(7))
+            ->orderBy('date', 'desc')
+            ->get();
 
         return view('staff.attendance.index', compact(
             'staff',
             'todayAttendance',
-            'weekAttendance',
-            'monthSummary'
+            'weekSummary',
+            'monthSummary',
+            'recentAttendance'
         ));
     }
 

@@ -173,7 +173,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge badge-info">{{ $attendance->staff->department }}</span>
+                                        <span class="badge badge-info">{{ $attendance->staff->position ? $attendance->staff->position->title : 'No Position' }}</span>
                                     </td>
                                     <td class="text-center">
                                         @if($attendance->clock_in_time)

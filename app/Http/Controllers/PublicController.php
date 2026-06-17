@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\ActivityCalendar;
 use App\Models\HeroSlide;
 use App\Models\PublicEvent;
+use App\Models\Country;
 use Illuminate\Support\Str;
 
 class PublicController extends Controller
@@ -28,7 +29,10 @@ class PublicController extends Controller
             ->take(3)
             ->get();
 
-        return view('public.index', compact('heroSlides', 'featuredEvents'));
+        // Get active countries
+        $countries = Country::active()->ordered()->get();
+
+        return view('public.index', compact('heroSlides', 'featuredEvents', 'countries'));
     }
 
     /**
@@ -36,7 +40,10 @@ class PublicController extends Controller
      */
     public function about()
     {
-        return view('public.about');
+        // Get active countries
+        $countries = Country::active()->ordered()->get();
+        
+        return view('public.about', compact('countries'));
     }
 
     /**
