@@ -312,26 +312,18 @@ return [
     'menu' => [
         // Navbar items:
         [
-            'type' => 'navbar-search',
-            'text' => 'search',
-            'topnav_right' => true,
-        ],
-        [
             'type' => 'fullscreen-widget',
             'topnav_right' => true,
         ],
 
         // Sidebar items:
-        [
-            'type' => 'sidebar-menu-search',
-            'text' => 'search',
-        ],
 
         // Dashboard
         [
             'text' => 'Dashboard',
             'route' => 'admin.dashboard',
             'icon' => 'fas fa-fw fa-tachometer-alt',
+            'can' => 'view_analytics',
         ],
 
         // Staff Dashboard for promoted admins (excluding super admin)
@@ -352,69 +344,88 @@ return [
             'text' => 'Administrators',
             'route' => 'admin.admins.index',
             'icon' => 'fas fa-fw fa-user-shield',
+            'can' => 'view_staff',
         ],
         [
             'text' => 'Staff Members',
             'route' => 'admin.staff.index',
             'icon' => 'fas fa-fw fa-users',
+            'can' => 'view_staff',
         ],
         [
             'text' => 'Roles & Permissions',
-            'url' => '/admin/roles',
+            'route' => 'admin.roles.index',
             'icon' => 'fas fa-fw fa-key',
+            'can' => 'manage_system',
         ],
         [
             'text' => 'Attendance',
             'route' => 'admin.attendance.index',
             'icon' => 'fas fa-fw fa-clock',
+            'can' => 'view_attendance',
         ],
         [
             'text' => 'Weekly Trackers',
             'route' => 'admin.weekly-trackers.index',
             'icon' => 'fas fa-fw fa-calendar-week',
+            'can' => 'review_weekly_trackers',
         ],
         [
             'text' => 'Complaints',
             'route' => 'admin.complaints.index',
             'icon' => 'fas fa-fw fa-exclamation-triangle',
+            'can' => 'manage_complaints',
         ],
-        [
-            'text' => 'Countries',
-            'route' => 'admin.countries.index',
-            'icon' => 'fas fa-fw fa-globe-africa',
-        ],
-        // [
-        //     'text' => 'Leave Requests',
-        //     'route' => 'admin.leaves.index',
-        //     'icon' => 'fas fa-fw fa-calendar-times',
-        // ],
-        // [
-        //     'text' => 'Missions',
-        //     'route' => 'admin.missions.index',
-        //     'icon' => 'fas fa-fw fa-plane',
-        // ],
 
         // Content Management
         ['header' => 'WEBSITE CONTENT'],
         [
+            'text' => 'Website Management',
+            'route' => 'admin.website-management.index',
+            'icon' => 'fas fa-fw fa-edit',
+            'can' => 'manage_website',
+        ],
+        [
+            'text' => 'Homepage Content',
+            'route' => 'admin.content.homepage',
+            'icon' => 'fas fa-fw fa-home',
+            'can' => 'manage_content',
+        ],
+        [
+            'text' => 'About Page',
+            'route' => 'admin.content.about',
+            'icon' => 'fas fa-fw fa-info-circle',
+            'can' => 'manage_content',
+        ],
+        [
             'text' => 'Hero Slides',
             'route' => 'admin.content.hero-slides.index',
             'icon' => 'fas fa-fw fa-images',
+            'can' => 'manage_content',
         ],
         [
             'text' => 'Activity Calendar',
             'route' => 'admin.calendar.index',
             'icon' => 'fas fa-fw fa-calendar',
+            'can' => 'manage_activity_calendar',
         ],
         [
             'text' => 'Activity Requests',
             'route' => 'admin.activity-requests.index',
             'icon' => 'fas fa-fw fa-calendar-plus',
+            'can' => 'manage_activities',
+        ],
+        [
+            'text' => 'Activity Reports',
+            'route' => 'admin.activity-reports.index',
+            'icon' => 'fas fa-fw fa-file-alt',
+            'can' => 'review_activity_reports',
         ],
         [
             'text' => 'Public Events',
             'route' => 'admin.public-events.index',
             'icon' => 'fas fa-fw fa-bullhorn',
+            'can' => 'manage_public_events',
         ],
 
         // System Settings
@@ -423,36 +434,36 @@ return [
             'text' => 'Website Settings',
             'route' => 'admin.settings.index',
             'icon' => 'fas fa-fw fa-cogs',
+            'can' => 'manage_settings',
         ],
         [
             'text' => 'Leave Types',
             'route' => 'admin.leave-types.index',
             'icon' => 'fas fa-fw fa-list',
+            'can' => 'manage_leave_types',
         ],
         [
             'text' => 'Positions Management',
             'route' => 'admin.positions.index',
             'icon' => 'fas fa-fw fa-briefcase',
+            'can' => 'manage_positions',
         ],
         [
             'text' => 'Email Configuration',
             'route' => 'admin.email.test',
             'icon' => 'fas fa-fw fa-envelope-open-text',
+            'can' => 'manage_settings',
         ],
         [
             'text' => 'Reports & Analytics',
             'route' => 'admin.reports.index',
             'icon' => 'fas fa-fw fa-chart-bar',
+            'can' => 'view_reports',
             'submenu' => [
                 [
                     'text' => 'Overview Dashboard',
                     'route' => 'admin.reports.index',
                     'icon' => 'fas fa-fw fa-tachometer-alt',
-                ],
-                [
-                    'text' => 'Staff Performance',
-                    'route' => 'admin.reports.staff-performance',
-                    'icon' => 'fas fa-fw fa-trophy',
                 ],
                 [
                     'text' => 'Weekly Trackers',

@@ -51,9 +51,13 @@ class RolesAndPermissionsSeeder extends Seeder
             
             // Activity & Mission Management
             'manage_activities',
+            'review_activity_reports',
             'approve_missions',
             'approve_leaves',
             'manage_leave_types',
+            'manage_positions',
+            'manage_complaints',
+            'manage_website',
             
             // Weekly Trackers
             'manage_weekly_trackers',
@@ -87,11 +91,12 @@ class RolesAndPermissionsSeeder extends Seeder
         $superAdminRole->givePermissionTo(Permission::where('guard_name', 'staff')->get());
 
         // Assign limited permissions to Administrator
-        $adminRole->givePermissionTo([
+        $adminRole->syncPermissions([
             'view_staff',
             'create_staff',
             'edit_staff',
-            'promote_staff', // Can promote staff to admin but not to super admin
+            'promote_staff',
+            'view_analytics',
             'manage_content',
             'manage_hero_slides',
             'manage_public_events',
@@ -102,8 +107,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'view_attendance',
             'export_attendance',
             'manage_activities',
+            'review_activity_reports',
             'approve_missions',
             'approve_leaves',
+            'manage_leave_types',
+            'manage_positions',
+            'manage_complaints',
             'manage_weekly_trackers',
             'review_weekly_trackers',
         ]);

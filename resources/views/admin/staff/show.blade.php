@@ -38,6 +38,9 @@
                     @if($staff->is_admin)
                         <span class="badge badge-warning ml-1">Administrator</span>
                     @endif
+                    @foreach($staff->roles as $role)
+                        <span class="badge badge-secondary ml-1">{{ $role->name }}</span>
+                    @endforeach
                 </p>
 
                 <ul class="list-group list-group-unbordered mb-3">
@@ -54,7 +57,7 @@
                         <b>Gender</b> <a class="float-right">{{ ucfirst($staff->gender ?? 'Not specified') }}</a>
                     </li>
                     <li class="list-group-item">
-                        <b>Department</b> <a class="float-right">{{ $staff->department }}</a>
+                        <b>Position</b> <a class="float-right">{{ $staff->position?->title ?? 'Unassigned' }}</a>
                     </li>
                     <li class="list-group-item">
                         <b>Hire Date</b> <a class="float-right">{{ $staff->hire_date ? $staff->hire_date->format('M d, Y') : 'Not set' }}</a>

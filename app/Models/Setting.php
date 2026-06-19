@@ -43,13 +43,37 @@ class Setting extends Model
     {
         $setting = static::updateOrCreate(
             ['key' => $key],
-            ['value' => $value]
+            [
+                'value' => $value,
+                'label' => static::humanizeKey($key),
+                'type' => 'text',
+                'group' => static::groupForKey($key),
+                'is_active' => true,
+            ]
         );
 
         // Clear cache
         Cache::forget("setting_{$key}");
         
         return $setting->wasRecentlyCreated || $setting->wasChanged();
+    }
+
+    private static function humanizeKey(string $key): string
+    {
+        return ucwords(str_replace('_', ' ', $key));
+    }
+
+    private static function groupForKey(string $key): string
+    {
+        if (str_starts_with($key, 'about_')) {
+            return 'about';
+        }
+
+        if (str_starts_with($key, 'homepage_') || str_starts_with($key, 'organization_')) {
+            return 'homepage';
+        }
+
+        return 'general';
     }
 
     /**

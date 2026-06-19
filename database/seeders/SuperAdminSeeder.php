@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Staff;
 use App\Models\User;
+use App\Models\Position;
 use Illuminate\Support\Facades\Hash;
 
 class SuperAdminSeeder extends Seeder
@@ -15,6 +16,11 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
+        $position = Position::firstOrCreate(
+            ['title' => 'System Administrator'],
+            ['is_active' => true]
+        );
+
         // Create super admin user
         $superAdminUser = User::create([
             'name' => 'Super Admin',
@@ -31,21 +37,13 @@ class SuperAdminSeeder extends Seeder
             'email' => 'admin@africacdc.org',
             'gender' => 'male',
             'phone' => '+234-800-000-0000',
-            'position' => 'System Administrator',
-            'department' => 'IT Department',
+            'position_id' => $position->id,
             'microsoft_id' => null,
             'profile_picture' => null,
             'status' => 'active',
             'is_admin' => true,
             'annual_leave_balance' => 28,
             'hire_date' => now()->subYear(),
-            'permissions' => json_encode([
-                'manage_staff' => true,
-                'manage_system' => true,
-                'view_reports' => true,
-                'manage_activities' => true,
-                'manage_leave_types' => true,
-            ]),
             'last_login' => null,
         ]);
     }

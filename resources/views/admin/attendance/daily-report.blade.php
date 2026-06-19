@@ -41,9 +41,9 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="department">Department</label>
-                                <select class="form-control" id="department" name="department">
-                                    <option value="">All Departments</option>
+                                <label for="position_id">Position</label>
+                                <select class="form-control" id="position_id" name="position_id">
+                                    <option value="">All Positions</option>
                                     @foreach($positions as $position)
                                         <option value="{{ $position->id }}" {{ $position_id == $position->id ? 'selected' : '' }}>
                                             {{ $position->title }}
@@ -73,32 +73,31 @@
     </div>
 </div>
 
-<!-- Department Summary -->
+<!-- Position Summary -->
 <div class="row mb-4">
     <div class="col-md-12">
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-building mr-2"></i>
-                    Department Attendance Summary
+                    Position Attendance Summary
                 </h3>
             </div>
             <div class="card-body table-responsive p-0">
-                @if($position_idSummary->count() > 0)
+                @if($positionSummary->count() > 0)
                     <table class="table table-hover">
                         <thead class="thead-light">
                             <tr>
-                                <th>Department</th>
+                                <th>Position</th>
                                 <th class="text-center">Total Staff</th>
                                 <th class="text-center">Present</th>
                                 <th class="text-center">Late</th>
                                 <th class="text-center">Absent</th>
                                 <th class="text-center">Attendance Rate</th>
-                                <th class="text-center">Performance</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($position_idSummary as $position)
+                            @foreach($positionSummary as $position)
                                 <tr>
                                     <td>
                                         <strong>{{ $position['department'] }}</strong>
@@ -128,17 +127,6 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="text-center">
-                                        @if($position['attendance_rate'] >= 90)
-                                            <span class="badge badge-success">Excellent</span>
-                                        @elseif($position['attendance_rate'] >= 80)
-                                            <span class="badge badge-info">Good</span>
-                                        @elseif($position['attendance_rate'] >= 70)
-                                            <span class="badge badge-warning">Fair</span>
-                                        @else
-                                            <span class="badge badge-danger">Poor</span>
-                                        @endif
-                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -146,8 +134,8 @@
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-building fa-4x text-muted mb-3"></i>
-                        <h4 class="text-muted">No Department Data</h4>
-                        <p class="text-muted">No department attendance data found for this date.</p>
+                        <h4 class="text-muted">No Position Data</h4>
+                        <p class="text-muted">No position attendance data found for this date.</p>
                     </div>
                 @endif
             </div>
@@ -175,7 +163,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>Staff Member</th>
-                                <th>Department</th>
+                                <th>Position</th>
                                 <th class="text-center">Clock In</th>
                                 <th class="text-center">Clock Out</th>
                                 <th class="text-center">Break Duration</th>
@@ -202,14 +190,14 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge badge-info">{{ $attendance->staff->department }}</span>
+                                        <span class="badge badge-info">{{ $attendance->staff->position?->title ?? 'Unassigned' }}</span>
                                     </td>
                                     <td class="text-center">
                                         @if($attendance->clock_in_time)
                                             <strong class="text-success">
                                                 {{ \Carbon\Carbon::parse($attendance->clock_in_time)->format('h:i A') }}
                                             </strong>
-                                            @if(\Carbon\Carbon::parse($attendance->clock_in_time)->format('H:i') > '08:30')
+                                            @if($attendance->status === 'late')
                                                 <br><small class="text-warning">(Late)</small>
                                             @endif
                                         @else

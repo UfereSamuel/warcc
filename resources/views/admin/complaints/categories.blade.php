@@ -123,7 +123,8 @@
         <h5><i class="fas fa-info-circle"></i> Important Notes:</h5>
         <ul class="mb-0">
             <li>Categories determine the dropdown options in the complaint submission form</li>
-            <li>Inactive categories won't appear in the form but existing complaints remain unchanged</li>
+            <li>Renaming a category updates its slug and automatically syncs existing complaints to the new slug</li>
+            <li>Inactive categories won't appear in the public form but existing complaints remain unchanged</li>
             <li>You cannot delete categories that have associated complaints</li>
             <li>Sort order determines the display order in the form</li>
         </ul>
@@ -215,7 +216,7 @@ $(document).ready(function() {
         
         $('#edit_category_name').val(name);
         $('#edit_sort_order').val(order);
-        $('#editCategoryForm').attr('action', '/admin/complaints/categories/' + id);
+        $('#editCategoryForm').attr('action', '{{ route('admin.complaints.categories.update', '__ID__') }}'.replace('__ID__', id));
         
         $('#editCategoryModal').modal('show');
     });

@@ -71,6 +71,10 @@
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-search mr-1"></i> Filter
                                     </button>
+                                    <a href="{{ route('admin.export.weekly-trackers', ['start_date' => $weekStart->format('Y-m-d'), 'end_date' => $weekEnd->format('Y-m-d'), 'position_id' => $position_id]) }}"
+                                       class="btn btn-success ml-2">
+                                        <i class="fas fa-download mr-1"></i> Export CSV
+                                    </a>
                                     <a href="{{ route('admin.weekly-trackers.index') }}" class="btn btn-secondary ml-2">
                                         <i class="fas fa-times mr-1"></i> Clear
                                     </a>
@@ -166,7 +170,7 @@
                         <thead class="thead-light">
                             <tr>
                                 <th>Staff Member</th>
-                                <th>Department</th>
+                                <th>Position</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center">Submission Status</th>
                                 <th class="text-center">Details</th>
@@ -189,7 +193,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge badge-info">{{ $tracker->staff->department }}</span>
+                                        <span class="badge badge-info">{{ $tracker->staff->position?->title ?? 'Unassigned' }}</span>
                                     </td>
                                     <td class="text-center">
                                         @switch($tracker->status)
@@ -235,6 +239,9 @@
                                                 <i class="fas fa-info-circle mr-1"></i>
                                                 {{ $tracker->mission_title ?? 'Mission details' }}
                                             </small>
+                                            @if($tracker->activity)
+                                                <br><small class="text-primary"><i class="fas fa-link mr-1"></i>{{ $tracker->activity->title }}</small>
+                                            @endif
                                         @elseif($tracker->status === 'on_leave')
                                             <small class="text-muted">
                                                 <i class="fas fa-info-circle mr-1"></i>
@@ -310,7 +317,7 @@
                                          style="width: 30px; height: 30px;">
                                     <div class="media-body">
                                         <h6 class="mb-0 text-truncate">{{ $staff->full_name }}</h6>
-                                        <small class="text-muted">{{ $staff->department }}</small>
+                                        <small class="text-muted">{{ $staff->position?->title ?? 'Unassigned' }}</small>
                                     </div>
                                 </div>
                                 <a href="{{ route('admin.staff.show', $staff) }}"
@@ -442,7 +449,7 @@
         let currentTrackerId = null;
 
         // Auto-submit on filter change
-        $('#week, #department, #status').change(function() {
+        $('#week, #position_id, #status').change(function() {
             $(this).closest('form').submit();
         });
 

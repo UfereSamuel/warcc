@@ -26,11 +26,13 @@ class AttendanceController extends Controller
         $todayAttendance = $staff->getTodayAttendance();
 
         // Get this week's attendance summary
+        $weekStart = now()->copy()->startOfWeek();
+        $weekEnd = now();
         $weekSummary = [
-            'working_days' => 5, // Assuming 5 working days per week
+            'working_days' => $this->countWeekdays($weekStart, $weekEnd),
             'present_days' => $staff->attendances()
                 ->thisWeek()
-                ->where('status', 'present')
+                ->whereIn('status', ['present', 'late'])
                 ->count(),
             'total_hours' => $staff->attendances()
                 ->thisWeek()
@@ -39,11 +41,13 @@ class AttendanceController extends Controller
         ];
 
         // Get attendance summary for current month
+        $monthStart = now()->copy()->startOfMonth();
+        $monthEnd = now();
         $monthSummary = [
-            'working_days' => now()->weekday() > 0 ? ceil(now()->day * 5/7) : floor(now()->day * 5/7), // Rough estimate of working days
+            'working_days' => $this->countWeekdays($monthStart, $monthEnd),
             'present_days' => $staff->attendances()
                 ->thisMonth()
-                ->where('status', 'present')
+                ->whereIn('status', ['present', 'late'])
                 ->count(),
             'total_hours' => $staff->attendances()
                 ->thisMonth()
@@ -76,8 +80,8 @@ class AttendanceController extends Controller
     public function clockIn(Request $request)
     {
         $request->validate([
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
             'address' => 'nullable|string|max:500',
         ]);
 
@@ -86,11 +90,11 @@ class AttendanceController extends Controller
         $now = now();
         $today = $now->toDateString();
 
-        // Enhanced validation: check for suspicious coordinates (exact 0,0)
-        if ($request->latitude == 0 && $request->longitude == 0) {
+        if ($request->filled('latitude') && $request->filled('longitude')
+            && $request->latitude == 0 && $request->longitude == 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid location coordinates. Please ensure location services are enabled.'
+                'message' => 'Invalid location coordinates.'
             ], 400);
         }
 
@@ -136,6 +140,11 @@ class AttendanceController extends Controller
                     $this->autoCompleteRecord($incompleteRecord);
                 }
 
+                $lateAfter = config('warcc.attendance.late_after', '09:00');
+                $status = $now->format('H:i:s') > Carbon::parse($lateAfter)->format('H:i:s')
+                    ? 'late'
+                    : 'present';
+
                 $attendance = Attendance::updateOrCreate(
                     [
                         'staff_id' => $staff->id,
@@ -146,7 +155,7 @@ class AttendanceController extends Controller
                         'clock_in_latitude' => $request->latitude,
                         'clock_in_longitude' => $request->longitude,
                         'clock_in_address' => $request->address,
-                        'status' => 'present',
+                        'status' => $status,
                     ]
                 );
 
@@ -187,8 +196,8 @@ class AttendanceController extends Controller
     public function clockOut(Request $request)
     {
         $request->validate([
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
             'address' => 'nullable|string|max:500',
         ]);
 
@@ -197,11 +206,11 @@ class AttendanceController extends Controller
         $now = now();
         $today = $now->toDateString();
 
-        // Enhanced validation: check for suspicious coordinates (exact 0,0)
-        if ($request->latitude == 0 && $request->longitude == 0) {
+        if ($request->filled('latitude') && $request->filled('longitude')
+            && $request->latitude == 0 && $request->longitude == 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid location coordinates. Please ensure location services are enabled.'
+                'message' => 'Invalid location coordinates.'
             ], 400);
         }
 
@@ -316,24 +325,22 @@ class AttendanceController extends Controller
         /** @var Staff $staff */
         $staff = Auth::guard('staff')->user();
 
-        $query = $staff->attendances()->orderBy('date', 'desc');
+        $filteredQuery = $staff->attendances();
 
-        // Filter by month if provided
-        if ($request->has('month') && $request->month) {
+        if ($request->filled('month')) {
             $date = Carbon::createFromFormat('Y-m', $request->month);
-            $query->whereMonth('date', $date->month)
+            $filteredQuery->whereMonth('date', $date->month)
                   ->whereYear('date', $date->year);
         }
 
-        $attendances = $query->paginate(20);
-
-        // Calculate summary statistics
         $summary = [
-            'total_days' => $query->count(),
-            'present_days' => $query->where('status', 'present')->count(),
-            'total_hours' => $query->whereNotNull('total_hours')->sum('total_hours'),
-            'average_hours' => $query->whereNotNull('total_hours')->avg('total_hours'),
+            'total_days' => (clone $filteredQuery)->count(),
+            'present_days' => (clone $filteredQuery)->whereIn('status', ['present', 'late'])->count(),
+            'total_hours' => (clone $filteredQuery)->whereNotNull('total_hours')->sum('total_hours'),
+            'average_hours' => (clone $filteredQuery)->whereNotNull('total_hours')->avg('total_hours'),
         ];
+
+        $attendances = (clone $filteredQuery)->orderBy('date', 'desc')->paginate(20);
 
         return view('staff.attendance.history', compact(
             'attendances',
@@ -401,5 +408,17 @@ class AttendanceController extends Controller
                 'exception' => $e->getTraceAsString()
             ]);
         }
+    }
+
+    private function countWeekdays(Carbon $start, Carbon $end): int
+    {
+        $count = 0;
+        for ($date = $start->copy()->startOfDay(); $date->lte($end); $date->addDay()) {
+            if ($date->isWeekday()) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }

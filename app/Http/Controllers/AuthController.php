@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\Staff;
 use App\Models\User;
+use App\Support\MicrosoftAuth;
 
 class AuthController extends Controller
 {
@@ -16,7 +17,10 @@ class AuthController extends Controller
      */
     public function showLogin()
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'microsoftConfigured' => MicrosoftAuth::isConfigured(),
+            'devLoginEnabled' => config('warcc.dev_login.enabled'),
+        ]);
     }
 
     /**
@@ -24,6 +28,11 @@ class AuthController extends Controller
      */
     public function redirectToMicrosoft()
     {
+        if (! MicrosoftAuth::isConfigured()) {
+            return redirect()->route('auth.login')
+                ->with('error', 'Microsoft sign-in is not configured. Contact your administrator.');
+        }
+
         return Socialite::driver('microsoft')->redirect();
     }
 

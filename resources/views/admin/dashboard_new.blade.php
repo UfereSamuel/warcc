@@ -49,7 +49,7 @@
 @stop
 
 @section('content')
-<!-- Key Performance Indicators -->
+<!-- Key Metrics -->
 <div class="analytics-grid">
     <!-- Staff Overview -->
     <div class="analytics-card primary">
@@ -205,13 +205,13 @@
     </div>
 </div>
 
-<!-- Department Performance Table -->
+<!-- Position Activity Table -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="department-performance-card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-building mr-2"></i>Department Performance Overview
+                    <i class="fas fa-building mr-2"></i>Position Activity Overview
                 </h3>
                 <div class="card-actions">
                     <button class="btn btn-sm btn-outline-success" onclick="exportDepartmentData()">
@@ -229,7 +229,6 @@
                                 <th>Active Staff</th>
                                 <th>Today's Attendance</th>
                                 <th>Weekly Tracker Rate</th>
-                                <th>Performance</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -255,18 +254,6 @@
                                             <div class="mini-progress-bar tracker" style="width: {{ $position->tracker_rate }}%"></div>
                                         </div>
                                     </div>
-                                </td>
-                                <td>
-                                    @php
-                                        $avgPerformance = ($position->attendance_rate + $position->tracker_rate) / 2;
-                                    @endphp
-                                    @if($avgPerformance >= 80)
-                                        <span class="badge badge-success">Excellent</span>
-                                    @elseif($avgPerformance >= 60)
-                                        <span class="badge badge-warning">Good</span>
-                                    @else
-                                        <span class="badge badge-danger">Needs Attention</span>
-                                    @endif
                                 </td>
                             </tr>
                             @endforeach

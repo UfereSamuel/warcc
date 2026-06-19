@@ -9,6 +9,20 @@
 @endsection
 
 @section('content')
+@if(isset($pendingReports) && $pendingReports->count())
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="alert alert-warning mb-0">
+            <i class="fas fa-file-alt mr-2"></i>
+            You have <strong>{{ $pendingReports->count() }}</strong> post-activity report(s) due for completed missions/trainings.
+            <a href="{{ route('staff.activity-reports.index') }}" class="alert-link ml-1">Go to activity reports</a>
+        </div>
+    </div>
+</div>
+@endif
+
+@include('staff.calendar.partials.subscribe-feed')
+
 <!-- Simple Filters -->
 <div class="row mb-3">
     <div class="col-md-12">
@@ -118,6 +132,9 @@
                     Activities & Events
                 </h3>
                 <div class="card-tools">
+                    <a href="{{ route('staff.activity-reports.create') }}" class="btn btn-primary btn-sm mr-2">
+                        <i class="fas fa-file-alt mr-1"></i> Submit Report
+                    </a>
                     <div class="btn-group" role="group">
                         <button type="button" class="btn btn-outline-primary btn-sm" id="listViewBtn">
                             <i class="fas fa-list mr-1"></i> List View
@@ -157,6 +174,7 @@
                                 <th>Date Range</th>
                                 <th>Location</th>
                                 <th>Created By</th>
+                                <th>Report</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -183,6 +201,22 @@
                                     </td>
                                     <td>
                                         <small>{{ $activity->creator->full_name ?? 'Unknown' }}</small>
+                                    </td>
+                                    <td>
+                                        @php $reportStatus = $reportStatuses[$activity->id] ?? null; @endphp
+                                        @if($reportStatus === 'pending')
+                                            <a href="{{ route('staff.activity-reports.create', ['activity_calendar_id' => $activity->id]) }}" class="btn btn-xs btn-warning" title="Submit required report">
+                                                <i class="fas fa-file-alt mr-1"></i>Report Due
+                                            </a>
+                                        @elseif(in_array($reportStatus, ['draft', 'submitted', 'reviewed']))
+                                            <a href="{{ route('staff.activity-reports.index') }}" class="btn btn-xs btn-{{ $reportStatus === 'reviewed' ? 'success' : ($reportStatus === 'submitted' ? 'info' : 'secondary') }}" title="View report">
+                                                <i class="fas fa-check mr-1"></i>{{ ucfirst($reportStatus) }}
+                                            </a>
+                                        @elseif($activity->status === 'done' && $activity->requiresReport())
+                                            <span class="text-muted small">Not participated</span>
+                                        @else
+                                            <span class="text-muted small">—</span>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

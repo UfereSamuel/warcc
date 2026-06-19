@@ -67,6 +67,10 @@
                                 <h5 class="mb-0"><i class="fas fa-plane mr-2"></i>Mission Details</h5>
                             </div>
                             <div class="card-body">
+                                @include('staff.tracker.partials.mission-calendar-link', [
+                                    'selectedActivityId' => old('activity_calendar_id', $tracker->activity_calendar_id),
+                                ])
+
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -381,6 +385,34 @@ function updateStatusFields() {
 }
 
 // Update mission end date minimum
+function prefillMissionFromActivity(activityId) {
+    if (!activityId) {
+        return;
+    }
+
+    const url = @json(url('staff/weekly-tracker/activities')) + '/' + activityId + '/prefill';
+
+    fetch(url, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.mission_fields) {
+                return;
+            }
+
+            document.getElementById('mission_title').value = data.mission_fields.mission_title || '';
+            document.getElementById('mission_start_date').value = data.mission_fields.mission_start_date || '';
+            document.getElementById('mission_end_date').value = data.mission_fields.mission_end_date || '';
+            document.getElementById('mission_purpose').value = data.mission_fields.mission_purpose || '';
+            updateMissionEndDateMin();
+        })
+        .catch(() => {});
+}
+
 function updateMissionEndDateMin() {
     const startDate = document.getElementById('mission_start_date').value;
     const endDateInput = document.getElementById('mission_end_date');

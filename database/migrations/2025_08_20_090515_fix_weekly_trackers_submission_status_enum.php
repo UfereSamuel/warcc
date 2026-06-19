@@ -15,8 +15,10 @@ return new class extends Migration
         // First, update any existing data to match the new enum values
         DB::statement("UPDATE weekly_trackers SET submission_status = 'draft' WHERE submission_status = 'pending'");
         
-        // Then modify the enum column to include 'draft' and keep other values
-        DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN submission_status ENUM('draft', 'submitted', 'approved', 'rejected') NOT NULL DEFAULT 'draft'");
+        // Then modify the enum column to include 'draft' and keep other values (MySQL/MariaDB only)
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN submission_status ENUM('draft', 'submitted', 'approved', 'rejected') NOT NULL DEFAULT 'draft'");
+        }
     }
 
     /**
@@ -27,7 +29,9 @@ return new class extends Migration
         // Revert data back to original enum values
         DB::statement("UPDATE weekly_trackers SET submission_status = 'pending' WHERE submission_status = 'draft'");
         
-        // Revert the enum column to original values
-        DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN submission_status ENUM('pending', 'submitted', 'approved', 'rejected') NOT NULL DEFAULT 'pending'");
+        // Revert the enum column to original values (MySQL/MariaDB only)
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN submission_status ENUM('pending', 'submitted', 'approved', 'rejected') NOT NULL DEFAULT 'pending'");
+        }
     }
 };

@@ -267,13 +267,13 @@
                                     <td>
                                         <div class="staff-info">
                                             <h6 class="text-dark mb-1">
-                                                <i class="fas fa-user mr-2"></i>{{ $request->requester->name }}
+                                                <i class="fas fa-user mr-2"></i>{{ $request->requester->full_name }}
                                             </h6>
                                             <p class="text-muted mb-1">
                                                 <i class="fas fa-envelope mr-1"></i>{{ $request->requester->email }}
                                             </p>
                                             <p class="text-info mb-0">
-                                                <i class="fas fa-building mr-1"></i>{{ $request->requester->department }}
+                                                <i class="fas fa-briefcase mr-1"></i>{{ $request->requester->position?->title ?? 'Unassigned' }}
                                             </p>
                                         </div>
                                     </td>

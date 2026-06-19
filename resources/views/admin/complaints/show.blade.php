@@ -265,7 +265,7 @@
                         <div class="form-group">
                             <label for="category">Select New Category <span class="text-danger">*</span></label>
                             <select class="form-control" id="category" name="category" required>
-                                @foreach(\App\Models\Complaint::getCategories() as $slug => $name)
+                                @foreach($categories as $slug => $name)
                                     <option value="{{ $slug }}" {{ $complaint->category === $slug ? 'selected' : '' }}>
                                         {{ $name }}
                                     </option>

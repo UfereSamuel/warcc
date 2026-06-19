@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasColumn('system_settings', 'complaints_system_enabled')) {
+            return;
+        }
+
         Schema::table('system_settings', function (Blueprint $table) {
             $table->boolean('complaints_system_enabled')->default(true)->after('id');
         });

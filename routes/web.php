@@ -12,6 +12,10 @@ use App\Http\Controllers\ActivityCalendarController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\ActivityRequestController;
+use App\Http\Controllers\ActivityReportController;
+use App\Http\Controllers\Admin\ActivityReportController as AdminActivityReportController;
+use App\Http\Controllers\Admin\ActivityReportAiController;
+use App\Http\Controllers\Admin\WebsiteManagementController;
 use App\Http\Controllers\ComplaintController;
 
 // Public Routes
@@ -32,7 +36,13 @@ Route::get('/complaints/submit', [ComplaintController::class, 'create'])->name('
 Route::post('/complaints/submit', [ComplaintController::class, 'store'])->name('complaints.store');
 Route::get('/complaints/success/{id}', [ComplaintController::class, 'success'])->name('complaints.success');
 
-// Test Routes for Development (Remove in Production)
+// Public ICS calendar feed (token-authenticated; for Outlook / Google subscription)
+Route::get('/calendar/feed/{token}.ics', [ActivityCalendarController::class, 'icsFeed'])
+    ->name('calendar.feed')
+    ->where('token', '[a-f0-9]{64}');
+
+// Test routes — only available when ENABLE_DEV_LOGIN=true (default: local APP_ENV only)
+Route::middleware('dev.login')->group(function () {
 Route::get('/test-accounts', function () {
     return view('test-accounts');
 })->name('test.accounts');
@@ -58,6 +68,7 @@ Route::get('/test-login/{staffId?}', function ($staffId = 'RCC-002') {
         return redirect()->route('staff.dashboard')->with('success', 'Logged in as ' . $staff->full_name . ' for testing purposes.');
     }
 })->name('test.login');
+});
 
 // Authentication Routes
 Route::prefix('auth')->name('auth.')->group(function () {
@@ -100,6 +111,7 @@ Route::middleware(['auth:staff', 'profile.complete', 'restrict.superadmin'])->pr
     Route::prefix('weekly-tracker')->name('tracker.')->group(function () {
         Route::get('/', [WeeklyTrackerController::class, 'index'])->name('index');
         Route::get('/create', [WeeklyTrackerController::class, 'create'])->name('create');
+        Route::get('/activities/{activity}/prefill', [WeeklyTrackerController::class, 'activityPrefill'])->name('activity-prefill');
         Route::post('/', [WeeklyTrackerController::class, 'store'])->name('store');
         Route::get('/{tracker}/edit', [WeeklyTrackerController::class, 'edit'])->name('edit');
         Route::put('/{tracker}', [WeeklyTrackerController::class, 'update'])->name('update');
@@ -108,33 +120,17 @@ Route::middleware(['auth:staff', 'profile.complete', 'restrict.superadmin'])->pr
         Route::get('/{tracker}/download/{type}/{index?}', [WeeklyTrackerController::class, 'downloadDocument'])->name('download');
     });
 
-    // Mission Management
-    Route::prefix('missions')->name('missions.')->group(function () {
-        Route::get('/', [MissionController::class, 'index'])->name('index');
-        Route::get('/create', [MissionController::class, 'create'])->name('create');
-        Route::post('/', [MissionController::class, 'store'])->name('store');
-        Route::get('/{mission}', [MissionController::class, 'show'])->name('show');
-        Route::get('/{mission}/edit', [MissionController::class, 'edit'])->name('edit');
-        Route::put('/{mission}', [MissionController::class, 'update'])->name('update');
-        Route::delete('/{mission}', [MissionController::class, 'destroy'])->name('destroy');
-    });
+    // Mission Management — deprecated: missions are reported via weekly tracker + activity calendar
+    // Route::prefix('missions')->name('missions.')->group(function () { ... });
 
-    // Leave Management
-    Route::prefix('leaves')->name('leaves.')->group(function () {
-        Route::get('/', [LeaveController::class, 'index'])->name('index');
-        Route::get('/create', [LeaveController::class, 'create'])->name('create');
-        Route::post('/', [LeaveController::class, 'store'])->name('store');
-        Route::get('/{leave}', [LeaveController::class, 'show'])->name('show');
-        Route::get('/{leave}/edit', [LeaveController::class, 'edit'])->name('edit');
-        Route::put('/{leave}', [LeaveController::class, 'update'])->name('update');
-        Route::delete('/{leave}', [LeaveController::class, 'destroy'])->name('destroy');
-        Route::get('/balance/summary', [LeaveController::class, 'balanceSummary'])->name('balance');
-    });
+    // Leave Management — deprecated: leave is reported via weekly tracker, not applied in-app
+    // Route::prefix('leaves')->name('leaves.')->group(function () { ... });
 
     // Activity Calendar (View Only for Staff)
     Route::prefix('calendar')->name('calendar.')->group(function () {
         Route::get('/', [ActivityCalendarController::class, 'index'])->name('index');
         Route::get('/api/events', [ActivityCalendarController::class, 'apiEvents'])->name('api.events');
+        Route::post('/feed/regenerate', [ActivityCalendarController::class, 'regenerateFeedToken'])->name('feed.regenerate');
     });
 
     // Staff Complaint Submission
@@ -152,10 +148,23 @@ Route::middleware(['auth:staff', 'profile.complete', 'restrict.superadmin'])->pr
         Route::put('/{activityRequest}', [ActivityRequestController::class, 'update'])->name('update');
         Route::delete('/{activityRequest}', [ActivityRequestController::class, 'destroy'])->name('destroy');
     });
+
+    // Activity Reports (Staff)
+    Route::prefix('activity-reports')->name('activity-reports.')->group(function () {
+        Route::get('/', [ActivityReportController::class, 'index'])->name('index');
+        Route::get('/create', [ActivityReportController::class, 'create'])->name('create');
+        Route::post('/', [ActivityReportController::class, 'store'])->name('store');
+        Route::get('/{activityReport}', [ActivityReportController::class, 'show'])->name('show');
+        Route::get('/{activityReport}/edit', [ActivityReportController::class, 'edit'])->name('edit');
+        Route::put('/{activityReport}', [ActivityReportController::class, 'update'])->name('update');
+        Route::delete('/{activityReport}', [ActivityReportController::class, 'destroy'])->name('destroy');
+        Route::post('/{activityReport}/submit', [ActivityReportController::class, 'submit'])->name('submit');
+        Route::get('/{activityReport}/download', [ActivityReportController::class, 'downloadAttachment'])->name('download');
+    });
 });
 
 // Admin Routes (Requires Admin Privileges)
-Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth:staff', 'profile.complete', 'admin', 'admin.permission'])->prefix('admin')->name('admin.')->group(function () {
 
     // Admin Dashboard
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -179,7 +188,9 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')-
         Route::get('/test', [AdminController::class, 'emailTestForm'])->name('test');
         Route::post('/test', [AdminController::class, 'sendTestEmail'])->name('test.send');
         Route::post('/configure', [AdminController::class, 'configureEmail'])->name('configure');
+        Route::post('/configure-graph', [AdminController::class, 'configureMicrosoftGraph'])->name('configure.graph');
         Route::post('/test-graph', [AdminController::class, 'testMicrosoftGraph'])->name('test.graph');
+        Route::post('/reminders/activity-reports', [AdminController::class, 'sendActivityReportReminders'])->name('reminders.activity-reports');
     });
 
     // Admin Management
@@ -187,13 +198,22 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')-
         Route::get('/', [AdminController::class, 'adminIndex'])->name('index');
     });
 
-    // Countries Management
-    Route::prefix('countries')->name('countries.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\CountryController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Admin\CountryController::class, 'store'])->name('store');
-        Route::put('/{country}', [\App\Http\Controllers\Admin\CountryController::class, 'update'])->name('update');
-        Route::post('/{country}/toggle', [\App\Http\Controllers\Admin\CountryController::class, 'toggle'])->name('toggle');
-        Route::delete('/{country}', [\App\Http\Controllers\Admin\CountryController::class, 'destroy'])->name('destroy');
+    // Countries Management (super admin — managed via Website Management)
+    Route::middleware('superadmin')->prefix('website-management')->name('website-management.')->group(function () {
+        Route::get('/', [WebsiteManagementController::class, 'index'])->name('index');
+        Route::put('/default-hero', [WebsiteManagementController::class, 'updateDefaultHero'])->name('default-hero.update');
+        Route::put('/vision-mission', [WebsiteManagementController::class, 'updateVisionMission'])->name('vision-mission.update');
+        Route::put('/serving-section', [WebsiteManagementController::class, 'updateServingSection'])->name('serving-section.update');
+        Route::put('/mission-section', [WebsiteManagementController::class, 'updateMissionSection'])->name('mission-section.update');
+        Route::put('/core-values-section', [WebsiteManagementController::class, 'updateCoreValuesSection'])->name('core-values-section.update');
+        Route::put('/featured-events-section', [WebsiteManagementController::class, 'updateFeaturedEventsSection'])->name('featured-events-section.update');
+
+        Route::prefix('countries')->name('countries.')->group(function () {
+            Route::post('/', [\App\Http\Controllers\Admin\CountryController::class, 'store'])->name('store');
+            Route::put('/{country}', [\App\Http\Controllers\Admin\CountryController::class, 'update'])->name('update');
+            Route::post('/{country}/toggle', [\App\Http\Controllers\Admin\CountryController::class, 'toggle'])->name('toggle');
+            Route::delete('/{country}', [\App\Http\Controllers\Admin\CountryController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // Complaints Management
@@ -244,7 +264,6 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')-
     // Reports & Analytics Routes
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportsController::class, 'index'])->name('index');
-        Route::get('/staff-performance', [ReportsController::class, 'staffPerformance'])->name('staff-performance');
         Route::get('/weekly-trackers', [ReportsController::class, 'weeklyTrackers'])->name('weekly-trackers');
         Route::get('/attendance', [ReportsController::class, 'attendance'])->name('attendance');
         Route::get('/export-pdf', [ReportsController::class, 'exportPDF'])->name('export-pdf');
@@ -261,24 +280,17 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')-
     Route::prefix('weekly-trackers')->name('weekly-trackers.')->group(function () {
         Route::get('/', [AdminController::class, 'weeklyTrackersIndex'])->name('index');
         Route::get('/{tracker}', [AdminController::class, 'weeklyTrackerShow'])->name('show');
+        Route::get('/{tracker}/download/{type}/{index?}', [AdminController::class, 'weeklyTrackerDownloadDocument'])->name('download');
         Route::put('/{tracker}/status', [AdminController::class, 'weeklyTrackerUpdateStatus'])->name('update-status');
         Route::post('/{tracker}/approve-edit', [AdminController::class, 'weeklyTrackerApproveEdit'])->name('approve-edit');
         Route::post('/{tracker}/reject-edit', [AdminController::class, 'weeklyTrackerRejectEdit'])->name('reject-edit');
     });
 
-    // Mission Management
-    Route::prefix('missions')->name('missions.')->group(function () {
-        Route::get('/', [AdminController::class, 'missionsIndex'])->name('index');
-        Route::get('/{mission}/approve', [AdminController::class, 'approveMission'])->name('approve');
-        Route::get('/{mission}/reject', [AdminController::class, 'rejectMission'])->name('reject');
-    });
+    // Mission Management — deprecated: missions reported via weekly tracker
+    // Route::prefix('missions')->name('missions.')->group(function () { ... });
 
-    // Leave Management
-    Route::prefix('leaves')->name('leaves.')->group(function () {
-        Route::get('/', [AdminController::class, 'leavesIndex'])->name('index');
-        Route::get('/{leave}/approve', [AdminController::class, 'approveLeave'])->name('approve');
-        Route::get('/{leave}/reject', [AdminController::class, 'rejectLeave'])->name('reject');
-    });
+    // Leave Management — deprecated: leave reported via weekly tracker
+    // Route::prefix('leaves')->name('leaves.')->group(function () { ... });
 
     // Leave Types Management
     Route::prefix('leave-types')->name('leave-types.')->group(function () {
@@ -319,6 +331,17 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin'])->prefix('admin')-
         Route::post('/{activityRequest}/approve', [AdminController::class, 'approveActivityRequest'])->name('approve');
         Route::post('/{activityRequest}/reject', [AdminController::class, 'rejectActivityRequest'])->name('reject');
         Route::post('/batch-process', [AdminController::class, 'batchProcessActivityRequests'])->name('batch-process');
+    });
+
+    // Activity Reports Management
+    Route::prefix('activity-reports')->name('activity-reports.')->group(function () {
+        Route::get('/', [AdminActivityReportController::class, 'index'])->name('index');
+        Route::post('/ai/merge', [ActivityReportAiController::class, 'merge'])->name('ai.merge');
+        Route::get('/ai/status', [ActivityReportAiController::class, 'status'])->name('ai.status');
+        Route::get('/{activityReport}', [AdminActivityReportController::class, 'show'])->name('show');
+        Route::post('/{activityReport}/review', [AdminActivityReportController::class, 'review'])->name('review');
+        Route::post('/{activityReport}/ai/summarize', [ActivityReportAiController::class, 'summarize'])->name('ai.summarize');
+        Route::get('/{activityReport}/download', [AdminActivityReportController::class, 'downloadAttachment'])->name('download');
     });
 
     // Public Events Management

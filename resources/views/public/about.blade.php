@@ -8,11 +8,8 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8 mx-auto text-center">
-                <h1 class="display-4 fw-bold mb-4">About Western RCC</h1>
-                <p class="lead">
-                    The Western Regional Collaborating Centre (RCC) is part of the Africa CDC network,
-                    dedicated to strengthening health security and disease surveillance across West Africa.
-                </p>
+                <h1 class="display-4 fw-bold mb-4">{{ $aboutContent['hero_title'] }}</h1>
+                <p class="lead">{{ $aboutContent['hero_lead'] }}</p>
             </div>
         </div>
     </div>
@@ -29,12 +26,10 @@
                             <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
                                 <i class="fas fa-bullseye fa-2x"></i>
                             </div>
-                            <h3 class="fw-bold text-primary">Our Mission</h3>
+                            <h3 class="fw-bold text-primary">{{ $organization['mission_title'] }}</h3>
                         </div>
                         <p class="text-muted">
-                            To strengthen health security and disease surveillance capacity across West Africa
-                            through collaborative partnerships, technical assistance, and capacity building initiatives
-                            that support member states in building resilient health systems.
+                            {{ $organization['mission_text'] }}
                         </p>
                     </div>
                 </div>
@@ -47,12 +42,10 @@
                             <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
                                 <i class="fas fa-eye fa-2x"></i>
                             </div>
-                            <h3 class="fw-bold text-primary">Our Vision</h3>
+                            <h3 class="fw-bold text-primary">{{ $organization['vision_title'] }}</h3>
                         </div>
                         <p class="text-muted">
-                            A West Africa region with robust health systems capable of preventing, detecting,
-                            and responding to disease outbreaks and health emergencies, ensuring the health
-                            and well-being of all populations.
+                            {{ $organization['vision_text'] }}
                         </p>
                     </div>
                 </div>
@@ -66,95 +59,25 @@
     <div class="container">
         <div class="row mb-5">
             <div class="col-lg-8 mx-auto text-center">
-                <h2 class="display-5 fw-bold text-primary mb-3">Core Functions</h2>
-                <p class="lead text-muted">Our key areas of focus and expertise</p>
+                <h2 class="display-5 fw-bold text-primary mb-3">{{ $aboutContent['core_functions_title'] }}</h2>
+                <p class="lead text-muted">{{ $aboutContent['core_functions_lead'] }}</p>
             </div>
         </div>
 
         <div class="row g-4">
+            @foreach($aboutContent['core_functions'] as $function)
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 text-center p-4">
                     <div class="card-body">
                         <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-microscope fa-lg"></i>
+                            <i class="{{ $function['icon'] }} fa-lg"></i>
                         </div>
-                        <h5 class="card-title text-primary">Laboratory Systems</h5>
-                        <p class="card-text text-muted">
-                            Strengthening laboratory networks and diagnostic capabilities across the region.
-                        </p>
+                        <h5 class="card-title text-primary">{{ $function['title'] }}</h5>
+                        <p class="card-text text-muted">{{ $function['text'] }}</p>
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-search fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Disease Surveillance</h5>
-                        <p class="card-text text-muted">
-                            Advanced monitoring systems for early detection and response to health threats.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-shield-alt fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Emergency Response</h5>
-                        <p class="card-text text-muted">
-                            Rapid response capabilities for health emergencies and disease outbreaks.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-graduation-cap fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Training & Education</h5>
-                        <p class="card-text text-muted">
-                            Capacity building programs for health professionals and institutions.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-handshake fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Partnerships</h5>
-                        <p class="card-text text-muted">
-                            Building strategic partnerships with regional and international organizations.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-chart-line fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Data & Analytics</h5>
-                        <p class="card-text text-muted">
-                            Health data management and analysis for evidence-based decision making.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -164,11 +87,8 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h2 class="display-5 fw-bold text-primary mb-4">Coverage Area</h2>
-                <p class="lead text-muted mb-4">
-                    The Western RCC serves {{ $countries->count() }} countries across West Africa, providing technical support
-                    and coordination for health security initiatives.
-                </p>
+                <h2 class="display-5 fw-bold text-primary mb-4">{{ $aboutContent['coverage_title'] }}</h2>
+                <p class="lead text-muted mb-4">{{ $aboutContent['coverage_lead'] }}</p>
 
                 <div class="row g-3">
                     @foreach($countries as $country)

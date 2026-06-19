@@ -7,6 +7,7 @@ use App\Models\ActivityCalendar;
 use App\Models\HeroSlide;
 use App\Models\PublicEvent;
 use App\Models\Country;
+use App\Services\HomepageContentService;
 use Illuminate\Support\Str;
 
 class PublicController extends Controller
@@ -32,7 +33,9 @@ class PublicController extends Controller
         // Get active countries
         $countries = Country::active()->ordered()->get();
 
-        return view('public.index', compact('heroSlides', 'featuredEvents', 'countries'));
+        $homepageContent = HomepageContentService::forPublic($countries->count());
+
+        return view('public.index', compact('heroSlides', 'featuredEvents', 'countries', 'homepageContent'));
     }
 
     /**
@@ -42,8 +45,10 @@ class PublicController extends Controller
     {
         // Get active countries
         $countries = Country::active()->ordered()->get();
-        
-        return view('public.about', compact('countries'));
+        $organization = HomepageContentService::organizationStatements();
+        $aboutContent = HomepageContentService::forAboutPublic($countries->count());
+
+        return view('public.about', compact('countries', 'organization', 'aboutContent'));
     }
 
     /**

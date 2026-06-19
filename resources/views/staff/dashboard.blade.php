@@ -147,23 +147,23 @@
         </div>
     </div>
 
-    <!-- Pending Missions -->
+    <!-- Pending Activity Reports -->
     <div class="col-lg-3 col-6">
-        <div class="small-box bg-warning">
+        <div class="small-box {{ $pendingActivityReports->count() > 0 ? 'bg-warning' : 'bg-secondary' }}">
             <div class="inner">
-                <h3>{{ $pendingMissions }}</h3>
-                <p>Pending Missions</p>
+                <h3>{{ $pendingActivityReports->count() }}</h3>
+                <p>Reports Due</p>
             </div>
             <div class="icon">
-                <i class="fas fa-plane"></i>
+                <i class="fas fa-file-alt"></i>
             </div>
-            <a href="{{ route('staff.tracker.index') }}" class="small-box-footer">
-                View Missions <i class="fas fa-arrow-circle-right"></i>
+            <a href="{{ route('staff.activity-reports.index') }}" class="small-box-footer">
+                Submit Reports <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
 
-    <!-- Leave Balance -->
+    <!-- Leave Balance (informational) -->
     <div class="col-lg-3 col-6">
         <div class="small-box bg-danger">
             <div class="inner">
@@ -173,12 +173,35 @@
             <div class="icon">
                 <i class="fas fa-calendar-times"></i>
             </div>
-            <a href="{{ route('staff.tracker.index') }}" class="small-box-footer">
-                Request Leave <i class="fas fa-arrow-circle-right"></i>
+            <a href="{{ route('staff.tracker.create') }}" class="small-box-footer">
+                Report Leave in Tracker <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
 </div>
+
+@if($pendingActivityReports->count() > 0)
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5 class="mb-2"><i class="fas fa-exclamation-circle mr-2"></i>Mission / Activity Reports Due</h5>
+            <p class="mb-2">The following completed activities need your post-activity report:</p>
+            <ul class="mb-0 pl-3">
+                @foreach($pendingActivityReports as $activity)
+                    <li class="mb-1">
+                        <strong>{{ $activity->title }}</strong>
+                        <span class="badge badge-{{ $activity->type_color }} ml-1">{{ $activity->type_label }}</span>
+                        <span class="text-muted">— ended {{ $activity->end_date->format('M d, Y') }}</span>
+                        <a href="{{ route('staff.activity-reports.create', ['activity_calendar_id' => $activity->id]) }}" class="btn btn-xs btn-primary ml-2">
+                            <i class="fas fa-file-alt mr-1"></i>Submit Report
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Activity Requests Overview -->
 <div class="row mb-4">
@@ -371,6 +394,12 @@
                         <a href="{{ route('staff.activity-requests.index') }}" class="btn btn-app">
                             <i class="fas fa-calendar-plus"></i>
                             Activity Requests
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <a href="{{ route('staff.activity-reports.index') }}" class="btn btn-app">
+                            <i class="fas fa-file-alt"></i>
+                            Activity Reports
                         </a>
                     </div>
                     <div class="col-md-3 col-6">

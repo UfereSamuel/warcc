@@ -8,7 +8,7 @@ use App\Models\ComplaintCategory;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ComplaintController extends Controller
 {
@@ -17,7 +17,7 @@ class ComplaintController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Complaint::with('staff')->orderBy('created_at', 'desc');
+        $query = Complaint::with(['staff', 'categoryRelation'])->orderBy('created_at', 'desc');
 
         // Filter by review status
         if ($request->filled('reviewed')) {
@@ -51,6 +51,7 @@ class ComplaintController extends Controller
         }
 
         $complaints = $query->paginate(20);
+        $categories = Complaint::getAllCategories();
 
         // Statistics
         $stats = [
@@ -60,7 +61,7 @@ class ComplaintController extends Controller
             'anonymous' => Complaint::where('is_anonymous', true)->count(),
         ];
 
-        return view('admin.complaints.index', compact('complaints', 'stats'));
+        return view('admin.complaints.index', compact('complaints', 'stats', 'categories'));
     }
 
     /**
@@ -68,8 +69,10 @@ class ComplaintController extends Controller
      */
     public function show($id)
     {
-        $complaint = Complaint::with('staff')->findOrFail($id);
-        return view('admin.complaints.show', compact('complaint'));
+        $complaint = Complaint::with(['staff', 'categoryRelation'])->findOrFail($id);
+        $categories = Complaint::getAllCategories();
+
+        return view('admin.complaints.show', compact('complaint', 'categories'));
     }
 
     /**
@@ -109,7 +112,7 @@ class ComplaintController extends Controller
         $complaint = Complaint::findOrFail($id);
 
         $validated = $request->validate([
-            'category' => 'required|string',
+            'category' => ['required', Rule::in(ComplaintCategory::allSlugs())],
         ]);
 
         $complaint->category = $validated['category'];
@@ -141,8 +144,7 @@ class ComplaintController extends Controller
      */
     public function downloadPdf($id)
     {
-        $complaint = Complaint::with('staff')->findOrFail($id);
-        
+        $complaint = Complaint::with(['staff', 'categoryRelation'])->findOrFail($id);
         $pdf = Pdf::loadView('admin.complaints.pdf', compact('complaint'));
         
         return $pdf->download('complaint-' . $complaint->complaint_number . '.pdf');
@@ -153,7 +155,7 @@ class ComplaintController extends Controller
      */
     public function downloadBulkPdf(Request $request)
     {
-        $query = Complaint::with('staff')->orderBy('created_at', 'desc');
+        $query = Complaint::with(['staff', 'categoryRelation'])->orderBy('created_at', 'desc');
 
         // Apply same filters as index
         if ($request->filled('reviewed')) {
@@ -237,14 +239,11 @@ class ComplaintController extends Controller
             'name' => 'required|string|max:255|unique:complaint_categories,name',
         ]);
 
-        $slug = Str::slug($validated['name']);
-        
-        // Get the next sort order
-        $maxSortOrder = ComplaintCategory::max('sort_order');
+        $maxSortOrder = ComplaintCategory::max('sort_order') ?? 0;
 
         ComplaintCategory::create([
             'name' => $validated['name'],
-            'slug' => $slug,
+            'slug' => ComplaintCategory::uniqueSlug($validated['name']),
             'is_active' => true,
             'sort_order' => $maxSortOrder + 1,
         ]);
@@ -255,21 +254,32 @@ class ComplaintController extends Controller
     /**
      * Update a complaint category
      */
-    public function categoriesUpdate(Request $request, $id)
+    public function categoriesUpdate(Request $request, ComplaintCategory $category)
     {
-        $category = ComplaintCategory::findOrFail($id);
-
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:complaint_categories,name,' . $id,
+            'name' => 'required|string|max:255|unique:complaint_categories,name,' . $category->id,
             'sort_order' => 'required|integer|min:0',
         ]);
 
+        $oldSlug = $category->slug;
+        $newSlug = $category->name !== $validated['name']
+            ? ComplaintCategory::uniqueSlug($validated['name'], $category->id)
+            : $category->slug;
+
         $category->name = $validated['name'];
-        $category->slug = Str::slug($validated['name']);
+        $category->slug = $newSlug;
         $category->sort_order = $validated['sort_order'];
         $category->save();
 
-        return back()->with('success', 'Category updated successfully.');
+        if ($oldSlug !== $newSlug) {
+            Complaint::where('category', $oldSlug)->update(['category' => $newSlug]);
+        }
+
+        $message = $oldSlug !== $newSlug
+            ? 'Category updated and linked complaints were synced to the new slug.'
+            : 'Category updated successfully.';
+
+        return back()->with('success', $message);
     }
 
     /**

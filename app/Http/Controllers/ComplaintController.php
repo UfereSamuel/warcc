@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Complaint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ComplaintController extends Controller
 {
@@ -20,7 +21,13 @@ class ComplaintController extends Controller
             abort(404, 'Complaints system is currently unavailable.');
         }
 
-        return view('complaints.create');
+        $categories = Complaint::getCategories();
+
+        if (empty($categories)) {
+            abort(503, 'Complaint categories are not configured.');
+        }
+
+        return view('complaints.create', compact('categories'));
     }
 
     /**
@@ -35,8 +42,14 @@ class ComplaintController extends Controller
             return back()->with('error', 'Complaints system is currently unavailable.');
         }
 
+        $activeSlugs = \App\Models\ComplaintCategory::activeSlugs();
+
+        if (empty($activeSlugs)) {
+            return back()->with('error', 'No complaint categories are currently available.');
+        }
+
         $validated = $request->validate([
-            'category' => 'required|in:harassment,workplace_safety,discrimination,misconduct,facility_issues,management_issues,other',
+            'category' => ['required', Rule::in($activeSlugs)],
             'description' => 'required|string|min:20|max:5000',
             'suggested_solution' => 'nullable|string|max:2000',
             'is_anonymous' => 'required|boolean',
@@ -57,13 +70,13 @@ class ComplaintController extends Controller
             'complaint_number' => Complaint::generateComplaintNumber(),
             'category' => $validated['category'],
             'description' => $validated['description'],
-            'suggested_solution' => $validated['suggested_solution'],
+            'suggested_solution' => $validated['suggested_solution'] ?? null,
             'is_anonymous' => $validated['is_anonymous'],
             'complainant_name' => $validated['is_anonymous'] ? null : $validated['complainant_name'],
             'complainant_email' => $validated['is_anonymous'] ? null : $validated['complainant_email'],
             'complainant_phone' => $validated['is_anonymous'] ? null : $validated['complainant_phone'],
             'evidence_path' => $evidencePath,
-            'staff_id' => auth()->check() ? auth()->id() : null,
+            'staff_id' => auth('staff')->check() ? auth('staff')->id() : null,
             'ip_address' => $request->ip(),
         ]);
 

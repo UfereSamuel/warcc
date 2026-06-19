@@ -48,9 +48,9 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label for="department">Department</label>
-                                <select class="form-control" id="department" name="department">
-                                    <option value="">All Departments</option>
+                                <label for="position_id">Position</label>
+                                <select class="form-control" id="position_id" name="position_id">
+                                    <option value="">All Positions</option>
                                     @foreach($positions as $position)
                                         <option value="{{ $position->id }}" {{ $position_id == $position->id ? 'selected' : '' }}>
                                             {{ $position->title }}
@@ -109,14 +109,14 @@
     </div>
 </div>
 
-<!-- Top Performers -->
+<!-- Staff Attendance Summary -->
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-trophy mr-2"></i>
-                    Top 10 Attendance Leaders
+                    <i class="fas fa-users mr-2"></i>
+                    Staff Attendance Summary
                 </h3>
                 <div class="card-tools">
                     <span class="badge badge-primary">{{ $staffRankings->count() }} Staff</span>
@@ -127,9 +127,8 @@
                     <table class="table table-hover">
                         <thead class="thead-light">
                             <tr>
-                                <th>Rank</th>
                                 <th>Staff Member</th>
-                                <th>Department</th>
+                                <th>Position</th>
                                 <th class="text-center">Attendance Days</th>
                                 <th class="text-center">Avg Hours</th>
                                 <th class="text-center">Late Days</th>
@@ -139,14 +138,6 @@
                         <tbody>
                             @foreach($staffRankings as $index => $ranking)
                                 <tr>
-                                    <td>
-                                        <span class="badge
-                                            @if($index < 3) badge-warning
-                                            @else badge-primary
-                                            @endif">
-                                            #{{ $index + 1 }}
-                                        </span>
-                                    </td>
                                     <td>
                                         <div class="media align-items-center">
                                             <img src="{{ $ranking['staff']->profile_picture_url }}"
@@ -160,7 +151,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge badge-info">{{ $ranking['staff']->department }}</span>
+                                        <span class="badge badge-info">{{ $ranking['staff']->position?->title ?? 'Unassigned' }}</span>
                                     </td>
                                     <td class="text-center">
                                         <strong class="text-primary">{{ $ranking['attendance_count'] }}</strong>
@@ -195,7 +186,7 @@
                 @else
                     <div class="text-center py-5">
                         <i class="fas fa-users fa-4x text-muted mb-3"></i>
-                        <h4 class="text-muted">No Attendance Rankings</h4>
+                        <h4 class="text-muted">No Attendance Data</h4>
                         <p class="text-muted">No staff attendance data found for the selected criteria.</p>
                     </div>
                 @endif
@@ -254,35 +245,16 @@
             </div>
         </div>
 
-        <!-- Performance Categories -->
+        <!-- Punctuality Reference -->
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-info-circle mr-2"></i>
-                    Performance Guide
+                    Punctuality Reference
                 </h3>
             </div>
             <div class="card-body">
-                <h6>Punctuality Ratings:</h6>
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <span class="badge badge-success mr-2">90-100%</span>
-                        Excellent
-                    </li>
-                    <li class="mb-2">
-                        <span class="badge badge-primary mr-2">75-89%</span>
-                        Good
-                    </li>
-                    <li class="mb-2">
-                        <span class="badge badge-warning mr-2">60-74%</span>
-                        Needs Improvement
-                    </li>
-                    <li class="mb-2">
-                        <span class="badge badge-danger mr-2">&lt;60%</span>
-                        Poor
-                    </li>
-                </ul>
-
+                <p class="text-muted mb-2">Punctuality is the share of attendance records marked on time (not late) for each staff member in the selected period.</p>
                 @if($totalAttendance > 0)
                     <div class="mt-3 text-center">
                         <strong class="text-success">
@@ -332,7 +304,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Auto-submit on filter change
-        $('#department').change(function() {
+        $('#position_id').change(function() {
             $(this).closest('form').submit();
         });
 

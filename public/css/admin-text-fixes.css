@@ -68,6 +68,33 @@
     color: white !important;
 }
 
+/* === BUTTON LINK FIXES (anchor tags styled as buttons) === */
+.content-wrapper a.btn.btn-primary,
+.content-wrapper a.btn.btn-secondary,
+.content-wrapper a.btn.btn-success,
+.content-wrapper a.btn.btn-danger,
+.content-wrapper a.btn.btn-warning,
+.content-wrapper a.btn.btn-info,
+.content-wrapper a.btn.btn-dark,
+.content-wrapper a.btn.btn-primary strong,
+.content-wrapper a.btn.btn-success strong,
+.content-wrapper a.btn.btn-warning strong,
+.content-wrapper a.btn.btn-danger strong,
+.content-wrapper a.btn.btn-info strong {
+    color: #fff !important;
+}
+
+.content-wrapper a.btn.btn-primary:hover,
+.content-wrapper a.btn.btn-success:hover,
+.content-wrapper a.btn.btn-warning:hover,
+.content-wrapper a.btn.btn-danger:hover,
+.content-wrapper a.btn.btn-info:hover,
+.content-wrapper a.btn.btn-primary:focus,
+.content-wrapper a.btn.btn-success:focus,
+.content-wrapper a.btn.btn-warning:focus {
+    color: #fff !important;
+}
+
 /* === COMPREHENSIVE BUTTON TEXT FIXES === */
 /* Ensure all Bootstrap button variants have white text */
 .btn-primary,
@@ -115,6 +142,72 @@
 }
 
 /* === BUTTON OUTLINE FIXES === */
+.content-wrapper .btn-outline-primary {
+    color: #2d6a36 !important;
+    border-color: #348F41 !important;
+    background-color: #fff !important;
+}
+
+.content-wrapper .btn-outline-primary:hover,
+.content-wrapper .btn-outline-primary:focus {
+    color: #fff !important;
+    background-color: #348F41 !important;
+    border-color: #348F41 !important;
+}
+
+.content-wrapper .btn-outline-success {
+    color: #1e7e34 !important;
+    border-color: #28a745 !important;
+    background-color: #fff !important;
+}
+
+.content-wrapper .btn-outline-success:hover,
+.content-wrapper .btn-outline-success:focus {
+    color: #fff !important;
+    background-color: #28a745 !important;
+}
+
+.content-wrapper .btn-outline-warning {
+    color: #c45c00 !important;
+    border-color: #fd7e14 !important;
+    background-color: #fff !important;
+}
+
+.content-wrapper .btn-outline-warning:hover,
+.content-wrapper .btn-outline-warning:focus {
+    color: #fff !important;
+    background-color: #fd7e14 !important;
+}
+
+.content-wrapper .btn-outline-danger {
+    color: #bd2130 !important;
+    border-color: #dc3545 !important;
+    background-color: #fff !important;
+}
+
+.content-wrapper .btn-outline-danger:hover,
+.content-wrapper .btn-outline-danger:focus {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+}
+
+.content-wrapper .btn-outline-secondary {
+    color: #545b62 !important;
+    border-color: #6c757d !important;
+    background-color: #fff !important;
+}
+
+.content-wrapper .btn-outline-secondary:hover:not(:disabled),
+.content-wrapper .btn-outline-secondary:focus:not(:disabled) {
+    color: #fff !important;
+    background-color: #6c757d !important;
+}
+
+.content-wrapper .btn-outline-secondary:disabled {
+    color: #6c757d !important;
+    opacity: 0.65;
+}
+
 /* Outline buttons when active should have white text */
 .btn-outline-primary:active,
 .btn-outline-primary.active,
@@ -132,27 +225,20 @@
 }
 
 /* === CARD HEADER TEXT FIXES === */
-/* All card headers with colored backgrounds should have white text */
-.card-header {
-    color: white !important;
-}
-
-.card-header .card-title {
-    color: white !important;
-}
-
-.card-header .card-title i {
-    color: white !important;
-}
-
-/* === SPECIFIC ADMINLTE OVERRIDES === */
-/* AdminLTE card header variants */
+/* Only colored card headers should use white text — not plain/default headers */
 .card-primary .card-header,
 .card-secondary .card-header,
 .card-success .card-header,
 .card-info .card-header,
 .card-warning .card-header,
-.card-danger .card-header {
+.card-danger .card-header,
+.card-header.bg-primary,
+.card-header.bg-secondary,
+.card-header.bg-success,
+.card-header.bg-info,
+.card-header.bg-warning,
+.card-header.bg-danger,
+.card-header.bg-dark {
     color: white !important;
 }
 
@@ -161,8 +247,33 @@
 .card-success .card-header .card-title,
 .card-info .card-header .card-title,
 .card-warning .card-header .card-title,
-.card-danger .card-header .card-title {
+.card-danger .card-header .card-title,
+.card-header.bg-primary .card-title,
+.card-header.bg-secondary .card-title,
+.card-header.bg-success .card-title,
+.card-header.bg-info .card-title,
+.card-header.bg-warning .card-title,
+.card-header.bg-danger .card-title,
+.card-header.bg-dark .card-title,
+.card-primary .card-header .card-title i,
+.card-secondary .card-header .card-title i,
+.card-success .card-header .card-title i,
+.card-info .card-header .card-title i,
+.card-warning .card-header .card-title i,
+.card-danger .card-header .card-title i {
     color: white !important;
+}
+
+/* Default (white/light) card headers — dark text for readability */
+.content-wrapper .card > .card-header:not(.bg-primary):not(.bg-secondary):not(.bg-success):not(.bg-info):not(.bg-warning):not(.bg-danger):not(.bg-dark) {
+    color: #212529 !important;
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.content-wrapper .card > .card-header:not(.bg-primary):not(.bg-secondary):not(.bg-success):not(.bg-info):not(.bg-warning):not(.bg-danger):not(.bg-dark) .card-title,
+.content-wrapper .card > .card-header:not(.bg-primary):not(.bg-secondary):not(.bg-success):not(.bg-info):not(.bg-warning):not(.bg-danger):not(.bg-dark) .card-title i {
+    color: #212529 !important;
 }
 
 /* === CARD OUTLINE FIXES === */
@@ -180,14 +291,21 @@
 }
 
 /* === BADGE TEXT FIXES === */
-/* Ensure badges have proper contrast */
 .badge-primary,
 .badge-secondary,
 .badge-success,
 .badge-danger,
-.badge-warning,
 .badge-info {
     color: white !important;
+}
+
+.badge-warning {
+    color: #212529 !important;
+    background-color: #ffc107 !important;
+}
+
+.badge-light {
+    color: #212529 !important;
 }
 
 /* === DROPDOWN AND FILTER BUTTON FIXES === */
@@ -201,25 +319,66 @@
 }
 
 /* === SMALL BOX TEXT FIXES === */
-/* AdminLTE info boxes and small boxes */
 .small-box .inner h3,
 .small-box .inner p {
     color: white !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.info-box .info-box-content .info-box-text,
-.info-box .info-box-content .info-box-number {
-    color: white !important;
+/* Gold info box — dark text reads better on tan/gold */
+.small-box.bg-info .inner h3,
+.small-box.bg-info .inner p {
+    color: #1a2e1c !important;
+    text-shadow: none !important;
 }
 
-/* === NAVIGATION LINK FIXES === */
-/* Breadcrumb and navigation links in headers */
+/* Warning box — dark text on yellow/orange */
+.small-box.bg-warning .inner h3,
+.small-box.bg-warning .inner p {
+    color: #212529 !important;
+    text-shadow: none !important;
+}
+
+/* === BODY TEXT & MUTED TEXT === */
+.content-header .text-muted,
+.content-wrapper .text-muted,
+.content-wrapper small.text-muted {
+    color: #5a6268 !important;
+}
+
+.content-header h1 {
+    color: #1e5e29 !important;
+}
+
+.content-wrapper .table td {
+    color: #212529 !important;
+}
+
+.content-wrapper .table td small.text-muted {
+    color: #5a6268 !important;
+}
+
+.content-wrapper .table td small.text-success {
+    color: #1e7e34 !important;
+}
+
+.content-wrapper .alert-info {
+    color: #0c5460 !important;
+    background-color: #d1ecf1 !important;
+    border-color: #bee5eb !important;
+}
+
+.content-wrapper .alert-info .alert-heading {
+    color: #0c5460 !important;
+}
+
+/* === BREADCRUMB FIXES === */
 .breadcrumb-item a {
-    color: #007bff !important;
+    color: #2d6a36 !important;
 }
 
 .breadcrumb-item.active {
-    color: #6c757d !important;
+    color: #5a6268 !important;
 }
 
 /* === ACCESSIBILITY IMPROVEMENTS === */
@@ -265,30 +424,31 @@
 }
 
 /* === CARD TOOLS AND BADGES === */
-/* Card tools and badges in headers */
-.card-tools .badge {
+.card-primary .card-tools .badge,
+.card-success .card-tools .badge,
+.card-info .card-tools .badge,
+.card-warning .card-tools .badge,
+.card-danger .card-tools .badge,
+.card-header.bg-primary .card-tools .badge,
+.card-header.bg-success .card-tools .badge {
     color: white !important;
 }
 
-.card-tools .btn {
-    color: white !important;
-}
-
-.card-tools .btn:hover {
+.content-wrapper .card > .card-header .card-tools .badge-primary,
+.content-wrapper .card > .card-header .card-tools .badge-success {
     color: white !important;
 }
 
 /* === FILTER BUTTON GROUPS === */
-/* Button groups used for filtering */
-.btn-group .btn {
+.btn-group .btn:not([class*="btn-outline"]) {
     color: white !important;
 }
 
-.btn-group .btn:hover {
+.btn-group .btn:not([class*="btn-outline"]):hover {
     color: white !important;
 }
 
-.btn-group .btn.active {
+.btn-group .btn:not([class*="btn-outline"]).active {
     color: white !important;
 }
 
@@ -346,16 +506,20 @@
 /* === RESPONSIVE TEXT FIXES === */
 /* Ensure text remains visible on mobile devices */
 @media (max-width: 768px) {
-    .btn {
+    .btn:not([class*="btn-outline"]) {
         color: white !important;
     }
 
-    .card-header .card-title {
+    .card-primary .card-header .card-title,
+    .card-success .card-header .card-title,
+    .card-info .card-header .card-title,
+    .card-warning .card-header .card-title,
+    .card-danger .card-header .card-title {
         color: white !important;
         font-size: 0.9rem;
     }
 
-    .btn-group .btn {
+    .btn-group .btn:not([class*="btn-outline"]) {
         font-size: 0.8rem;
         padding: 0.25rem 0.5rem;
     }

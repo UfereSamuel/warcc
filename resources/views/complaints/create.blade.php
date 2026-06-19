@@ -53,7 +53,7 @@
                             </label>
                             <select class="form-control form-control-lg @error('category') is-invalid @enderror" id="category" name="category" required>
                                 <option value="">-- Select Category --</option>
-                                @foreach(\App\Models\Complaint::getCategories() as $key => $label)
+                                @foreach($categories as $key => $label)
                                     <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>

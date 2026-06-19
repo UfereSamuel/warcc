@@ -15,6 +15,7 @@ class WeeklyTracker extends Model
         'week_start_date',
         'week_end_date',
         'status',
+        'activity_calendar_id',
         'remarks',
         'mission_title',
         'mission_type',
@@ -62,6 +63,11 @@ class WeeklyTracker extends Model
     public function leaveType(): BelongsTo
     {
         return $this->belongsTo(LeaveType::class);
+    }
+
+    public function activity(): BelongsTo
+    {
+        return $this->belongsTo(ActivityCalendar::class, 'activity_calendar_id');
     }
 
     public function editApprover(): BelongsTo

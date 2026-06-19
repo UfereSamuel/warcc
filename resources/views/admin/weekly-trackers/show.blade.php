@@ -66,9 +66,9 @@
                                 </div>
                             </dd>
 
-                            <dt class="col-sm-4">Department:</dt>
+                            <dt class="col-sm-4">Position:</dt>
                             <dd class="col-sm-8">
-                                <span class="badge badge-info">{{ $tracker->staff->department }}</span>
+                                <span class="badge badge-info">{{ $tracker->staff->position?->title ?? 'Unassigned' }}</span>
                             </dd>
 
                             <dt class="col-sm-4">Week Period:</dt>
@@ -112,7 +112,7 @@
                             <dt class="col-sm-4">Reviewed By:</dt>
                             <dd class="col-sm-8">
                                 @if($tracker->reviewed_by)
-                                    {{ \App\Models\Staff::find($tracker->reviewed_by)->full_name ?? 'Unknown' }}
+                                    {{ $tracker->reviewer->full_name ?? 'Unknown' }}
                                     <br><small class="text-muted">{{ $tracker->reviewed_at ? $tracker->reviewed_at->format('M d, Y \a\t h:i A') : '' }}</small>
                                 @else
                                     <span class="text-muted">Not reviewed</span>
@@ -155,6 +155,14 @@
                     <div class="row">
                         <div class="col-md-6">
                             <dl class="row">
+                                @if($tracker->activity)
+                                    <dt class="col-sm-4">Calendar Activity:</dt>
+                                    <dd class="col-sm-8">
+                                        <a href="{{ route('staff.calendar.index') }}">{{ $tracker->activity->title }}</a>
+                                        <span class="badge badge-{{ $tracker->activity->type_color }} ml-1">{{ $tracker->activity->type_label }}</span>
+                                    </dd>
+                                @endif
+
                                 <dt class="col-sm-4">Mission Title:</dt>
                                 <dd class="col-sm-8">{{ $tracker->mission_title }}</dd>
 
@@ -191,7 +199,7 @@
                         <div class="mt-3">
                             <h6>Mission Documents:</h6>
                             <div class="row">
-                                @foreach(json_decode($tracker->mission_documents, true) as $index => $document)
+                                @foreach($tracker->mission_documents ?? [] as $index => $document)
                                     <div class="col-md-6 mb-2">
                                         <div class="card card-outline card-primary">
                                             <div class="card-body p-2">
@@ -201,7 +209,7 @@
                                                         <h6 class="mb-0">{{ $document['original_name'] }}</h6>
                                                         <small class="text-muted">{{ number_format($document['size'] / 1024, 1) }} KB</small>
                                                     </div>
-                                                    <a href="{{ route('staff.tracker.download', [$tracker, 'mission', $index]) }}"
+                                                    <a href="{{ route('admin.weekly-trackers.download', [$tracker, 'mission', $index]) }}"
                                                        class="btn btn-sm btn-primary">
                                                         <i class="fas fa-download"></i>
                                                     </a>
@@ -253,8 +261,8 @@
                                 <dt class="col-sm-4">Approval Doc:</dt>
                                 <dd class="col-sm-8">
                                     @if($tracker->leave_approval_document)
-                                        @php $doc = json_decode($tracker->leave_approval_document, true); @endphp
-                                        <a href="{{ route('staff.tracker.download', [$tracker, 'leave']) }}"
+                                        @php $doc = $tracker->leave_approval_document; @endphp
+                                        <a href="{{ route('admin.weekly-trackers.download', [$tracker, 'leave']) }}"
                                            class="btn btn-sm btn-primary">
                                             <i class="fas fa-download mr-1"></i>
                                             {{ $doc['original_name'] ?? 'Document' }}

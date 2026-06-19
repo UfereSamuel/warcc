@@ -26,24 +26,24 @@ class Staff extends Model implements Authenticatable, Authorizable
         'phone',
         'position_id',
         'microsoft_id',
+        'calendar_feed_token',
         'profile_picture',
         'status',
         'is_admin',
         'annual_leave_balance',
         'hire_date',
-        'permissions',
         'last_login',
     ];
 
     protected $casts = [
         'hire_date' => 'date',
         'last_login' => 'datetime',
-        'permissions' => 'array',
         'is_admin' => 'boolean',
     ];
 
     protected $hidden = [
         'microsoft_id',
+        'calendar_feed_token',
     ];
 
     // Override authentication methods for SSO
@@ -65,6 +65,23 @@ class Staff extends Model implements Authenticatable, Authorizable
     public function getRememberTokenName()
     {
         return null;
+    }
+
+    /**
+     * The staff table has a legacy JSON "permissions" column that conflicts with
+     * Spatie's permissions() relationship. Always resolve "permissions" to the relation.
+     */
+    public function getAttribute($key)
+    {
+        if ($key === 'permissions') {
+            if (! $this->relationLoaded('permissions')) {
+                $this->load('permissions');
+            }
+
+            return $this->getRelation('permissions');
+        }
+
+        return parent::getAttribute($key);
     }
 
     // Relationships
@@ -101,6 +118,11 @@ class Staff extends Model implements Authenticatable, Authorizable
     public function updatedActivities(): HasMany
     {
         return $this->hasMany(ActivityCalendar::class, 'updated_by');
+    }
+
+    public function activityReports(): HasMany
+    {
+        return $this->hasMany(ActivityReport::class);
     }
 
     public function position(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -150,8 +172,32 @@ class Staff extends Model implements Authenticatable, Authorizable
     // Helper methods
     public function hasPermission(string $permission): bool
     {
-        $permissions = $this->permissions ?? [];
-        return isset($permissions[$permission]) && $permissions[$permission] === true;
+        if ($this->isSuperAdmin() || $this->hasRole('Super Admin')) {
+            return true;
+        }
+
+        return $this->can($permission);
+    }
+
+    public function syncSpatieRoleFromAdminFlag(): void
+    {
+        if (! class_exists(\Spatie\Permission\Models\Role::class)) {
+            return;
+        }
+
+        if ($this->isSuperAdmin()) {
+            $this->syncRoles(['Super Admin']);
+
+            return;
+        }
+
+        if ($this->is_admin) {
+            $this->syncRoles(['Administrator']);
+
+            return;
+        }
+
+        $this->syncRoles(['Staff']);
     }
 
     public function getTodayAttendance()
@@ -181,5 +227,46 @@ class Staff extends Model implements Authenticatable, Authorizable
     public function adminlte_desc()
     {
         return $this->position_title;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->email === 'admin@africacdc.org';
+    }
+
+    public function ensureCalendarFeedToken(): string
+    {
+        if ($this->calendar_feed_token) {
+            return $this->calendar_feed_token;
+        }
+
+        return $this->regenerateCalendarFeedToken();
+    }
+
+    public function regenerateCalendarFeedToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+
+        $this->forceFill(['calendar_feed_token' => $token])->save();
+
+        return $token;
+    }
+
+    public function getCalendarFeedUrlAttribute(): ?string
+    {
+        if (! $this->calendar_feed_token) {
+            return null;
+        }
+
+        return route('calendar.feed', ['token' => $this->calendar_feed_token]);
+    }
+
+    public function getCalendarWebcalUrlAttribute(): ?string
+    {
+        if (! $this->calendar_feed_url) {
+            return null;
+        }
+
+        return preg_replace('/^https?:\/\//', 'webcal://', $this->calendar_feed_url);
     }
 }

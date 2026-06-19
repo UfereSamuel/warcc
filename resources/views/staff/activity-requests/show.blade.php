@@ -93,12 +93,14 @@
                 @endif
 
                 <!-- Justification -->
+                @if($activityRequest->justification)
                 <div class="mb-4">
-                    <h5><i class="fas fa-balance-scale text-warning mr-2"></i>Justification</h5>
+                    <h5><i class="fas fa-balance-scale text-warning mr-2"></i>Remarks</h5>
                     <div class="border rounded p-3 bg-light">
                         {{ $activityRequest->justification }}
                     </div>
                 </div>
+                @endif
 
                 <!-- Review Information -->
                 @if($activityRequest->reviewed_at)
@@ -107,7 +109,7 @@
                     <div class="border rounded p-3 {{ $activityRequest->status === 'approved' ? 'bg-success-light' : 'bg-danger-light' }}">
                         <div class="row">
                             <div class="col-md-6">
-                                <strong>Reviewed by:</strong> {{ $activityRequest->reviewer->name ?? 'Administrator' }}<br>
+                                <strong>Reviewed by:</strong> {{ $activityRequest->reviewer->full_name ?? 'Administrator' }}<br>
                                 <strong>Reviewed on:</strong> {{ $activityRequest->reviewed_at->format('F d, Y \a\t g:i A') }}<br>
                                 <strong>Time since review:</strong> {{ $activityRequest->reviewed_at->diffForHumans() }}
                             </div>
@@ -139,6 +141,13 @@
                         <a href="{{ route('staff.calendar.index') }}" class="btn btn-success btn-sm mt-2">
                             <i class="fas fa-calendar mr-1"></i>View in Calendar
                         </a>
+                        @if($activityRequest->approvedActivity->status === 'done')
+                            <a href="{{ route('staff.activity-reports.create', ['activity_calendar_id' => $activityRequest->approved_activity_id]) }}" class="btn btn-primary btn-sm mt-2 ml-1">
+                                <i class="fas fa-file-alt mr-1"></i>Submit Activity Report
+                            </a>
+                        @else
+                            <p class="mb-0 mt-2"><small class="text-muted">You can submit your post-activity report once the activity is marked complete on the calendar.</small></p>
+                        @endif
                     </div>
                 </div>
                 @endif

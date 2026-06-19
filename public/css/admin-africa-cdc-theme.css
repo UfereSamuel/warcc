@@ -226,13 +226,23 @@
     background-color: var(--africa-gold) !important;
 }
 
-/* Links and anchors - Updated for better contrast */
-.content-wrapper a {
+/* Links and anchors — exclude button-styled links */
+.content-wrapper a:not(.btn):not(.page-link) {
     color: var(--africa-green) !important;
 }
 
-.content-wrapper a:hover {
+.content-wrapper a:not(.btn):not(.page-link):hover {
     color: var(--africa-green-dark) !important;
+}
+
+/* Button links must keep high-contrast label text */
+.content-wrapper a.btn,
+.content-wrapper a.btn:hover,
+.content-wrapper a.btn:focus,
+.content-wrapper a.btn:active,
+.content-wrapper a.btn strong,
+.content-wrapper a.btn i {
+    color: #fff !important;
 }
 
 /* Dropdown menu user header */
@@ -301,9 +311,9 @@
     color: var(--africa-green-dark) !important;
 }
 
-/* Content header */
+/* Content header — use darker green for stronger contrast */
 .content-header h1 {
-    color: var(--africa-green) !important;
+    color: #1e5e29 !important;
 }
 
 /* Navbar */

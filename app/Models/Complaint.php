@@ -67,23 +67,37 @@ class Complaint extends Model
     }
 
     /**
-     * Get available complaint categories (from database)
+     * Get available complaint categories (active only, for public forms)
      */
-    public static function getCategories()
+    public static function getCategories(): array
     {
         return ComplaintCategory::active()->ordered()->pluck('name', 'slug')->toArray();
     }
 
     /**
+     * Get all complaint categories (for admin filters and reassignment)
+     */
+    public static function getAllCategories(): array
+    {
+        return ComplaintCategory::ordered()->pluck('name', 'slug')->toArray();
+    }
+
+    /**
      * Get the category label
      */
-    public function getCategoryLabelAttribute()
+    public function getCategoryLabelAttribute(): string
     {
-        if ($this->categoryRelation) {
+        if ($this->relationLoaded('categoryRelation') && $this->categoryRelation) {
             return $this->categoryRelation->name;
         }
-        $categories = self::getCategories();
-        return $categories[$this->category] ?? $this->category;
+
+        $category = ComplaintCategory::where('slug', $this->category)->first();
+
+        if ($category) {
+            return $category->name;
+        }
+
+        return ucwords(str_replace(['_', '-'], ' ', (string) $this->category));
     }
 
     /**

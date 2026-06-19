@@ -13,8 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'admin.permission' => \App\Http\Middleware\ResolveAdminPermission::class,
+            'dev.login' => \App\Http\Middleware\EnsureDevLoginEnabled::class,
             'profile.complete' => \App\Http\Middleware\EnsureProfileComplete::class,
             'restrict.superadmin' => \App\Http\Middleware\RestrictSuperAdminFromStaff::class,
+            'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         ]);
 
         // Configure authentication redirects

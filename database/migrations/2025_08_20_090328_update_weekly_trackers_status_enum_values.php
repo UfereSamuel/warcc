@@ -17,8 +17,10 @@ return new class extends Migration
         DB::statement("UPDATE weekly_trackers SET status = 'on_mission' WHERE status = 'mission'");
         DB::statement("UPDATE weekly_trackers SET status = 'on_leave' WHERE status = 'leave'");
         
-        // Then modify the enum column to use the correct values
-        DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN status ENUM('at_duty_station', 'on_mission', 'on_leave') NOT NULL");
+        // Then modify the enum column to use the correct values (MySQL/MariaDB only)
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN status ENUM('at_duty_station', 'on_mission', 'on_leave') NOT NULL");
+        }
     }
 
     /**
@@ -31,7 +33,9 @@ return new class extends Migration
         DB::statement("UPDATE weekly_trackers SET status = 'mission' WHERE status = 'on_mission'");
         DB::statement("UPDATE weekly_trackers SET status = 'leave' WHERE status = 'on_leave'");
         
-        // Revert the enum column to original values
-        DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN status ENUM('duty_station', 'mission', 'leave') NOT NULL");
+        // Revert the enum column to original values (MySQL/MariaDB only)
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE weekly_trackers MODIFY COLUMN status ENUM('duty_station', 'mission', 'leave') NOT NULL");
+        }
     }
 };

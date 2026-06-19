@@ -303,15 +303,33 @@
                     </div>
                 @endif
 
+                @if(!$microsoftConfigured)
+                    <div class="alert alert-warning text-start mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Microsoft sign-in is not configured. Set <code>MICROSOFT_CLIENT_ID</code>,
+                        <code>MICROSOFT_CLIENT_SECRET</code>, and <code>MICROSOFT_TENANT_ID</code> in your environment.
+                        @if($devLoginEnabled ?? false)
+                            <br><small class="text-muted">For local testing, use <a href="{{ route('test.accounts') }}">test accounts</a>.</small>
+                        @endif
+                    </div>
+                @endif
+
                 <div class="text-center mb-4 welcome-text">
                     <h5>Welcome Back</h5>
                     <p>Sign in to access your staff portal</p>
                 </div>
 
-                <a href="{{ route('auth.microsoft') }}" class="btn btn-microsoft d-flex align-items-center justify-content-center mb-4">
-                    <i class="fab fa-microsoft me-3"></i>
-                    Sign in with Microsoft
-                </a>
+                @if($microsoftConfigured)
+                    <a href="{{ route('auth.microsoft') }}" class="btn btn-microsoft d-flex align-items-center justify-content-center mb-4">
+                        <i class="fab fa-microsoft me-3"></i>
+                        Sign in with Microsoft
+                    </a>
+                @else
+                    <button type="button" class="btn btn-microsoft d-flex align-items-center justify-content-center mb-4" disabled>
+                        <i class="fab fa-microsoft me-3"></i>
+                        Sign in with Microsoft
+                    </button>
+                @endif
 
 
 

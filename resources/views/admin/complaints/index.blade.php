@@ -117,7 +117,7 @@
                             <label>Category</label>
                             <select name="category" class="form-control">
                                 <option value="">All Categories</option>
-                                @foreach(\App\Models\Complaint::getCategories() as $key => $label)
+                                @foreach($categories as $key => $label)
                                     <option value="{{ $key }}" {{ request('category') == $key ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>

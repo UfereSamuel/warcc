@@ -49,7 +49,7 @@
 @stop
 
 @section('content')
-<!-- Key Performance Indicators -->
+<!-- Key Metrics -->
 <div class="analytics-grid">
     <!-- Staff Overview -->
     <div class="analytics-card primary">

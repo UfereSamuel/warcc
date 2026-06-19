@@ -50,6 +50,26 @@
                     </div>
                 </div>
 
+                <div class="info-box mb-3 {{ $graphConfig['configured'] ? 'bg-success' : 'bg-warning' }}">
+                    <span class="info-box-icon {{ $graphConfig['configured'] ? 'bg-success' : 'bg-warning' }}">
+                        <i class="fab fa-microsoft"></i>
+                    </span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Microsoft Graph</span>
+                        <span class="info-box-number">
+                            @if($graphConfig['configured'])
+                                Configured
+                                <small class="badge badge-light ml-2">SSO + Email</small>
+                            @else
+                                Not configured
+                            @endif
+                        </span>
+                        @if($graphConfig['configured'])
+                            <small class="text-white-50 d-block mt-1">Send as: {{ $graphConfig['mail_from'] }}</small>
+                        @endif
+                    </div>
+                </div>
+
                 @if($currentConfig['mailer'] === 'smtp')
                     <table class="table table-sm">
                         <tr>
@@ -80,8 +100,8 @@
                 @else
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
-                        <strong>Current mode: LOG</strong><br>
-                        Emails are being logged to files instead of being sent. Configure SMTP settings below to send real emails.
+                        <strong>SMTP not configured</strong> — mail driver is <code>{{ strtoupper($currentConfig['mailer']) }}</code>.
+                        Configure Microsoft Graph above (recommended) or SMTP below.
                     </div>
                 @endif
             </div>
@@ -163,6 +183,167 @@
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-paper-plane mr-1"></i>
                         Send Test Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Microsoft Graph Configuration -->
+<div class="row">
+    <div class="col-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fab fa-microsoft mr-2"></i>
+                    Microsoft Graph (SSO &amp; Email)
+                </h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="testGraphConnection()">
+                        <i class="fas fa-plug mr-1"></i>Test Connection
+                    </button>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('admin.email.configure.graph') }}">
+                @csrf
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5 class="mb-2"><i class="fas fa-info-circle mr-2"></i>Azure app registration</h5>
+                        <p class="mb-1">Create an app in Azure Portal → App registrations. Grant these permissions (with admin consent):</p>
+                        <ul class="mb-0 pl-3">
+                            <li><strong>Application:</strong> <code>Mail.Send</code> (for reminders &amp; notifications)</li>
+                            <li><strong>Delegated:</strong> <code>openid</code>, <code>profile</code>, <code>email</code>, <code>User.Read</code> (for staff SSO)</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert {{ $graphConfig['configured'] ? 'alert-success' : 'alert-warning' }}" id="graph-config-status">
+                        <i class="fas fa-{{ $graphConfig['configured'] ? 'check-circle' : 'exclamation-triangle' }} mr-2"></i>
+                        <span id="graph-config-status-text">
+                            @if($graphConfig['configured'])
+                                Microsoft Graph credentials are saved.
+                            @else
+                                Enter your Azure app credentials below to enable SSO and email reminders.
+                            @endif
+                        </span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="microsoft_client_id">Application (Client) ID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('microsoft_client_id') is-invalid @enderror"
+                                       id="microsoft_client_id" name="microsoft_client_id"
+                                       value="{{ old('microsoft_client_id', $graphConfig['client_id']) }}"
+                                       placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required>
+                                @error('microsoft_client_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="microsoft_tenant_id">Directory (Tenant) ID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('microsoft_tenant_id') is-invalid @enderror"
+                                       id="microsoft_tenant_id" name="microsoft_tenant_id"
+                                       value="{{ old('microsoft_tenant_id', $graphConfig['tenant_id']) }}"
+                                       placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" required>
+                                @error('microsoft_tenant_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="microsoft_client_secret">Client Secret</label>
+                                <input type="password" class="form-control @error('microsoft_client_secret') is-invalid @enderror"
+                                       id="microsoft_client_secret" name="microsoft_client_secret"
+                                       placeholder="{{ $graphConfig['secret_configured'] ? '••••••••  (leave blank to keep current)' : 'Required on first setup' }}"
+                                       autocomplete="new-password">
+                                @error('microsoft_client_secret')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                @if($graphConfig['secret_configured'])
+                                    <small class="form-text text-success"><i class="fas fa-lock mr-1"></i>A secret is already saved.</small>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="microsoft_redirect_uri">Redirect URI (SSO callback) <span class="text-danger">*</span></label>
+                                <input type="url" class="form-control @error('microsoft_redirect_uri') is-invalid @enderror"
+                                       id="microsoft_redirect_uri" name="microsoft_redirect_uri"
+                                       value="{{ old('microsoft_redirect_uri', $graphConfig['redirect_uri']) }}"
+                                       required>
+                                @error('microsoft_redirect_uri')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">Must match the redirect URI in your Azure app registration.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="microsoft_mail_from">Send mail as (mailbox) <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control @error('microsoft_mail_from') is-invalid @enderror"
+                                       id="microsoft_mail_from" name="microsoft_mail_from"
+                                       value="{{ old('microsoft_mail_from', $graphConfig['mail_from']) }}"
+                                       placeholder="westernrcc@africacdc.org" required>
+                                @error('microsoft_mail_from')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">Licensed mailbox in your tenant used to send reminders and test emails.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="reminder_daily_at">Daily reminder time</label>
+                                <input type="time" class="form-control @error('reminder_daily_at') is-invalid @enderror"
+                                       id="reminder_daily_at" name="reminder_daily_at"
+                                       value="{{ old('reminder_daily_at', $reminderConfig['daily_at']) }}">
+                                @error('reminder_daily_at')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="reminder_cooldown_days">Reminder cooldown (days)</label>
+                                <input type="number" min="1" max="30" class="form-control @error('reminder_cooldown_days') is-invalid @enderror"
+                                       id="reminder_cooldown_days" name="reminder_cooldown_days"
+                                       value="{{ old('reminder_cooldown_days', $reminderConfig['cooldown_days']) }}">
+                                @error('reminder_cooldown_days')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="reminders_enabled" name="reminders_enabled" value="1"
+                                       @checked(old('reminders_enabled', $graphConfig['reminders_enabled']))>
+                                <label class="custom-control-label" for="reminders_enabled">Enable scheduled email reminders</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="reminder_activity_reports_enabled" name="reminder_activity_reports_enabled" value="1"
+                                       @checked(old('reminder_activity_reports_enabled', $graphConfig['activity_reports_enabled']))>
+                                <label class="custom-control-label" for="reminder_activity_reports_enabled">Enable activity report due reminders</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i>Save Microsoft Graph Settings
                     </button>
                 </div>
             </form>
@@ -370,6 +551,92 @@
         </div>
     </div>
 </div>
+
+<!-- Activity Report Reminders -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-bell mr-2"></i>
+                    Activity Report Email Reminders (Microsoft Graph)
+                </h3>
+            </div>
+            <div class="card-body">
+                @if($remindersEnabled)
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Reminders are <strong>enabled</strong>. Scheduled daily at <strong>{{ $reminderConfig['daily_at'] }}</strong>
+                        ({{ config('app.timezone') }}). Cooldown: {{ $reminderConfig['cooldown_days'] }} days between repeats.
+                        Send as: <code>{{ $reminderConfig['send_as'] ?: 'not set' }}</code>
+                    </div>
+                @else
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Reminders are <strong>disabled</strong> or Microsoft Graph is not fully configured.
+                        Use the <strong>Microsoft Graph</strong> form above to save credentials.
+                    </div>
+                @endif
+
+                <p class="text-muted">
+                    Staff who participated in a completed mission, training, workshop, or event (via weekly tracker or activity request)
+                    receive an email prompting them to submit their post-activity report.
+                </p>
+
+                @if($reminderPreview->count())
+                    <h5 class="mt-3">Pending reminders (would send now)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Staff</th>
+                                    <th>Email</th>
+                                    <th>Activities needing reports</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($reminderPreview as $row)
+                                    <tr>
+                                        <td>{{ $row['staff']->full_name }}</td>
+                                        <td>{{ $row['staff']->email }}</td>
+                                        <td>
+                                            <ul class="mb-0 pl-3">
+                                                @foreach($row['activities'] as $activity)
+                                                    <li>{{ $activity->title }} <span class="text-muted">({{ $activity->type_label }})</span></li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted mb-0"><i class="fas fa-check mr-1"></i>No report reminders are due right now.</p>
+                @endif
+            </div>
+            <div class="card-footer">
+                <form method="POST" action="{{ route('admin.email.reminders.activity-reports') }}" class="d-inline">
+                    @csrf
+                    <input type="hidden" name="dry_run" value="1">
+                    <button type="submit" class="btn btn-outline-secondary" {{ !$remindersEnabled ? 'disabled' : '' }}>
+                        <i class="fas fa-eye mr-1"></i> Dry Run
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('admin.email.reminders.activity-reports') }}" class="d-inline ml-2"
+                      onsubmit="return confirm('Send activity report reminder emails now?');">
+                    @csrf
+                    <button type="submit" class="btn btn-primary" {{ !$remindersEnabled ? 'disabled' : '' }}>
+                        <i class="fas fa-paper-plane mr-1"></i> Send Reminders Now
+                    </button>
+                </form>
+                <small class="text-muted ml-3">
+                    CLI: <code>php artisan reminders:activity-reports --dry-run</code>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
 @stop
 
 @section('css')
@@ -414,49 +681,55 @@
         }
     });
 
-    // Show Microsoft Graph status when selected
-    document.getElementById('mailer_type').addEventListener('change', function() {
+    // Show Microsoft Graph status when selected (test email panel)
+    document.getElementById('mailer_type')?.addEventListener('change', function() {
         const graphStatus = document.getElementById('graph-status');
-        if (this.value === 'microsoft-graph') {
-            graphStatus.style.display = 'block';
-        } else {
-            graphStatus.style.display = 'none';
-        }
+        if (!graphStatus) return;
+        graphStatus.style.display = this.value === 'microsoft-graph' ? 'block' : 'none';
     });
 
     // Test Microsoft Graph connection
     function testGraphConnection() {
-        const statusText = document.getElementById('graph-status-text');
-        const testBtn = event.target;
-        
-        statusText.textContent = 'Testing connection...';
-        testBtn.disabled = true;
-        testBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Testing...';
+        const statusText = document.getElementById('graph-config-status-text')
+            || document.getElementById('graph-status-text');
+        const statusBox = document.getElementById('graph-config-status')
+            || document.getElementById('graph-status');
+        const testBtn = event?.target;
+
+        if (statusText) statusText.textContent = 'Testing connection...';
+        if (statusBox) statusBox.className = 'alert alert-info';
+        if (testBtn) {
+            testBtn.disabled = true;
+            testBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Testing...';
+        }
 
         fetch('{{ route("admin.email.test.graph") }}', {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
             },
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                statusText.textContent = 'Connection successful! Ready to send emails.';
-                document.getElementById('graph-status').className = 'alert alert-success';
+                if (statusText) statusText.textContent = data.message || 'Connection successful! Ready to send emails.';
+                if (statusBox) statusBox.className = 'alert alert-success';
             } else {
-                statusText.textContent = 'Connection failed: ' + data.message;
-                document.getElementById('graph-status').className = 'alert alert-danger';
+                if (statusText) statusText.textContent = 'Connection failed: ' + (data.message || 'Unknown error');
+                if (statusBox) statusBox.className = 'alert alert-danger';
             }
         })
         .catch(error => {
-            statusText.textContent = 'Connection test failed: ' + error.message;
-            document.getElementById('graph-status').className = 'alert alert-danger';
+            if (statusText) statusText.textContent = 'Connection test failed: ' + error.message;
+            if (statusBox) statusBox.className = 'alert alert-danger';
         })
         .finally(() => {
-            testBtn.disabled = false;
-            testBtn.innerHTML = '<i class="fas fa-plug mr-1"></i>Test Connection';
+            if (testBtn) {
+                testBtn.disabled = false;
+                testBtn.innerHTML = '<i class="fas fa-plug mr-1"></i>Test Connection';
+            }
         });
     }
 </script>

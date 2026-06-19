@@ -29,11 +29,18 @@
                 </h3>
             </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle mr-2"></i>
-                    <strong>Coming Soon:</strong> Homepage content management features will be available in a future update.
-                    For now, you can manage hero slides which are the main homepage content.
-                </div>
+                @if(auth('staff')->user()?->hasPermission('manage_website'))
+                    <div class="alert alert-success">
+                        <i class="fas fa-globe mr-2"></i>
+                        Full homepage content (hero text, mission sections, core values, and countries) is managed in
+                        <a href="{{ route('admin.website-management.index') }}" class="alert-link">Website Management</a>.
+                    </div>
+                @else
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Homepage hero slides are the main visual content. Additional homepage sections are managed by super administrators.
+                    </div>
+                @endif
 
                 <div class="row">
                     <div class="col-md-6">
@@ -57,6 +64,11 @@
                                 <a href="{{ route('home') }}" class="btn btn-secondary" target="_blank">
                                     <i class="fas fa-external-link-alt mr-1"></i> View Site
                                 </a>
+                                @if(auth('staff')->user()?->hasPermission('manage_website'))
+                                    <a href="{{ route('admin.website-management.index') }}" class="btn btn-outline-secondary mt-2">
+                                        <i class="fas fa-cogs mr-1"></i> Website Management
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>

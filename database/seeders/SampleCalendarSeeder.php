@@ -93,8 +93,8 @@ class SampleCalendarSeeder extends Seeder
                 'created_by' => $admin?->id,
             ],
             [
-                'title' => 'Staff Performance Review Period',
-                'description' => 'Annual staff performance review period. All managers to complete reviews.',
+                'title' => 'Quarterly Staff Check-in Period',
+                'description' => 'Quarterly staff check-in period for team leads to review weekly tracker and attendance records.',
                 'start_date' => Carbon::now()->addDays(45),
                 'end_date' => Carbon::now()->addDays(60),
                 'location' => 'Various Offices',

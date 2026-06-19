@@ -23,6 +23,13 @@ class MicrosoftGraphService
         $this->redirectUri = config('services.microsoft.redirect');
     }
 
+    public function isConfigured(): bool
+    {
+        return ! empty($this->clientId)
+            && ! empty($this->clientSecret)
+            && ! empty($this->tenantId);
+    }
+
     /**
      * Get an access token for Microsoft Graph API
      */

@@ -55,7 +55,7 @@ class ActivityRequestController extends Controller
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'location' => 'nullable|string|max:255',
-            'type' => 'required|in:meeting,training,event,holiday,deadline',
+            'type' => 'required|in:meeting,training,event,mission,workshop,holiday,deadline',
             'justification' => 'nullable|string|max:1000',
             'expected_participants' => 'nullable|integer|min:1|max:1000',
             'estimated_budget' => 'nullable|numeric|min:0|max:999999.99',
@@ -131,15 +131,13 @@ class ActivityRequestController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'start_date' => 'required|date|after_or_equal:today',
+            'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'location' => 'nullable|string|max:255',
-            'type' => 'required|in:meeting,training,event,holiday,deadline',
+            'type' => 'required|in:meeting,training,event,mission,workshop,holiday,deadline',
             'justification' => 'nullable|string|max:1000',
             'expected_participants' => 'nullable|integer|min:1|max:1000',
             'estimated_budget' => 'nullable|numeric|min:0|max:999999.99',
-        ], [
-            'start_date.after_or_equal' => 'Start date must be today or in the future.',
         ]);
 
         $activityRequest->update([

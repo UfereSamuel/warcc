@@ -13,6 +13,7 @@ use App\Models\LeaveRequest;
 use App\Models\Document;
 use App\Models\ActivityCalendar;
 use App\Models\ActivityRequest;
+use App\Services\ActivityWorkflowService;
 
 class StaffController extends Controller
 {
@@ -30,9 +31,8 @@ class StaffController extends Controller
         // Get current week tracker
         $currentWeekTracker = $staff->getCurrentWeekTracker();
 
-        // Get pending items
-        $pendingMissions = $staff->missions()->pending()->count();
-        $pendingLeaves = $staff->leaveRequests()->pending()->count();
+        $workflow = app(ActivityWorkflowService::class);
+        $pendingActivityReports = $workflow->getPendingReportsForStaff($staff);
 
         // Get activity request statistics
         $activityRequestStats = [
@@ -73,8 +73,7 @@ class StaffController extends Controller
             'staff',
             'todayAttendance',
             'currentWeekTracker',
-            'pendingMissions',
-            'pendingLeaves',
+            'pendingActivityReports',
             'activityRequestStats',
             'recentActivities',
             'attendanceSummary',

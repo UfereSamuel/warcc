@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Staff;
+use App\Models\Position;
 
 class TestStaffSeeder extends Seeder
 {
@@ -12,6 +13,19 @@ class TestStaffSeeder extends Seeder
      */
     public function run(): void
     {
+        $publicHealthOfficer = Position::firstOrCreate(
+            ['title' => 'Public Health Officer'],
+            ['is_active' => true]
+        );
+        $epidemiologist = Position::firstOrCreate(
+            ['title' => 'Epidemiologist'],
+            ['is_active' => true]
+        );
+        $regionalCoordinator = Position::firstOrCreate(
+            ['title' => 'Regional Coordinator'],
+            ['is_active' => true]
+        );
+
         // Create a test staff member (John Doe)
         $testStaff = Staff::create([
             'staff_id' => 'RCC-002',
@@ -20,8 +34,7 @@ class TestStaffSeeder extends Seeder
             'email' => 'john.doe@africacdc.org',
             'gender' => 'male',
             'phone' => '+233 24 123 4567',
-            'position' => 'Public Health Officer',
-            'department' => 'Disease Surveillance',
+            'position_id' => $publicHealthOfficer->id,
             'annual_leave_balance' => 21,
             'status' => 'active',
             'is_admin' => false,
@@ -37,8 +50,7 @@ class TestStaffSeeder extends Seeder
             'email' => 'jane.smith@africacdc.org',
             'gender' => 'female',
             'phone' => '+233 24 987 6543',
-            'position' => 'Epidemiologist',
-            'department' => 'Capacity Building',
+            'position_id' => $epidemiologist->id,
             'annual_leave_balance' => 21,
             'status' => 'active',
             'is_admin' => false,
@@ -54,8 +66,7 @@ class TestStaffSeeder extends Seeder
             'email' => 'sarah.johnson@africacdc.org',
             'gender' => 'female',
             'phone' => '+233 24 555 0123',
-            'position' => 'Regional Coordinator',
-            'department' => 'Administration',
+            'position_id' => $regionalCoordinator->id,
             'annual_leave_balance' => 25,
             'status' => 'active',
             'is_admin' => true,

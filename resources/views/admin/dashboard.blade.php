@@ -49,7 +49,7 @@
 @stop
 
 @section('content')
-<!-- Key Performance Indicators -->
+<!-- Key Metrics -->
 <div class="analytics-grid">
     <!-- Staff Overview -->
     <div class="analytics-card primary">
@@ -123,6 +123,23 @@
             <div class="metric-trend">
                 <i class="fas fa-arrow-up text-success"></i>
                 Month avg: {{ $attendanceStats['month_average'] }}%
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Reports Awaiting Review -->
+    <div class="analytics-card {{ $activityReportStats['submitted'] > 0 ? 'warning' : 'success' }}">
+        <div class="card-header">
+            <div class="card-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="card-title">Activity Reports</div>
+        </div>
+        <div class="card-body">
+            <div class="metric-value">{{ $activityReportStats['submitted'] }}</div>
+            <div class="metric-subtitle">Awaiting Review</div>
+            <div class="metric-detail">
+                {{ $activityReportStats['reviewed'] }} reviewed total
             </div>
         </div>
     </div>
@@ -205,13 +222,102 @@
     </div>
 </div>
 
-<!-- Department Performance Table -->
+<!-- Submitted Activity Reports -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="department-performance-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-file-alt mr-2"></i>Submitted Activity Reports
+                    @if($activityReportStats['submitted'] > 0)
+                        <span class="badge badge-warning ml-2">{{ $activityReportStats['submitted'] }} awaiting review</span>
+                    @endif
+                </h3>
+                <div class="card-actions">
+                    @if($aiConfigured)
+                        <a href="{{ route('admin.activity-reports.index') }}" class="btn btn-sm btn-outline-info mr-1">
+                            <i class="fas fa-robot mr-1"></i>AI Merge
+                        </a>
+                    @endif
+                    <a href="{{ route('admin.activity-reports.index', ['status' => 'submitted']) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-list mr-1"></i>View All
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                @if($recentSubmittedReports->count())
+                    <div class="list-group list-group-flush">
+                        @foreach($recentSubmittedReports as $report)
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap">
+                                    <div class="flex-grow-1 pr-3" style="min-width: 0;">
+                                        <div class="d-flex align-items-center flex-wrap mb-1">
+                                            <h5 class="mb-0 mr-2">{{ $report->title }}</h5>
+                                            <span class="badge badge-warning">Submitted</span>
+                                        </div>
+                                        <p class="text-muted mb-2 small">
+                                            <i class="fas fa-user mr-1"></i>{{ $report->staff->full_name ?? 'Unknown' }}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-calendar mr-1"></i>{{ $report->report_date->format('M d, Y') }}
+                                            @if($report->submitted_at)
+                                                <span class="mx-2">•</span>
+                                                Submitted {{ $report->submitted_at->diffForHumans() }}
+                                            @endif
+                                        </p>
+                                        @if($report->activity)
+                                            <p class="mb-2">
+                                                <span class="badge badge-info">
+                                                    <i class="fas fa-link mr-1"></i>{{ $report->activity->title }}
+                                                </span>
+                                            </p>
+                                        @else
+                                            <p class="mb-2"><span class="badge badge-secondary">Standalone report</span></p>
+                                        @endif
+                                        <p class="mb-0 text-muted report-preview">{{ Str::limit($report->summary, 220) }}</p>
+                                    </div>
+                                    <div class="mt-2 mt-md-0 text-nowrap">
+                                        @if($aiConfigured)
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-primary ai-summarize-btn mr-1"
+                                                    data-summarize-url="{{ route('admin.activity-reports.ai.summarize', $report) }}">
+                                                <i class="fas fa-magic mr-1"></i>Summarize
+                                            </button>
+                                        @endif
+                                        <a href="{{ route('admin.activity-reports.show', $report) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye mr-1"></i>Review
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <p class="text-muted mb-0">No submitted reports awaiting review.</p>
+                    </div>
+                @endif
+            </div>
+            @if($activityReportStats['reviewed'] > 0)
+                <div class="card-footer text-muted small">
+                    {{ $activityReportStats['reviewed'] }} report{{ $activityReportStats['reviewed'] === 1 ? '' : 's' }} reviewed in total
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+@if($aiConfigured && $recentSubmittedReports->count())
+    @include('admin.activity-reports.partials.ai-modal', ['showApplyToNotes' => false])
+@endif
+
+<!-- Position Activity Table -->
 <div class="row mb-4">
     <div class="col-12">
         <div class="department-performance-card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-users mr-2"></i>Position Performance Overview
+                    <i class="fas fa-users mr-2"></i>Position Activity Overview
                 </h3>
                 <div class="card-actions">
                     <button class="btn btn-sm btn-outline-success" onclick="exportPositionData()">
@@ -229,7 +335,6 @@
                                 <th>Active Staff</th>
                                 <th>Today's Attendance</th>
                                 <th>Weekly Tracker Rate</th>
-                                <th>Performance</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -255,18 +360,6 @@
                                             <div class="mini-progress-bar tracker" style="width: {{ $position->tracker_rate }}%"></div>
                                         </div>
                                     </div>
-                                </td>
-                                <td>
-                                    @php
-                                        $avgPerformance = ($position->attendance_rate + $position->tracker_rate) / 2;
-                                    @endphp
-                                    @if($avgPerformance >= 80)
-                                        <span class="badge badge-success">Excellent</span>
-                                    @elseif($avgPerformance >= 60)
-                                        <span class="badge badge-warning">Good</span>
-                                    @else
-                                        <span class="badge badge-danger">Needs Attention</span>
-                                    @endif
                                 </td>
                             </tr>
                             @endforeach
@@ -784,4 +877,12 @@ function exportPositionData() {
 
 console.log('Analytics Dashboard loaded successfully!');
 </script>
+@if($aiConfigured && $recentSubmittedReports->count())
+    @include('admin.activity-reports.partials.ai-scripts', ['summarizeUrl' => null])
+    <script>
+        $(document).on('click', '.ai-summarize-btn', function () {
+            ActivityReportAi.summarize(this.dataset.summarizeUrl);
+        });
+    </script>
+@endif
 @stop

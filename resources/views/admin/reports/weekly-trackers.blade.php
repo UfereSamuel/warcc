@@ -48,9 +48,9 @@
                         </div>
                         <div class="col-md-3">
                             <div class="form-group">
-                                <label for="department">Department</label>
-                                <select class="form-control" id="department" name="department">
-                                    <option value="">All Departments</option>
+                                <label for="position_id">Position</label>
+                                <select class="form-control" id="position_id" name="position_id">
+                                    <option value="">All Positions</option>
                                     @foreach($positions as $position)
                                         <option value="{{ $position->id }}" {{ $position_id == $position->id ? 'selected' : '' }}>
                                             {{ $position->title }}
@@ -266,7 +266,7 @@
                 <thead class="thead-light">
                     <tr>
                         <th>Staff Member</th>
-                        <th>Department</th>
+                        <th>Position</th>
                         <th>Week Period</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Submitted On</th>
@@ -289,7 +289,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge badge-info">{{ $tracker->staff->department }}</span>
+                                <span class="badge badge-info">{{ $tracker->staff->position?->title ?? 'Unassigned' }}</span>
                             </td>
                             <td>
                                 <strong>{{ \Carbon\Carbon::parse($tracker->week_start_date)->format('M d') }}</strong>
@@ -412,7 +412,7 @@
 @section('js')
     <script>
         // Auto-submit on filter change
-        $('#department, #status').change(function() {
+        $('#position_id, #status').change(function() {
             $(this).closest('form').submit();
         });
     </script>

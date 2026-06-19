@@ -116,10 +116,9 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">Africa CDC Western RCC</h1>
+                <h1 class="display-4 fw-bold mb-4">{{ $homepageContent['default_hero_title'] }}</h1>
                 <p class="lead mb-4">
-                    Strengthening health security and disease surveillance across West Africa through
-                    collaborative partnerships, capacity building, and innovative health solutions.
+                    {{ $homepageContent['default_hero_description'] }}
                 </p>
                 <div class="d-flex gap-3">
                     <a href="{{ route('public.about') }}" class="btn btn-light btn-lg">
@@ -138,61 +137,64 @@
 </section>
 @endif
 
+<!-- Vision & Mission -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 p-lg-5 text-center">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-bullseye fa-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary mb-3">{{ $homepageContent['organization_mission_title'] }}</h3>
+                        <p class="text-muted mb-0">{{ $homepageContent['organization_mission_text'] }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4 p-lg-5 text-center">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-eye fa-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary mb-3">{{ $homepageContent['organization_vision_title'] }}</h3>
+                        <p class="text-muted mb-0">{{ $homepageContent['organization_vision_text'] }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Mission Section -->
 <section class="py-5">
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-lg-8 mx-auto">
-                <h2 class="display-5 fw-bold text-primary mb-3">Our Mission</h2>
+                <h2 class="display-5 fw-bold text-primary mb-3">{{ $homepageContent['mission_title'] }}</h2>
                 <p class="lead text-muted">
-                    Coordinating regional health initiatives and supporting member states in building
-                    resilient health systems for better health outcomes across West Africa.
+                    {{ $homepageContent['mission_description'] }}
                 </p>
             </div>
         </div>
 
         <div class="row g-4">
+            @foreach($homepageContent['mission_cards'] as $card)
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 text-center p-4">
                     <div class="card-body">
                         <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-shield-virus fa-lg"></i>
+                            <i class="{{ $card['icon'] }} fa-lg"></i>
                         </div>
-                        <h5 class="card-title text-primary">Disease Surveillance</h5>
+                        <h5 class="card-title text-primary">{{ $card['title'] }}</h5>
                         <p class="card-text text-muted">
-                            Advanced monitoring and early warning systems for disease outbreaks and health emergencies.
+                            {{ $card['text'] }}
                         </p>
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-users fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Capacity Building</h5>
-                        <p class="card-text text-muted">
-                            Training and development programs to strengthen health workforce capabilities across the region.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-network-wired fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Regional Coordination</h5>
-                        <p class="card-text text-muted">
-                            Facilitating collaboration and coordination among West African health systems and institutions.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -202,10 +204,9 @@
     <div class="container">
         <div class="row mb-5">
             <div class="col-lg-8 mx-auto text-center">
-                <h2 class="display-5 fw-bold text-primary mb-3">Serving West Africa</h2>
+                <h2 class="display-5 fw-bold text-primary mb-3">{{ $homepageContent['serving_title'] }}</h2>
                 <p class="lead text-muted">
-                    The Western RCC serves {{ $countries->count() }} countries across West Africa, working together to strengthen
-                    regional health security and build resilient health systems.
+                    {{ $homepageContent['serving_description'] }}
                 </p>
             </div>
         </div>
@@ -239,9 +240,9 @@
     <div class="container">
         <div class="row mb-5">
             <div class="col-lg-8 mx-auto text-center">
-                <h2 class="display-5 fw-bold text-primary mb-3">Featured Events</h2>
+                <h2 class="display-5 fw-bold text-primary mb-3">{{ $homepageContent['featured_events_title'] }}</h2>
                 <p class="lead text-muted">
-                    Don't miss these upcoming events and opportunities to strengthen health security across West Africa
+                    {{ $homepageContent['featured_events_description'] }}
                 </p>
             </div>
         </div>
@@ -320,53 +321,27 @@
     <div class="container">
         <div class="row mb-5">
             <div class="col-lg-8 mx-auto text-center">
-                <h2 class="display-5 fw-bold text-primary mb-3">Our Core Values</h2>
-                <p class="lead text-muted">Guiding principles that drive our commitment to health security in West Africa</p>
+                <h2 class="display-5 fw-bold text-primary mb-3">{{ $homepageContent['core_values_title'] }}</h2>
+                <p class="lead text-muted">{{ $homepageContent['core_values_description'] }}</p>
             </div>
         </div>
 
         <div class="row g-4">
+            @foreach($homepageContent['core_values_cards'] as $card)
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 text-center p-4">
                     <div class="card-body">
                         <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-handshake fa-lg"></i>
+                            <i class="{{ $card['icon'] }} fa-lg"></i>
                         </div>
-                        <h5 class="card-title text-primary">Collaboration</h5>
+                        <h5 class="card-title text-primary">{{ $card['title'] }}</h5>
                         <p class="card-text text-muted">
-                            Working together across borders to achieve common health security goals.
+                            {{ $card['text'] }}
                         </p>
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-lightbulb fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Innovation</h5>
-                        <p class="card-text text-muted">
-                            Embracing cutting-edge solutions and technologies for better health outcomes.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 text-center p-4">
-                    <div class="card-body">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                            <i class="fas fa-heart fa-lg"></i>
-                        </div>
-                        <h5 class="card-title text-primary">Excellence</h5>
-                        <p class="card-text text-muted">
-                            Maintaining the highest standards in all our health security initiatives.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>

@@ -64,6 +64,8 @@
                                     <option value="">Select Activity Type</option>
                                     <option value="meeting" {{ old('type', $activity->type) == 'meeting' ? 'selected' : '' }}>Meeting</option>
                                     <option value="training" {{ old('type', $activity->type) == 'training' ? 'selected' : '' }}>Training</option>
+                                    <option value="workshop" {{ old('type', $activity->type) == 'workshop' ? 'selected' : '' }}>Workshop</option>
+                                    <option value="mission" {{ old('type', $activity->type) == 'mission' ? 'selected' : '' }}>Mission</option>
                                     <option value="event" {{ old('type', $activity->type) == 'event' ? 'selected' : '' }}>Event</option>
                                     <option value="holiday" {{ old('type', $activity->type) == 'holiday' ? 'selected' : '' }}>Holiday</option>
                                     <option value="deadline" {{ old('type', $activity->type) == 'deadline' ? 'selected' : '' }}>Deadline</option>

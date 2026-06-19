@@ -50,6 +50,8 @@
                                     <option value="">Select Activity Type</option>
                                     <option value="meeting" {{ old('type') == 'meeting' ? 'selected' : '' }}>Meeting</option>
                                     <option value="training" {{ old('type') == 'training' ? 'selected' : '' }}>Training</option>
+                                    <option value="workshop" {{ old('type') == 'workshop' ? 'selected' : '' }}>Workshop</option>
+                                    <option value="mission" {{ old('type') == 'mission' ? 'selected' : '' }}>Mission</option>
                                     <option value="event" {{ old('type') == 'event' ? 'selected' : '' }}>Event</option>
                                     <option value="holiday" {{ old('type') == 'holiday' ? 'selected' : '' }}>Holiday</option>
                                     <option value="deadline" {{ old('type') == 'deadline' ? 'selected' : '' }}>Deadline</option>

@@ -40,6 +40,15 @@
                 @method('PUT')
 
                 <div class="card-body">
+                    <div class="alert alert-light border mb-4">
+                        <strong>Where to edit what:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li><strong>This page</strong> — site name, contact details, social links, YouTube, and system options.</li>
+                            <li><a href="{{ route('admin.website-management.index') }}">Website Management</a> — homepage hero, mission, vision, core values, and countries (super admin).</li>
+                            <li><a href="{{ route('admin.content.homepage') }}">Homepage Content</a> and <a href="{{ route('admin.content.about') }}">About Page</a> — public page copy and sections.</li>
+                        </ul>
+                    </div>
+
                     <!-- Nav tabs -->
                     <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
                         <li class="nav-item" role="presentation">
@@ -87,7 +96,7 @@
                                 </div>
                             </div>
 
-                            @foreach($generalSettings as $setting)
+                            @forelse($generalSettings as $setting)
                                 <div class="form-group row">
                                     <label for="{{ $setting->key }}" class="col-sm-3 col-form-label">
                                         {{ $setting->label }}
@@ -133,7 +142,11 @@
                                         @enderror
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <div class="alert alert-warning">
+                                    No general settings found. Click <strong>Reset to Default</strong> above to load the default configuration.
+                                </div>
+                            @endforelse
                         </div>
 
                         <!-- Contact Settings -->

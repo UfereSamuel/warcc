@@ -6,7 +6,7 @@
     <div class="row">
         <div class="col-sm-6">
             <h1 class="m-0 text-dark">Reports & Analytics</h1>
-            <p class="text-muted">Comprehensive staff performance and submission analytics</p>
+            <p class="text-muted">Operational attendance and weekly submission reporting</p>
         </div>
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -57,7 +57,7 @@
             <div class="info-box-content">
                 <span class="info-box-text">Total Active Staff</span>
                 <span class="info-box-number">{{ $totalStaff }}</span>
-                <span class="progress-description">Across {{ $totalDepartments }} departments</span>
+                <span class="progress-description">Across {{ $totalPositions }} positions</span>
             </div>
         </div>
     </div>
@@ -98,41 +98,7 @@
 
 <!-- Quick Access to Detailed Reports -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card card-primary">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-chart-line mr-2"></i>
-                    Staff Performance Analytics
-                </h3>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Comprehensive performance scoring based on attendance, submissions, and punctuality.</p>
-                <div class="row text-center">
-                    <div class="col-6">
-                        <div class="description-block">
-                            <h5 class="description-header text-primary">{{ $totalStaff }}</h5>
-                            <span class="description-text">Staff Evaluated</span>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="description-block">
-                            <h5 class="description-header text-success">{{ $attendanceStats['avg_hours'] }}h</h5>
-                            <span class="description-text">Avg Daily Hours</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-footer">
-                <a href="{{ route('admin.reports.staff-performance', ['start_date' => $startDate, 'end_date' => $endDate]) }}"
-                   class="btn btn-primary btn-block">
-                    <i class="fas fa-eye mr-1"></i> View Detailed Report
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card card-info">
             <div class="card-header">
                 <h3 class="card-title">
@@ -172,7 +138,7 @@
         </div>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card card-success">
             <div class="card-header">
                 <h3 class="card-title">
@@ -181,7 +147,7 @@
                 </h3>
             </div>
             <div class="card-body">
-                <p class="text-muted">Daily attendance trends, punctuality analysis, and department comparisons.</p>
+                <p class="text-muted">Daily attendance trends, punctuality analysis, and position comparisons.</p>
                 <div class="row text-center">
                     <div class="col-6">
                         <div class="description-block">
@@ -214,45 +180,45 @@
     </div>
 </div>
 
-<!-- Department Overview -->
+<!-- Position Overview -->
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-building mr-2"></i>
-                    Department Overview
+                    <i class="fas fa-briefcase mr-2"></i>
+                    Position Overview
                 </h3>
                 <div class="card-tools">
-                    <span class="badge badge-info">{{ $position_idStats->count() }} Departments</span>
+                    <span class="badge badge-info">{{ $positionStats->count() }} Positions</span>
                 </div>
             </div>
             <div class="card-body">
-                @if($position_idStats->count() > 0)
+                @if($positionStats->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
                             <thead>
                                 <tr>
-                                    <th>Department</th>
+                                    <th>Position</th>
                                     <th class="text-center">Staff Count</th>
                                     <th class="text-center">Distribution</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($position_idStats as $position)
+                                @foreach($positionStats as $row)
                                     <tr>
                                         <td>
-                                            <strong>{{ $position->department }}</strong>
+                                            <strong>{{ $row['position'] }}</strong>
                                         </td>
                                         <td class="text-center">
-                                            <span class="badge badge-primary">{{ $position->staff_count }}</span>
+                                            <span class="badge badge-primary">{{ $row['staff_count'] }}</span>
                                         </td>
                                         <td>
                                             <div class="progress progress-sm">
                                                 <div class="progress-bar bg-primary"
-                                                     style="width: {{ round(($position->staff_count / $totalStaff) * 100) }}%"></div>
+                                                     style="width: {{ $totalStaff > 0 ? round(($row['staff_count'] / $totalStaff) * 100) : 0 }}%"></div>
                                             </div>
-                                            <small class="text-muted">{{ round(($position->staff_count / $totalStaff) * 100) }}%</small>
+                                            <small class="text-muted">{{ $totalStaff > 0 ? round(($row['staff_count'] / $totalStaff) * 100) : 0 }}%</small>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -260,7 +226,7 @@
                         </table>
                     </div>
                 @else
-                    <p class="text-muted text-center">No department data available for selected period.</p>
+                    <p class="text-muted text-center">No position data available.</p>
                 @endif
             </div>
         </div>
@@ -281,11 +247,6 @@
                     <a href="{{ route('admin.reports.export-pdf', ['type' => 'overview', 'start_date' => $startDate, 'end_date' => $endDate]) }}"
                        class="btn btn-outline-primary mb-2">
                         <i class="fas fa-file-pdf mr-1"></i> Overview Report
-                    </a>
-
-                    <a href="{{ route('admin.reports.export-pdf', ['type' => 'staff-performance', 'start_date' => $startDate, 'end_date' => $endDate]) }}"
-                       class="btn btn-outline-info mb-2">
-                        <i class="fas fa-file-pdf mr-1"></i> Performance Report
                     </a>
 
                     <a href="{{ route('admin.reports.export-pdf', ['type' => 'weekly-trackers', 'start_date' => $startDate, 'end_date' => $endDate]) }}"

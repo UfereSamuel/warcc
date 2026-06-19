@@ -120,6 +120,11 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6">
+                                                @if($currentTracker->activity)
+                                                    <strong>Calendar Activity:</strong>
+                                                    <a href="{{ route('staff.calendar.index') }}">{{ $currentTracker->activity->title }}</a>
+                                                    <span class="badge badge-{{ $currentTracker->activity->type_color }}">{{ $currentTracker->activity->type_label }}</span><br>
+                                                @endif
                                                 <strong>Title:</strong> {{ $currentTracker->mission_title }}<br>
                                                 <strong>Type:</strong> {{ ucfirst($currentTracker->mission_type) }}<br>
                                                 <strong>Purpose:</strong> {{ Str::limit($currentTracker->mission_purpose, 100) }}

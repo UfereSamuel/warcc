@@ -9,7 +9,7 @@
                 <i class="fas fa-briefcase text-primary"></i>
                 Positions Management
             </h1>
-            <p class="text-muted">Manage job positions and designations in the organization</p>
+            <p class="text-muted mb-0">Manage job positions and designations in the organization</p>
         </div>
         <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -21,6 +21,7 @@
 @stop
 
 @section('content')
+<div class="positions-page">
 <!-- Statistics Overview -->
 <div class="row mb-4">
     <div class="col-lg-3 col-6">
@@ -234,9 +235,7 @@
             </div>
         @endif
     </div>
-    </div>
-    
-    <!-- Pagination Section -->
+
     @if($positions->hasPages())
         <div class="card-footer bg-light">
             <div class="row">
@@ -322,56 +321,75 @@
         </div>
     </div>
 </div>
+</div>
 @stop
 
 @section('css')
 <style>
-.small-box {
+.positions-page .small-box {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-.small-box .icon {
-    color: rgba(255,255,255,0.3);
+
+.positions-page .small-box .icon {
+    color: rgba(255, 255, 255, 0.25);
 }
-.card {
+
+.positions-page .small-box.bg-info .icon,
+.positions-page .small-box.bg-warning .icon {
+    color: rgba(0, 0, 0, 0.12);
+}
+
+.positions-page .card {
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-.table th {
+
+.positions-page .table th {
     border-top: none;
     font-weight: 600;
-    color: #495057;
+    color: #343a40;
+    background-color: #f1f3f5;
 }
-.table td {
+
+.positions-page .table td {
     vertical-align: middle;
+    color: #212529;
 }
-.btn-group-vertical .btn {
+
+.positions-page .btn-group-vertical .btn {
     border-radius: 4px;
     margin-bottom: 2px;
+    min-width: 7.5rem;
 }
-.btn-group-vertical .btn:last-child {
+
+.positions-page .btn-group-vertical .btn:last-child {
     margin-bottom: 0;
 }
-.badge-pill {
+
+.positions-page .badge-pill {
     border-radius: 50rem;
 }
-.alert {
+
+.positions-page .alert {
     border-radius: 8px;
 }
 
-/* Pagination Styling */
-.pagination {
+.positions-page .card-footer .dataTables_info {
+    color: #495057 !important;
+}
+.positions-page .pagination {
     margin: 0;
     display: flex;
     list-style: none;
     padding: 0;
 }
 
-.pagination .page-item {
+.positions-page .pagination .page-item {
     margin: 0 2px;
 }
 
-.pagination .page-link {
+.positions-page .pagination .page-link {
     display: block;
     padding: 0.375rem 0.75rem;
     border: 1px solid #dee2e6;
@@ -382,21 +400,21 @@
     transition: all 0.15s ease-in-out;
 }
 
-.pagination .page-link:hover {
+.positions-page .pagination .page-link:hover {
     background-color: #e9ecef;
     border-color: #dee2e6;
     color: #0056b3;
     text-decoration: none;
 }
 
-.pagination .page-item.active .page-link {
+.positions-page .pagination .page-item.active .page-link {
     background-color: #007bff;
     border-color: #007bff;
     color: #fff;
     z-index: 1;
 }
 
-.pagination .page-item.disabled .page-link {
+.positions-page .pagination .page-item.disabled .page-link {
     color: #6c757d;
     background-color: #fff;
     border-color: #dee2e6;
@@ -405,33 +423,33 @@
 }
 
 /* Card footer styling */
-.card-footer {
+.positions-page .card-footer {
     background-color: #f8f9fa !important;
     border-top: 1px solid #dee2e6;
     padding: 1rem;
 }
 
-.card-footer .dataTables_info {
-    color: #6c757d;
+.positions-page .card-footer .dataTables_info {
+    color: #495057 !important;
     font-size: 0.875rem;
     line-height: 1.5;
 }
 
-.card-footer .dataTables_paginate {
+.positions-page .card-footer .dataTables_paginate {
     margin: 0;
 }
 
 /* Responsive pagination */
 @media (max-width: 768px) {
-    .card-footer .row {
+    .positions-page .card-footer .row {
         text-align: center;
     }
     
-    .card-footer .float-md-right {
+    .positions-page .card-footer .float-md-right {
         float: none !important;
     }
     
-    .card-footer .dataTables_info {
+    .positions-page .card-footer .dataTables_info {
         margin-bottom: 1rem;
     }
 }

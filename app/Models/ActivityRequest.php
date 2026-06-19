@@ -74,6 +74,8 @@ class ActivityRequest extends Model
             'meeting' => 'primary',
             'training' => 'info',
             'event' => 'success',
+            'mission' => 'purple',
+            'workshop' => 'teal',
             'holiday' => 'warning',
             'deadline' => 'danger',
             default => 'secondary'
@@ -86,6 +88,8 @@ class ActivityRequest extends Model
             'meeting' => 'Meeting',
             'training' => 'Training',
             'event' => 'Event',
+            'mission' => 'Mission',
+            'workshop' => 'Workshop',
             'holiday' => 'Holiday',
             'deadline' => 'Deadline',
             default => 'Unknown'

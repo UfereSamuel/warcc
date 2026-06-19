@@ -38,6 +38,26 @@ class ActivityCalendar extends Model
         return $this->belongsTo(Staff::class, 'updated_by');
     }
 
+    public function reports(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ActivityReport::class, 'activity_calendar_id');
+    }
+
+    public function weeklyTrackers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WeeklyTracker::class, 'activity_calendar_id');
+    }
+
+    public function activityRequests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ActivityRequest::class, 'approved_activity_id');
+    }
+
+    public function requiresReport(): bool
+    {
+        return in_array($this->type, ['training', 'event', 'mission', 'workshop'], true);
+    }
+
     // Accessors
     public function getDurationInDaysAttribute(): int
     {
@@ -65,6 +85,8 @@ class ActivityCalendar extends Model
             'meeting' => 'primary',
             'training' => 'info',
             'event' => 'success',
+            'mission' => 'purple',
+            'workshop' => 'teal',
             'holiday' => 'warning',
             'deadline' => 'danger',
             default => 'secondary'
@@ -77,6 +99,8 @@ class ActivityCalendar extends Model
             'meeting' => 'Meeting',
             'training' => 'Training',
             'event' => 'Event',
+            'mission' => 'Mission',
+            'workshop' => 'Workshop',
             'holiday' => 'Holiday',
             'deadline' => 'Deadline',
             default => 'Unknown'

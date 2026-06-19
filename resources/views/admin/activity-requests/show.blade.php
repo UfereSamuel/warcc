@@ -165,19 +165,15 @@
                 <table class="table table-sm table-borderless">
                     <tr>
                         <td><strong>Name:</strong></td>
-                        <td>{{ $activityRequest->requester->name }}</td>
+                        <td>{{ $activityRequest->requester->full_name }}</td>
                     </tr>
                     <tr>
                         <td><strong>Email:</strong></td>
                         <td>{{ $activityRequest->requester->email }}</td>
                     </tr>
                     <tr>
-                        <td><strong>Department:</strong></td>
-                        <td>{{ $activityRequest->requester->department }}</td>
-                    </tr>
-                    <tr>
                         <td><strong>Position:</strong></td>
-                                                        <td>{{ $activityRequest->requester->position_title }}</td>
+                        <td>{{ $activityRequest->requester->position?->title ?? 'Unassigned' }}</td>
                     </tr>
                     <tr>
                         <td><strong>Submitted:</strong></td>

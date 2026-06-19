@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             LeaveTypeSeeder::class,
             SuperAdminSeeder::class,
+            RolesAndPermissionsSeeder::class,
+            SettingsSeeder::class,
         ]);
     }
 }

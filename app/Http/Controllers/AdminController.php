@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,10 @@ use App\Models\WeeklyTracker;
 use App\Models\ActivityCalendar;
 use App\Models\PublicEvent;
 use App\Models\ActivityRequest;
+use App\Models\ActivityReport;
+use App\Services\ActivityReportAiService;
+use App\Services\HomepageContentService;
+use App\Models\Setting;
 
 class AdminController extends Controller
 {
@@ -97,6 +102,21 @@ class AdminController extends Controller
             ->take(5)
             ->get();
 
+        // Submitted activity reports awaiting review
+        $activityReportStats = [
+            'submitted' => ActivityReport::where('status', 'submitted')->count(),
+            'reviewed' => ActivityReport::where('status', 'reviewed')->count(),
+            'total' => ActivityReport::count(),
+        ];
+
+        $recentSubmittedReports = ActivityReport::with(['staff', 'activity'])
+            ->where('status', 'submitted')
+            ->recentFirst()
+            ->take(5)
+            ->get();
+
+        $aiConfigured = app(ActivityReportAiService::class)->isConfigured();
+
         // Position-based statistics instead of department
         $positionStats = $this->getPositionStats();
 
@@ -115,6 +135,9 @@ class AdminController extends Controller
             'staffStatusData',
             'positionStats',
             'recentActivityRequests',
+            'activityReportStats',
+            'recentSubmittedReports',
+            'aiConfigured',
             'chartData'
         ));
     }
@@ -691,7 +714,7 @@ class AdminController extends Controller
             $data['profile_picture'] = $filename;
         }
 
-        Staff::create($data);
+        Staff::create($data)->syncSpatieRoleFromAdminFlag();
 
         return redirect()->route('admin.staff.index')
             ->with('success', 'Staff member created successfully.');
@@ -703,7 +726,7 @@ class AdminController extends Controller
     public function staffShow(Staff $staff)
     {
         // Load the position relationship
-        $staff->load('position');
+        $staff->load('position', 'roles');
         
         // Get recent attendance (last 30 days)
         $recentAttendance = $staff->attendances()
@@ -782,6 +805,7 @@ class AdminController extends Controller
         }
 
         $staff->update($data);
+        $staff->syncSpatieRoleFromAdminFlag();
 
         return redirect()->route('admin.staff.show', $staff)
             ->with('success', 'Staff information updated successfully.');
@@ -825,6 +849,11 @@ class AdminController extends Controller
                 ->with('error', 'You do not have permission to promote staff.');
         }
 
+        if (! $currentUser->can('promote_staff')) {
+            return redirect()->back()
+                ->with('error', 'You do not have permission to promote staff.');
+        }
+
         // Prevent promoting super admin email to regular admin
         if ($staff->email === 'admin@africacdc.org') {
             return redirect()->route('admin.staff.show', $staff)
@@ -835,17 +864,7 @@ class AdminController extends Controller
         $staff->update(['is_admin' => true]);
 
         // Assign Administrator role if Spatie roles are set up
-        if (class_exists(\Spatie\Permission\Models\Role::class)) {
-            $adminRole = \Spatie\Permission\Models\Role::where('name', 'Administrator')
-                ->where('guard_name', 'staff')
-                ->first();
-            
-            if ($adminRole) {
-                // Remove staff role and assign admin role
-                $staff->removeRole('Staff');
-                $staff->assignRole($adminRole);
-            }
-        }
+        $staff->syncSpatieRoleFromAdminFlag();
 
         return redirect()->route('admin.staff.show', $staff)
             ->with('success', 'Staff member promoted to administrator.');
@@ -856,9 +875,8 @@ class AdminController extends Controller
      */
     public function demoteStaff(Staff $staff)
     {
-        // Check if current user is admin
         $currentUser = auth()->guard('staff')->user();
-        if (!$currentUser->is_admin) {
+        if (! $currentUser->can('demote_staff')) {
             return redirect()->back()
                 ->with('error', 'You do not have permission to demote administrators.');
         }
@@ -881,19 +899,7 @@ class AdminController extends Controller
 
         // Update admin status
         $staff->update(['is_admin' => false]);
-
-        // Assign Staff role if Spatie roles are set up
-        if (class_exists(\Spatie\Permission\Models\Role::class)) {
-            $staffRole = \Spatie\Permission\Models\Role::where('name', 'Staff')
-                ->where('guard_name', 'staff')
-                ->first();
-            
-            if ($staffRole) {
-                // Remove admin role and assign staff role
-                $staff->removeRole('Administrator');
-                $staff->assignRole($staffRole);
-            }
-        }
+        $staff->syncSpatieRoleFromAdminFlag();
 
         return redirect()->route('admin.staff.show', $staff)
             ->with('success', 'Administrator privileges removed.');
@@ -967,7 +973,9 @@ class AdminController extends Controller
         }
         
         $stats = [
-            'total_staff' => Staff::where('status', 'active')->count(),
+            'total_staff' => $position_id
+                ? Staff::where('status', 'active')->where('position_id', $position_id)->count()
+                : Staff::where('status', 'active')->count(),
             'present' => $attendances->where('status', 'present')->count(),
             'late' => $attendances->where('status', 'late')->count(),
             'absent' => $absentStaff->count(),
@@ -987,43 +995,51 @@ class AdminController extends Controller
         $date = $request->get('date', today()->format('Y-m-d'));
         $position_id = $request->get('position_id');
 
-        // Get attendance for the selected date
-        $query = Attendance::with('staff')
+        $query = Attendance::with(['staff.position'])
             ->whereDate('date', $date);
 
         if ($position_id) {
-            $query->whereHas('staff', function($q) use ($position_id) {
+            $query->whereHas('staff', function ($q) use ($position_id) {
                 $q->where('position_id', $position_id);
             });
         }
 
         $attendances = $query->get();
 
-        // Department summary
-        $departmentSummary = Staff::select('department')
-            ->selectRaw('COUNT(*) as total_staff')
-            ->when($department, function($q) use ($department) {
-                $q->where('department', $department);
-            })
-            ->where('status', 'active')
-            ->groupBy('department')
-            ->get()
-            ->map(function($dept) use ($attendances) {
-                $deptAttendances = $attendances->where('staff.department', $dept->department);
-                return [
-                    'department' => $dept->department,
-                    'total_staff' => $dept->total_staff,
-                    'present' => $deptAttendances->where('status', 'present')->count(),
-                    'late' => $deptAttendances->where('status', 'late')->count(),
-                    'absent' => $dept->total_staff - $deptAttendances->count(),
-                    'attendance_rate' => $dept->total_staff > 0 ? round(($deptAttendances->count() / $dept->total_staff) * 100, 1) : 0
-                ];
-            });
+        $positionsForSummary = \App\Models\Position::with(['staff' => function ($q) {
+            $q->where('status', 'active');
+        }])
+            ->when($position_id, fn ($q) => $q->where('id', $position_id))
+            ->orderBy('title')
+            ->get();
+
+        $positionSummary = $positionsForSummary->map(function ($position) use ($attendances) {
+            $activeStaffIds = $position->staff->pluck('id');
+            $totalStaff = $activeStaffIds->count();
+
+            if ($totalStaff === 0) {
+                return null;
+            }
+
+            $positionAttendances = $attendances->whereIn('staff_id', $activeStaffIds);
+            $checkedIn = $positionAttendances->count();
+
+            return [
+                'department' => $position->title,
+                'total_staff' => $totalStaff,
+                'present' => $positionAttendances->where('status', 'present')->count(),
+                'late' => $positionAttendances->where('status', 'late')->count(),
+                'absent' => $totalStaff - $checkedIn,
+                'attendance_rate' => $totalStaff > 0
+                    ? round(($checkedIn / $totalStaff) * 100, 1)
+                    : 0,
+            ];
+        })->filter()->values();
 
         $positions = \App\Models\Position::orderBy('title')->get();
 
         return view('admin.attendance.daily-report', compact(
-            'attendances', 'departmentSummary', 'positions', 'date', 'position_id'
+            'attendances', 'positionSummary', 'positions', 'date', 'position_id'
         ));
     }
 
@@ -1041,7 +1057,7 @@ class AdminController extends Controller
         $weekStart = \Carbon\Carbon::parse($week)->startOfWeek();
         $weekEnd = $weekStart->copy()->endOfWeek();
 
-        $query = WeeklyTracker::with('staff', 'leaveType')
+        $query = WeeklyTracker::with(['staff.position', 'leaveType', 'activity'])
             ->whereDate('week_start_date', $weekStart);
 
         if ($position_id) {
@@ -1056,10 +1072,17 @@ class AdminController extends Controller
 
         $trackers = $query->orderBy('created_at', 'desc')->get();
 
-        // Get staff who haven't submitted trackers for this week
-        $submittedStaffIds = $trackers->pluck('staff_id')->toArray();
-        $missingStaffQuery = Staff::where('status', 'active')
-            ->whereNotIn('id', $submittedStaffIds);
+        // Staff who have not submitted for this week (no tracker, or still draft)
+        $missingStaffQuery = Staff::with('position')
+            ->where('status', 'active')
+            ->where(function ($q) use ($weekStart) {
+                $q->whereDoesntHave('weeklyTrackers', function ($trackerQuery) use ($weekStart) {
+                    $trackerQuery->whereDate('week_start_date', $weekStart);
+                })->orWhereHas('weeklyTrackers', function ($trackerQuery) use ($weekStart) {
+                    $trackerQuery->whereDate('week_start_date', $weekStart)
+                        ->where('submission_status', 'draft');
+                });
+            });
 
         if ($position_id) {
             $missingStaffQuery->where('position_id', $position_id);
@@ -1073,7 +1096,8 @@ class AdminController extends Controller
             'on_mission' => $trackers->where('status', 'on_mission')->count(),
             'on_leave' => $trackers->where('status', 'on_leave')->count(),
             'pending_review' => $trackers->where('submission_status', 'submitted')->count(),
-            'not_submitted' => $missingStaff->count()
+            'draft' => $trackers->where('submission_status', 'draft')->count(),
+            'not_submitted' => $missingStaff->count(),
         ];
 
         $positions = \App\Models\Position::orderBy('title')->get();
@@ -1090,9 +1114,17 @@ class AdminController extends Controller
      */
     public function weeklyTrackerShow(WeeklyTracker $tracker)
     {
-        $tracker->load('staff', 'leaveType');
+        $tracker->load('staff.position', 'leaveType', 'activity', 'reviewer');
 
         return view('admin.weekly-trackers.show', compact('tracker'));
+    }
+
+    /**
+     * Download weekly tracker documents (admin)
+     */
+    public function weeklyTrackerDownloadDocument(WeeklyTracker $tracker, string $type, int $index = 0)
+    {
+        return app(WeeklyTrackerController::class)->downloadDocument($tracker, $type, $index, allowAdmin: true);
     }
 
     /**
@@ -1423,7 +1455,7 @@ class AdminController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'location' => 'nullable|string|max:255',
-            'type' => 'required|in:meeting,training,event,holiday,deadline',
+            'type' => 'required|in:meeting,training,event,mission,workshop,holiday,deadline',
             'status' => 'required|in:done,ongoing,not_yet_started'
         ]);
 
@@ -1461,7 +1493,7 @@ class AdminController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'location' => 'nullable|string|max:255',
-            'type' => 'required|in:meeting,training,event,holiday,deadline',
+            'type' => 'required|in:meeting,training,event,mission,workshop,holiday,deadline',
             'status' => 'required|in:done,ongoing,not_yet_started'
         ]);
 
@@ -1473,11 +1505,16 @@ class AdminController extends Controller
             'location' => $request->location,
             'type' => $request->type,
             'status' => $request->status,
-            'updated_by' => Auth::guard('staff')->id()
+            'updated_by' => Auth::guard('staff')->id(),
         ]);
 
+        $message = 'Activity updated successfully.';
+        if ($request->status === 'done' && $activity->requiresReport()) {
+            $message .= ' Participating staff will be prompted to submit their post-activity reports.';
+        }
+
         return redirect()->route('admin.calendar.index')
-            ->with('success', 'Activity updated successfully.');
+            ->with('success', $message);
     }
 
     /**
@@ -1579,8 +1616,10 @@ class AdminController extends Controller
      */
     public function aboutEdit()
     {
-        // This would contain about page content settings
-        return view('admin.content.about');
+        $content = HomepageContentService::forAboutAdmin();
+        $organization = HomepageContentService::organizationStatements();
+
+        return view('admin.content.about', compact('content', 'organization'));
     }
 
     /**
@@ -1588,7 +1627,34 @@ class AdminController extends Controller
      */
     public function aboutUpdate(Request $request)
     {
-        // About page content update logic would go here
+        $rules = [
+            'hero_title' => 'required|string|max:255',
+            'hero_lead' => 'required|string|max:2000',
+            'core_functions_title' => 'required|string|max:255',
+            'core_functions_lead' => 'required|string|max:500',
+            'coverage_title' => 'required|string|max:255',
+            'coverage_lead' => 'required|string|max:1000',
+        ];
+
+        for ($i = 1; $i <= 6; $i++) {
+            $rules["function_{$i}_title"] = 'required|string|max:255';
+            $rules["function_{$i}_text"] = 'required|string|max:1000';
+        }
+
+        $validated = $request->validate($rules);
+
+        Setting::set('about_hero_title', $validated['hero_title']);
+        Setting::set('about_hero_lead', $validated['hero_lead']);
+        Setting::set('about_core_functions_title', $validated['core_functions_title']);
+        Setting::set('about_core_functions_lead', $validated['core_functions_lead']);
+        Setting::set('about_coverage_title', $validated['coverage_title']);
+        Setting::set('about_coverage_lead', $validated['coverage_lead']);
+
+        for ($i = 1; $i <= 6; $i++) {
+            Setting::set("about_function_{$i}_title", $validated["function_{$i}_title"]);
+            Setting::set("about_function_{$i}_text", $validated["function_{$i}_text"]);
+        }
+
         return redirect()->route('admin.content.about')
             ->with('success', 'About page updated successfully.');
     }
@@ -1603,7 +1669,7 @@ class AdminController extends Controller
         $status = $request->get('status');
         $type = $request->get('type');
 
-        $query = \App\Models\ActivityRequest::with(['requester', 'reviewer', 'approvedActivity'])
+        $query = \App\Models\ActivityRequest::with(['requester.position', 'reviewer', 'approvedActivity'])
             ->orderBy('created_at', 'desc');
 
         if ($status) {
@@ -1624,7 +1690,7 @@ class AdminController extends Controller
             'rejected' => \App\Models\ActivityRequest::rejected()->count(),
         ];
 
-        $types = ['meeting', 'training', 'event', 'holiday', 'deadline'];
+        $types = ['meeting', 'training', 'event', 'mission', 'workshop', 'holiday', 'deadline'];
         $statuses = ['pending', 'approved', 'rejected'];
         
         // Get positions for filter
@@ -2228,7 +2294,7 @@ class AdminController extends Controller
         $endDate = $request->get('end_date', now()->endOfMonth()->format('Y-m-d'));
         $format = $request->get('format', 'csv');
 
-        $attendances = Attendance::with(['staff'])
+        $attendances = Attendance::with(['staff.position'])
             ->whereBetween('date', [$startDate, $endDate])
             ->orderBy('date', 'desc')
             ->get();
@@ -2248,11 +2314,18 @@ class AdminController extends Controller
         $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->get('end_date', now()->endOfMonth()->format('Y-m-d'));
         $format = $request->get('format', 'csv');
+        $position_id = $request->get('position_id');
 
-        $trackers = WeeklyTracker::with(['staff'])
-            ->whereBetween('week_start_date', [$startDate, $endDate])
-            ->orderBy('week_start_date', 'desc')
-            ->get();
+        $query = WeeklyTracker::with(['staff.position', 'leaveType', 'activity'])
+            ->whereBetween('week_start_date', [$startDate, $endDate]);
+
+        if ($position_id) {
+            $query->whereHas('staff', function ($q) use ($position_id) {
+                $q->where('position_id', $position_id);
+            });
+        }
+
+        $trackers = $query->orderBy('week_start_date', 'desc')->get();
 
         if ($format === 'csv') {
             return $this->exportTrackersCSV($trackers, $startDate, $endDate);
@@ -2318,7 +2391,7 @@ class AdminController extends Controller
                 'Date',
                 'Staff ID',
                 'Staff Name',
-                'Department',
+                'Position',
                 'Clock In Time',
                 'Clock Out Time',
                 'Total Hours',
@@ -2333,7 +2406,7 @@ class AdminController extends Controller
                     $attendance->date->format('Y-m-d'),
                     $attendance->staff->staff_id,
                     $attendance->staff->full_name,
-                    $attendance->staff->department,
+                    $attendance->staff->position?->title ?? 'Unassigned',
                     $attendance->clock_in_time ?? 'N/A',
                     $attendance->clock_out_time ?? 'N/A',
                     $attendance->total_hours ?? 'N/A',
@@ -2368,31 +2441,28 @@ class AdminController extends Controller
                 'Week End Date',
                 'Staff ID',
                 'Staff Name',
-                'Department',
-                'Monday Status',
-                'Tuesday Status',
-                'Wednesday Status',
-                'Thursday Status',
-                'Friday Status',
+                'Position',
+                'Weekly Status',
+                'Mission Title',
+                'Leave Type',
+                'Linked Activity',
                 'Submission Status',
-                'Submitted At'
+                'Submitted At',
             ]);
 
-            // CSV data
             foreach ($trackers as $tracker) {
                 fputcsv($handle, [
                     $tracker->week_start_date->format('Y-m-d'),
                     $tracker->week_end_date->format('Y-m-d'),
                     $tracker->staff->staff_id,
                     $tracker->staff->full_name,
-                    $tracker->staff->department,
-                    $tracker->monday_status ?? 'N/A',
-                    $tracker->tuesday_status ?? 'N/A',
-                    $tracker->wednesday_status ?? 'N/A',
-                    $tracker->thursday_status ?? 'N/A',
-                    $tracker->friday_status ?? 'N/A',
-                    ucfirst($tracker->status),
-                    $tracker->submitted_at ? $tracker->submitted_at->format('Y-m-d H:i:s') : 'N/A'
+                    $tracker->staff->position?->title ?? 'Unassigned',
+                    ucfirst(str_replace('_', ' ', $tracker->status)),
+                    $tracker->mission_title ?? 'N/A',
+                    $tracker->leaveType?->name ?? 'N/A',
+                    $tracker->activity?->title ?? 'N/A',
+                    ucfirst($tracker->submission_status),
+                    $tracker->submitted_at ? $tracker->submitted_at->format('Y-m-d H:i:s') : 'N/A',
                 ]);
             }
 
@@ -2462,6 +2532,11 @@ class AdminController extends Controller
      */
     public function settingsIndex()
     {
+        if (\App\Models\Setting::count() === 0) {
+            (new \Database\Seeders\SettingsSeeder())->run();
+            \App\Models\Setting::clearCache();
+        }
+
         $generalSettings = \App\Models\Setting::getByGroup('general');
         $contactSettings = \App\Models\Setting::getByGroup('contact');
         $socialSettings = \App\Models\Setting::getByGroup('social');
@@ -2558,7 +2633,34 @@ class AdminController extends Controller
             'from_name' => config('mail.from.name'),
         ];
 
-        return view('admin.email.test', compact('currentConfig'));
+        $reminderService = app(\App\Services\ActivityReportReminderService::class);
+        $reminderPreview = $reminderService->previewDueReminders();
+        $remindersEnabled = $reminderService->isEnabled();
+        $reminderConfig = [
+            'cooldown_days' => config('reminders.activity_reports.cooldown_days'),
+            'send_as' => config('reminders.microsoft.send_as'),
+            'daily_at' => env('REMINDER_DAILY_AT', '08:00'),
+            'graph_configured' => app(\App\Services\MicrosoftGraphService::class)->isConfigured(),
+        ];
+
+        $graphConfig = [
+            'client_id' => config('services.microsoft.client_id'),
+            'tenant_id' => config('services.microsoft.tenant'),
+            'redirect_uri' => config('services.microsoft.redirect') ?: url('/auth/microsoft/callback'),
+            'mail_from' => config('reminders.microsoft.send_as') ?: config('mail.from.address'),
+            'secret_configured' => ! empty(config('services.microsoft.client_secret')),
+            'configured' => app(\App\Services\MicrosoftGraphService::class)->isConfigured(),
+            'reminders_enabled' => (bool) config('reminders.enabled'),
+            'activity_reports_enabled' => (bool) config('reminders.activity_reports.enabled'),
+        ];
+
+        return view('admin.email.test', compact(
+            'currentConfig',
+            'reminderPreview',
+            'remindersEnabled',
+            'reminderConfig',
+            'graphConfig'
+        ));
     }
 
     /**
@@ -2617,6 +2719,105 @@ class AdminController extends Controller
     }
 
     /**
+     * Configure Microsoft Graph (SSO + email reminders).
+     */
+    public function configureMicrosoftGraph(Request $request)
+    {
+        $request->validate([
+            'microsoft_client_id' => 'required|string|max:255',
+            'microsoft_tenant_id' => 'required|string|max:255',
+            'microsoft_client_secret' => 'nullable|string|max:500',
+            'microsoft_redirect_uri' => 'required|url|max:500',
+            'microsoft_mail_from' => 'required|email|max:255',
+            'reminders_enabled' => 'nullable|boolean',
+            'reminder_activity_reports_enabled' => 'nullable|boolean',
+            'reminder_cooldown_days' => 'nullable|integer|min:1|max:30',
+            'reminder_daily_at' => ['nullable', 'regex:/^\d{2}:\d{2}$/'],
+        ]);
+
+        try {
+            $updates = [
+                'MICROSOFT_CLIENT_ID' => $request->microsoft_client_id,
+                'MICROSOFT_TENANT_ID' => $request->microsoft_tenant_id,
+                'MICROSOFT_REDIRECT_URI' => $request->microsoft_redirect_uri,
+                'MICROSOFT_MAIL_FROM' => $request->microsoft_mail_from,
+                'MAIL_FROM_ADDRESS' => $request->microsoft_mail_from,
+                'REMINDERS_ENABLED' => $request->boolean('reminders_enabled') ? 'true' : 'false',
+                'REMINDER_ACTIVITY_REPORTS_ENABLED' => $request->boolean('reminder_activity_reports_enabled') ? 'true' : 'false',
+            ];
+
+            if ($request->filled('microsoft_client_secret')) {
+                $updates['MICROSOFT_CLIENT_SECRET'] = $request->microsoft_client_secret;
+            } elseif (! config('services.microsoft.client_secret')) {
+                return redirect()->back()
+                    ->with('error', 'Client secret is required for initial Microsoft Graph setup.')
+                    ->withInput();
+            }
+
+            if ($request->filled('reminder_cooldown_days')) {
+                $updates['REMINDER_ACTIVITY_REPORT_COOLDOWN_DAYS'] = (string) $request->reminder_cooldown_days;
+            }
+
+            if ($request->filled('reminder_daily_at')) {
+                $updates['REMINDER_DAILY_AT'] = $request->reminder_daily_at;
+            }
+
+            $this->updateEnvVariables($updates);
+            Cache::forget('microsoft_graph_token');
+
+            return redirect()->route('admin.email.test')
+                ->with('success', 'Microsoft Graph configuration saved. Use “Test Connection” to verify, then send a test email.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to save Microsoft Graph configuration: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * @param  array<string, string>  $updates
+     */
+    private function updateEnvVariables(array $updates): void
+    {
+        $envPath = base_path('.env');
+
+        if (! is_readable($envPath) || ! is_writable($envPath)) {
+            throw new \RuntimeException('.env file is not readable/writable on this server.');
+        }
+
+        $envContent = file_get_contents($envPath);
+
+        foreach ($updates as $key => $value) {
+            $formatted = $this->formatEnvValue($value);
+            $pattern = "/^{$key}=.*$/m";
+            $line = "{$key}={$formatted}";
+
+            if (preg_match($pattern, $envContent)) {
+                $envContent = preg_replace($pattern, $line, $envContent);
+            } else {
+                $envContent .= "\n{$line}";
+            }
+        }
+
+        file_put_contents($envPath, $envContent);
+        \Artisan::call('config:clear');
+    }
+
+    private function formatEnvValue(string $value): string
+    {
+        if ($value === '') {
+            return '""';
+        }
+
+        if (preg_match('/[\s#="\']/', $value)) {
+            return '"' . str_replace('"', '\\"', $value) . '"';
+        }
+
+        return $value;
+    }
+
+    /**
      * Send test email
      */
     public function sendTestEmail(Request $request)
@@ -2643,7 +2844,7 @@ class AdminController extends Controller
                     $request->test_email,
                     '✅ Email Test - WARCC System (Microsoft Graph)',
                     view('emails.test', compact('testData'))->render(),
-                    config('mail.from.address')
+                    config('reminders.microsoft.send_as') ?: config('mail.from.address')
                 );
 
                 return redirect()->back()
@@ -2669,6 +2870,30 @@ class AdminController extends Controller
                 ->with('error', 'Failed to send test email: ' . $e->getMessage())
                 ->withInput();
         }
+    }
+
+    /**
+     * Manually send activity report due reminders via Microsoft Graph.
+     */
+    public function sendActivityReportReminders(Request $request)
+    {
+        $request->validate([
+            'dry_run' => 'nullable|boolean',
+        ]);
+
+        $reminderService = app(\App\Services\ActivityReportReminderService::class);
+        $dryRun = $request->boolean('dry_run');
+        $result = $reminderService->sendDueReminders($dryRun);
+
+        $summary = "Sent: {$result['sent']}, Skipped: {$result['skipped']}, Failed: {$result['failed']}";
+
+        if ($result['failed'] > 0) {
+            return redirect()->route('admin.email.test')
+                ->with('error', ($dryRun ? 'Dry run completed with issues. ' : 'Reminder run completed with failures. ') . $summary);
+        }
+
+        return redirect()->route('admin.email.test')
+            ->with('success', ($dryRun ? 'Dry run completed. ' : 'Reminders sent successfully. ') . $summary);
     }
 
     /**
