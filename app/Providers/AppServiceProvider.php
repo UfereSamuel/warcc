@@ -27,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
+        Gate::define('view_staff_dashboard_link', function (Staff $user) {
+            return $user->is_admin && $user->email !== 'admin@africacdc.org';
+        });
+
         Socialite::extend('microsoft', function ($app) {
             $config = $app['config']['services.microsoft'];
             return new AzureADProvider(
