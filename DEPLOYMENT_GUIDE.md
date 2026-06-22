@@ -224,6 +224,24 @@ php artisan config:cache
 php artisan view:cache
 ```
 
+If the homepage shows **404 | NOT FOUND** (Laravel page, not Apache), the app is running but the
+`/warcc` path prefix is not being stripped before routing. Ensure:
+
+1. `APP_URL=https://cbp.africacdc.org/warcc` in `.env` (no trailing slash)
+2. Latest code is deployed (`public/index.php` strips the prefix from `REQUEST_URI`)
+3. Caches are cleared:
+
+```bash
+cd /var/lib/ACDC_SYSTEMS/warcc
+php artisan route:clear
+php artisan config:clear
+php artisan view:clear
+php artisan optimize:clear
+php artisan config:cache
+php artisan view:cache
+# Do NOT run route:cache
+```
+
 In `public/.htaccess`, uncomment and set `RewriteBase /warcc` if Apache rewrite rules need it.
 
 Long-term, prefer a **subdomain** with `DocumentRoot` pointing at `public/` (see `apache-warcc.conf`) instead of a subdirectory path.
