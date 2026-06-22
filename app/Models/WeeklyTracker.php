@@ -80,6 +80,23 @@ class WeeklyTracker extends Model
         return $this->belongsTo(Staff::class, 'reviewed_by');
     }
 
+    public function activityReport(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ActivityReport::class);
+    }
+
+    public function hasCompletedMissionReport(): bool
+    {
+        return $this->activityReport()
+            ->whereIn('status', ['submitted', 'reviewed'])
+            ->exists();
+    }
+
+    public function getMissionReport(): ?ActivityReport
+    {
+        return $this->activityReport()->latest()->first();
+    }
+
     // Accessors
     public function getWeekRangeAttribute(): string
     {

@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\ActivityCalendar;
 use App\Models\ActivityReport;
 use App\Models\Staff;
+use App\Models\WeeklyTracker;
 use App\Services\ActivityWorkflowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class ActivityReportController extends Controller
 {
@@ -22,7 +24,7 @@ class ActivityReportController extends Controller
         $staffId = $staff->id;
         $status = $request->get('status');
 
-        $query = ActivityReport::with('activity')
+        $query = ActivityReport::with(['activity', 'weeklyTracker'])
             ->byStaff($staffId)
             ->recentFirst();
 
@@ -40,25 +42,52 @@ class ActivityReportController extends Controller
         ];
 
         $pendingActivities = $this->workflow->getPendingReportsForStaff($staff);
+        $pendingMissionTrackers = $this->workflow->getUnreportedMissionTrackers($staff);
 
-        return view('staff.activity-reports.index', compact('reports', 'stats', 'status', 'pendingActivities'));
+        return view('staff.activity-reports.index', compact(
+            'reports',
+            'stats',
+            'status',
+            'pendingActivities',
+            'pendingMissionTrackers'
+        ));
     }
 
     public function create(Request $request)
     {
         $staff = Auth::guard('staff')->user();
         $selectedActivity = null;
+        $selectedTracker = null;
 
         if ($request->filled('activity_calendar_id')) {
             $selectedActivity = ActivityCalendar::find($request->activity_calendar_id);
         }
 
+        if ($request->filled('weekly_tracker_id')) {
+            $selectedTracker = WeeklyTracker::with('activity')
+                ->where('staff_id', $staff->id)
+                ->find($request->weekly_tracker_id);
+
+            if ($selectedTracker && $this->workflow->trackerIsReportable($selectedTracker)) {
+                $existingDraft = $selectedTracker->getMissionReport();
+                if ($existingDraft && $existingDraft->status === 'draft') {
+                    return redirect()->route('staff.activity-reports.edit', $existingDraft)
+                        ->with('info', 'Continue your draft mission report for this tracker.');
+                }
+            } else {
+                $selectedTracker = null;
+            }
+        }
+
         $pendingActivities = $this->workflow->getPendingReportsForStaff($staff);
-        $calendarActivities = $this->reportableCalendarActivities($staff, $selectedActivity);
+        $selectableMissionTrackers = $this->workflow->getSelectableMissionTrackersForReport($staff);
+        $calendarActivities = $this->reportableCalendarActivities($staff, $selectedActivity, $selectedTracker);
 
         return view('staff.activity-reports.create', compact(
             'calendarActivities',
             'selectedActivity',
+            'selectedTracker',
+            'selectableMissionTrackers',
             'pendingActivities'
         ));
     }
@@ -87,7 +116,7 @@ class ActivityReportController extends Controller
     {
         $this->authorizeStaff($activityReport);
 
-        $activityReport->load(['activity', 'reviewer']);
+        $activityReport->load(['activity', 'weeklyTracker', 'reviewer']);
 
         return view('staff.activity-reports.show', compact('activityReport'));
     }
@@ -101,12 +130,29 @@ class ActivityReportController extends Controller
                 ->with('error', 'Only draft reports can be edited.');
         }
 
-        $calendarActivities = $this->reportableCalendarActivities(
-            Auth::guard('staff')->user(),
-            $activityReport->activity
-        );
+        $activityReport->load(['activity', 'weeklyTracker']);
 
-        return view('staff.activity-reports.edit', compact('activityReport', 'calendarActivities'));
+        $staff = Auth::guard('staff')->user();
+        $calendarActivities = $this->reportableCalendarActivities(
+            $staff,
+            $activityReport->activity,
+            $activityReport->weeklyTracker
+        );
+        $selectableMissionTrackers = $this->workflow->getSelectableMissionTrackersForReport($staff);
+
+        if ($activityReport->weekly_tracker_id) {
+            $selectableMissionTrackers = $selectableMissionTrackers
+                ->push($activityReport->weeklyTracker)
+                ->filter()
+                ->unique('id')
+                ->values();
+        }
+
+        return view('staff.activity-reports.edit', compact(
+            'activityReport',
+            'calendarActivities',
+            'selectableMissionTrackers'
+        ));
     }
 
     public function update(Request $request, ActivityReport $activityReport)
@@ -118,7 +164,7 @@ class ActivityReportController extends Controller
                 ->with('error', 'Only draft reports can be edited.');
         }
 
-        $data = $this->validateReport($request);
+        $data = $this->validateReport($request, $activityReport);
         $submit = $request->input('action') === 'submit';
 
         $update = [
@@ -196,9 +242,12 @@ class ActivityReportController extends Controller
         }
     }
 
-    private function validateReport(Request $request): array
+    private function validateReport(Request $request, ?ActivityReport $existingReport = null): array
     {
+        $staff = Auth::guard('staff')->user();
+
         $validated = $request->validate([
+            'weekly_tracker_id' => 'nullable|exists:weekly_trackers,id',
             'activity_calendar_id' => 'nullable|exists:activity_calendars,id',
             'title' => 'required|string|max:255',
             'report_date' => 'required|date',
@@ -209,8 +258,45 @@ class ActivityReportController extends Controller
             'attachment' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:5120',
         ]);
 
+        $weeklyTrackerId = $validated['weekly_tracker_id'] ?? null;
+        $activityCalendarId = $validated['activity_calendar_id'] ?? null;
+
+        if ($weeklyTrackerId) {
+            $tracker = WeeklyTracker::findOrFail($weeklyTrackerId);
+
+            if (! $this->workflow->trackerBelongsToStaff($tracker, $staff)) {
+                throw ValidationException::withMessages([
+                    'weekly_tracker_id' => 'You can only report on your own missions.',
+                ]);
+            }
+
+            if (! $this->workflow->trackerIsReportable($tracker)
+                && (! $existingReport || (int) $existingReport->weekly_tracker_id !== (int) $tracker->id)) {
+                throw ValidationException::withMessages([
+                    'weekly_tracker_id' => 'This mission already has a submitted report or is not eligible.',
+                ]);
+            }
+
+            $duplicate = ActivityReport::query()
+                ->where('weekly_tracker_id', $tracker->id)
+                ->whereIn('status', ['submitted', 'reviewed'])
+                ->when($existingReport, fn ($query) => $query->where('id', '!=', $existingReport->id))
+                ->exists();
+
+            if ($duplicate) {
+                throw ValidationException::withMessages([
+                    'weekly_tracker_id' => 'A report has already been filed for this mission.',
+                ]);
+            }
+
+            if (! $activityCalendarId && $tracker->activity_calendar_id) {
+                $activityCalendarId = $tracker->activity_calendar_id;
+            }
+        }
+
         return [
-            'activity_calendar_id' => $validated['activity_calendar_id'] ?? null,
+            'weekly_tracker_id' => $weeklyTrackerId,
+            'activity_calendar_id' => $activityCalendarId,
             'title' => $validated['title'],
             'report_date' => $validated['report_date'],
             'summary' => $validated['summary'],
@@ -247,8 +333,11 @@ class ActivityReportController extends Controller
     /**
      * Calendar activities the staff member can link when filing a report.
      */
-    private function reportableCalendarActivities(Staff $staff, ?ActivityCalendar $includeActivity = null)
-    {
+    private function reportableCalendarActivities(
+        Staff $staff,
+        ?ActivityCalendar $includeActivity = null,
+        ?WeeklyTracker $includeTracker = null
+    ) {
         $ids = $this->workflow->getParticipatedActivityIds($staff)
             ->merge($this->workflow->getPendingReportsForStaff($staff)->pluck('id'))
             ->unique()
@@ -256,6 +345,10 @@ class ActivityReportController extends Controller
 
         if ($includeActivity) {
             $ids = $ids->push($includeActivity->id)->unique()->values();
+        }
+
+        if ($includeTracker?->activity_calendar_id) {
+            $ids = $ids->push($includeTracker->activity_calendar_id)->unique()->values();
         }
 
         if ($ids->isEmpty()) {

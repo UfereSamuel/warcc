@@ -22,6 +22,8 @@
                 @include('staff.activity-reports._form', [
                     'report' => $activityReport,
                     'selectedActivity' => $activityReport->activity,
+                    'selectedTracker' => $activityReport->weeklyTracker,
+                    'selectableMissionTrackers' => $selectableMissionTrackers ?? collect(),
                     'calendarActivities' => $calendarActivities,
                 ])
                 <div class="card-footer">

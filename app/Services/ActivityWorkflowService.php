@@ -52,6 +52,73 @@ class ActivityWorkflowService
     }
 
     /**
+     * Submitted on-mission weekly trackers that still need a mission report filed.
+     */
+    public function getUnreportedMissionTrackers(Staff $staff): Collection
+    {
+        $reportedTrackerIds = ActivityReport::query()
+            ->where('staff_id', $staff->id)
+            ->whereNotNull('weekly_tracker_id')
+            ->whereIn('status', ['submitted', 'reviewed'])
+            ->pluck('weekly_tracker_id');
+
+        return WeeklyTracker::query()
+            ->with('activity')
+            ->where('staff_id', $staff->id)
+            ->where('status', 'on_mission')
+            ->where('submission_status', 'submitted')
+            ->whereNotNull('mission_title')
+            ->whereNotIn('id', $reportedTrackerIds)
+            ->orderByDesc('mission_end_date')
+            ->get();
+    }
+
+    /**
+     * Mission trackers available when creating a new report (unreported + draft in progress).
+     */
+    public function getSelectableMissionTrackersForReport(Staff $staff): Collection
+    {
+        $draftTrackerIds = ActivityReport::query()
+            ->where('staff_id', $staff->id)
+            ->whereNotNull('weekly_tracker_id')
+            ->where('status', 'draft')
+            ->pluck('weekly_tracker_id');
+
+        return $this->getUnreportedMissionTrackers($staff)
+            ->filter(fn (WeeklyTracker $tracker) => ! $draftTrackerIds->contains($tracker->id))
+            ->values();
+    }
+
+    public function trackerBelongsToStaff(WeeklyTracker $tracker, Staff $staff): bool
+    {
+        return (int) $tracker->staff_id === (int) $staff->id;
+    }
+
+    public function trackerIsReportable(WeeklyTracker $tracker): bool
+    {
+        return $tracker->status === 'on_mission'
+            && $tracker->submission_status === 'submitted'
+            && filled($tracker->mission_title)
+            && ! $tracker->hasCompletedMissionReport();
+    }
+
+    /**
+     * Prefill activity report fields from a weekly tracker mission.
+     *
+     * @return array<string, mixed>
+     */
+    public function reportFieldsFromTracker(WeeklyTracker $tracker): array
+    {
+        return [
+            'weekly_tracker_id' => $tracker->id,
+            'activity_calendar_id' => $tracker->activity_calendar_id,
+            'title' => $tracker->mission_title,
+            'report_date' => optional($tracker->mission_end_date)->format('Y-m-d') ?? now()->toDateString(),
+            'summary' => $tracker->mission_purpose ?? '',
+        ];
+    }
+
+    /**
      * Activities where the staff member owes a post-activity report.
      */
     public function getPendingReportsForStaff(Staff $staff): Collection

@@ -24,12 +24,12 @@ class WeeklyTrackerController extends Controller
         $currentWeekStart = Carbon::now()->startOfWeek();
         $currentWeekEnd = Carbon::now()->endOfWeek();
 
-        $currentTracker = WeeklyTracker::with('activity')
+        $currentTracker = WeeklyTracker::with(['activity', 'activityReport'])
             ->where('staff_id', $staff->id)
             ->whereDate('week_start_date', $currentWeekStart)
             ->first();
 
-        $recentTrackers = WeeklyTracker::with('activity')
+        $recentTrackers = WeeklyTracker::with(['activity', 'activityReport'])
             ->where('staff_id', $staff->id)
             ->orderBy('week_start_date', 'desc')
             ->take(8)

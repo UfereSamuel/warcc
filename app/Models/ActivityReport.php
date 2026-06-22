@@ -13,6 +13,7 @@ class ActivityReport extends Model
     protected $fillable = [
         'staff_id',
         'activity_calendar_id',
+        'weekly_tracker_id',
         'title',
         'report_date',
         'summary',
@@ -42,6 +43,11 @@ class ActivityReport extends Model
     public function activity(): BelongsTo
     {
         return $this->belongsTo(ActivityCalendar::class, 'activity_calendar_id');
+    }
+
+    public function weeklyTracker(): BelongsTo
+    {
+        return $this->belongsTo(WeeklyTracker::class);
     }
 
     public function reviewer(): BelongsTo

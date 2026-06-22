@@ -24,6 +24,16 @@
                     <dt class="col-sm-4">Report Date</dt>
                     <dd class="col-sm-8">{{ $activityReport->report_date->format('l, F j, Y') }}</dd>
 
+                    <dt class="col-sm-4">Weekly Tracker Mission</dt>
+                    <dd class="col-sm-8">
+                        @if($activityReport->weeklyTracker)
+                            <span class="badge badge-success">{{ $activityReport->weeklyTracker->mission_title }}</span>
+                            <small class="text-muted d-block">{{ $activityReport->weeklyTracker->week_range }}</small>
+                        @else
+                            <span class="text-muted">Not linked to a weekly tracker mission</span>
+                        @endif
+                    </dd>
+
                     <dt class="col-sm-4">Calendar Activity</dt>
                     <dd class="col-sm-8">
                         @if($activityReport->activity)

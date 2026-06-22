@@ -36,6 +36,8 @@
                 @include('staff.activity-reports._form', [
                     'report' => null,
                     'selectedActivity' => $selectedActivity,
+                    'selectedTracker' => $selectedTracker ?? null,
+                    'selectableMissionTrackers' => $selectableMissionTrackers ?? collect(),
                     'calendarActivities' => $calendarActivities,
                 ])
                 <div class="card-footer">
@@ -58,8 +60,9 @@
             <div class="card-body">
                 <p class="text-muted">Use this form to document outcomes after an activity has taken place.</p>
                 <ul class="mb-0">
+                    <li class="mb-2">Select a <strong>mission from your weekly tracker</strong> if you were on mission that week.</li>
                     <li class="mb-2">Link to a <strong>calendar activity</strong> when reporting on a scheduled event.</li>
-                    <li class="mb-2">Leave the calendar field empty for a <strong>standalone report</strong>.</li>
+                    <li class="mb-2">Leave both fields empty for a <strong>standalone report</strong>.</li>
                     <li class="mb-2">Save as draft to finish later, or submit for admin review.</li>
                 </ul>
             </div>

@@ -31,6 +31,35 @@
 </div>
 @endif
 
+@if(isset($pendingMissionTrackers) && $pendingMissionTrackers->count())
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <h5 class="mb-2"><i class="fas fa-plane mr-2"></i>Mission Reports Due</h5>
+            <p class="mb-2">You have submitted weekly tracker missions that still need a report:</p>
+            <ul class="mb-0">
+                @foreach($pendingMissionTrackers as $tracker)
+                    @php $draftReport = $tracker->getMissionReport(); @endphp
+                    <li class="mb-2">
+                        <strong>{{ $tracker->mission_title }}</strong>
+                        <span class="text-muted">({{ $tracker->week_range }})</span>
+                        @if($draftReport && $draftReport->status === 'draft')
+                            <a href="{{ route('staff.activity-reports.edit', $draftReport) }}" class="btn btn-sm btn-secondary ml-2">
+                                <i class="fas fa-edit mr-1"></i> Continue Draft
+                            </a>
+                        @else
+                            <a href="{{ route('staff.activity-reports.create', ['weekly_tracker_id' => $tracker->id]) }}" class="btn btn-sm btn-primary ml-2">
+                                <i class="fas fa-file-alt mr-1"></i> Submit Report
+                            </a>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="row mb-4">
     <div class="col-lg-3 col-6">
         <div class="small-box bg-info">
@@ -103,7 +132,9 @@
                         <tr>
                             <td><strong>{{ $report->title }}</strong></td>
                             <td>
-                                @if($report->activity)
+                                @if($report->weeklyTracker)
+                                    <span class="badge badge-success">{{ $report->weeklyTracker->mission_title }}</span>
+                                @elseif($report->activity)
                                     <span class="badge badge-info">{{ $report->activity->title }}</span>
                                 @else
                                     <span class="text-muted">Standalone report</span>

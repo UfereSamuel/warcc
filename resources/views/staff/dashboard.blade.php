@@ -203,6 +203,30 @@
 </div>
 @endif
 
+@if(isset($pendingMissionTrackers) && $pendingMissionTrackers->count() > 0)
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5 class="mb-2"><i class="fas fa-plane mr-2"></i>Weekly Tracker Missions Need Reports</h5>
+            <ul class="mb-0 pl-3">
+                @foreach($pendingMissionTrackers as $tracker)
+                    @php $draftReport = $tracker->getMissionReport(); @endphp
+                    <li class="mb-1">
+                        <strong>{{ $tracker->mission_title }}</strong>
+                        <span class="text-muted">— {{ $tracker->week_range }}</span>
+                        @if($draftReport && $draftReport->status === 'draft')
+                            <a href="{{ route('staff.activity-reports.edit', $draftReport) }}" class="btn btn-xs btn-secondary ml-2">Continue Draft</a>
+                        @else
+                            <a href="{{ route('staff.activity-reports.create', ['weekly_tracker_id' => $tracker->id]) }}" class="btn btn-xs btn-primary ml-2">Submit Report</a>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Activity Requests Overview -->
 <div class="row mb-4">
     <div class="col-md-12">

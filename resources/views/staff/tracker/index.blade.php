@@ -136,6 +136,24 @@
                                                 @endif
                                             </div>
                                         </div>
+                                        @if($currentTracker->submission_status === 'submitted')
+                                            @php $missionReport = $currentTracker->getMissionReport(); @endphp
+                                            <div class="mt-3">
+                                                @if($missionReport && in_array($missionReport->status, ['submitted', 'reviewed']))
+                                                    <a href="{{ route('staff.activity-reports.show', $missionReport) }}" class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-file-alt mr-1"></i> View Mission Report
+                                                    </a>
+                                                @elseif($missionReport && $missionReport->status === 'draft')
+                                                    <a href="{{ route('staff.activity-reports.edit', $missionReport) }}" class="btn btn-warning btn-sm">
+                                                        <i class="fas fa-edit mr-1"></i> Continue Mission Report
+                                                    </a>
+                                                @else
+                                                    <a href="{{ route('staff.activity-reports.create', ['weekly_tracker_id' => $currentTracker->id]) }}" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-file-alt mr-1"></i> Submit Mission Report
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

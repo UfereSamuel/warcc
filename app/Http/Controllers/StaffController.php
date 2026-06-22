@@ -33,6 +33,7 @@ class StaffController extends Controller
 
         $workflow = app(ActivityWorkflowService::class);
         $pendingActivityReports = $workflow->getPendingReportsForStaff($staff);
+        $pendingMissionTrackers = $workflow->getUnreportedMissionTrackers($staff);
 
         // Get activity request statistics
         $activityRequestStats = [
@@ -74,6 +75,7 @@ class StaffController extends Controller
             'todayAttendance',
             'currentWeekTracker',
             'pendingActivityReports',
+            'pendingMissionTrackers',
             'activityRequestStats',
             'recentActivities',
             'attendanceSummary',
