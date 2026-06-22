@@ -31,6 +31,16 @@
             </p>
         </div>
 
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="card card-primary card-outline">
             <div class="card-header">
                 <h3 class="card-title">
@@ -122,6 +132,12 @@
                             <!-- Position - Required -->
                             <div class="form-group">
                                 <label for="position_id">Position/Job Title <span class="text-danger">*</span></label>
+                                @if($positions->isEmpty())
+                                    <div class="alert alert-warning mb-2">
+                                        No positions are configured yet. Ask an administrator to add positions under
+                                        <strong>Positions Management</strong> before you can complete your profile.
+                                    </div>
+                                @endif
                                 <select class="form-control @error('position_id') is-invalid @enderror"
                                         id="position_id" name="position_id" required>
                                     <option value="">Select Your Position</option>

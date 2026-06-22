@@ -82,7 +82,7 @@ class AuthController extends Controller
             Auth::guard('staff')->login($staff);
 
             // Check if profile needs completion
-            if ($this->requiresProfileCompletion($staff)) {
+            if ($staff->needsProfileCompletion()) {
                 return redirect()->route('staff.profile.complete')
                     ->with('info', 'Welcome! Please complete your profile to access the system.');
             }
@@ -209,26 +209,5 @@ class AuthController extends Controller
         } while (Staff::where('staff_id', $staffId)->exists());
 
         return $staffId;
-    }
-
-    /**
-     * Check if staff profile requires completion
-     */
-    private function requiresProfileCompletion(Staff $staff)
-    {
-        // Check if any required fields are missing or have default values
-        $requiredFields = [
-            'position_id' => [null, ''],
-            'phone' => [null, ''],
-            'gender' => [null, ''],
-        ];
-
-        foreach ($requiredFields as $field => $invalidValues) {
-            if (in_array($staff->$field, $invalidValues)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

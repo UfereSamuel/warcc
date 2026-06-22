@@ -253,6 +253,7 @@
         <div class="modal-content">
             <form method="POST" action="{{ route('staff.profile.update') }}" enctype="multipart/form-data">
                 @csrf
+                @method('PUT')
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="fas fa-edit mr-2"></i>

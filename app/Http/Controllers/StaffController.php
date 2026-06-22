@@ -127,7 +127,7 @@ class StaffController extends Controller
 
         $staff->save();
 
-        return redirect()->route('profile')
+        return redirect()->route('staff.profile')
             ->with('success', 'Profile updated successfully.');
     }
 
@@ -195,7 +195,7 @@ class StaffController extends Controller
         $staff->load('position');
         
         // If profile is already complete, redirect to dashboard
-        if (!$this->requiresProfileCompletion($staff)) {
+        if (!$staff->needsProfileCompletion()) {
             if ($staff->is_admin) {
                 return redirect()->route('admin.dashboard');
             } else {
@@ -226,6 +226,10 @@ class StaffController extends Controller
         $staff->gender = $request->gender;
         $staff->phone = $request->phone;
 
+        if ($request->filled('hire_date')) {
+            $staff->hire_date = $request->hire_date;
+        }
+
         // Handle profile picture upload
         if ($request->hasFile('profile_picture')) {
             $image = $request->file('profile_picture');
@@ -250,25 +254,5 @@ class StaffController extends Controller
             return redirect()->route('staff.dashboard')
                 ->with('success', 'Welcome! Your profile has been completed successfully.');
         }
-    }
-
-    /**
-     * Check if staff profile requires completion (same logic as AuthController)
-     */
-    private function requiresProfileCompletion(Staff $staff)
-    {
-        $requiredFields = [
-            'position_id' => [null, ''],
-            'phone' => [null, ''],
-            'gender' => [null, ''],
-        ];
-
-        foreach ($requiredFields as $field => $invalidValues) {
-            if (in_array($staff->$field, $invalidValues)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

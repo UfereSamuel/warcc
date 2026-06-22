@@ -234,6 +234,21 @@ class Staff extends Model implements Authenticatable, Authorizable
         return $this->email === 'admin@africacdc.org';
     }
 
+    /**
+     * SSO users must set position and gender before accessing the app.
+     * Phone is optional (see profile completion form).
+     */
+    public function needsProfileCompletion(): bool
+    {
+        foreach (['position_id', 'gender'] as $field) {
+            if ($this->{$field} === null || $this->{$field} === '') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function ensureCalendarFeedToken(): string
     {
         if ($this->calendar_feed_token) {

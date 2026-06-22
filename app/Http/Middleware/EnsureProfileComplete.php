@@ -27,8 +27,7 @@ class EnsureProfileComplete
             ];
             
             if (!in_array($request->route()->getName(), $exemptRoutes)) {
-                // Check if profile needs completion
-                if ($this->requiresProfileCompletion($staff)) {
+                if ($staff->needsProfileCompletion()) {
                     return redirect()->route('staff.profile.complete')
                         ->with('info', 'Please complete your profile to access the system.');
                 }
@@ -36,25 +35,5 @@ class EnsureProfileComplete
         }
 
         return $next($request);
-    }
-
-    /**
-     * Check if staff profile requires completion
-     */
-    private function requiresProfileCompletion($staff)
-    {
-        $requiredFields = [
-            'position_id' => [null, ''],
-            'phone' => [null, ''],
-            'gender' => [null, ''],
-        ];
-
-        foreach ($requiredFields as $field => $invalidValues) {
-            if (in_array($staff->$field, $invalidValues)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
