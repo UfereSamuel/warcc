@@ -434,28 +434,6 @@
         }
     }
 
-    function tryGetLocation() {
-        return new Promise(function (resolve) {
-            if (!navigator.geolocation) {
-                resolve({});
-                return;
-            }
-
-            navigator.geolocation.getCurrentPosition(
-                function (pos) {
-                    resolve({
-                        latitude: pos.coords.latitude,
-                        longitude: pos.coords.longitude,
-                    });
-                },
-                function () {
-                    resolve({});
-                },
-                { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
-            );
-        });
-    }
-
     async function submitClock(action) {
         const isIn = action === 'in';
         const button = isIn ? $('#btn-clock-in') : $('#btn-clock-out');
@@ -466,13 +444,10 @@
 
         setButtonLoading(button, true, isIn ? 'Clock In' : 'Clock Out');
 
-        const location = await tryGetLocation();
-        const payload = Object.assign({ _token: $('meta[name="csrf-token"]').attr('content') }, location);
-
         $.ajax({
             url: routes[action],
             method: 'POST',
-            data: payload,
+            data: { _token: $('meta[name="csrf-token"]').attr('content') },
             dataType: 'json',
             timeout: 30000,
         })

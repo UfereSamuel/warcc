@@ -57,6 +57,7 @@ class StaffClockInTest extends TestCase
             ->get(route('staff.attendance.index'))
             ->assertOk()
             ->assertSee('id="btn-clock-in"', false)
-            ->assertSee('submitClock', false);
+            ->assertSee('submitClock', false)
+            ->assertDontSee('geolocation', false);
     }
 }
