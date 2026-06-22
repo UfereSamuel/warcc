@@ -5,6 +5,10 @@
 
     RewriteEngine On
 
+    # When deployed under a subdirectory (e.g. https://cbp.africacdc.org/warcc),
+    # uncomment and set to your mount path:
+    # RewriteBase /warcc
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

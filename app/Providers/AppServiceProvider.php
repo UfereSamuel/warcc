@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Staff;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
@@ -19,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($rootUrl = config('app.url')) {
+            URL::forceRootUrl(rtrim($rootUrl, '/'));
+        }
+
         Gate::before(function ($user, $ability) {
             if ($user instanceof Staff && ($user->isSuperAdmin() || $user->hasRole('Super Admin'))) {
                 return true;

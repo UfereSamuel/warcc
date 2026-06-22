@@ -100,7 +100,15 @@ fi
 
 echo "⚡ Caching configuration..."
 sudo -u www-data php artisan config:cache 2>/dev/null || true
-sudo -u www-data php artisan route:cache 2>/dev/null || true
+
+APP_URL_VAL=$(grep -E '^APP_URL=' .env 2>/dev/null | cut -d= -f2- | tr -d '"' | tr -d "'")
+if echo "$APP_URL_VAL" | grep -qE '://[^/]+/.+'; then
+    echo "⚠️  Subdirectory APP_URL detected ($APP_URL_VAL) — skipping route:cache (use route:clear on server if homepage returns 405)"
+    sudo -u www-data php artisan route:clear 2>/dev/null || true
+else
+    sudo -u www-data php artisan route:cache 2>/dev/null || true
+fi
+
 sudo -u www-data php artisan view:cache 2>/dev/null || true
 
 echo "🔒 Setting file permissions..."

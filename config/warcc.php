@@ -27,4 +27,15 @@ return [
         'late_after' => env('ATTENDANCE_LATE_AFTER', '09:00'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Subdirectory deployment
+    |--------------------------------------------------------------------------
+    |
+    | When APP_URL includes a path (e.g. https://cbp.africacdc.org/warcc), do not
+    | run `php artisan route:cache` — it breaks the homepage with HTTP 405.
+    |
+    */
+    'subdirectory' => env('APP_URL') && (bool) parse_url(env('APP_URL'), PHP_URL_PATH),
+
 ];

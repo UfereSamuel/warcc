@@ -198,10 +198,35 @@ sudo -u www-data git pull origin main
 sudo -u www-data composer install --optimize-autoloader --no-dev
 sudo -u www-data php artisan migrate --force
 sudo -u www-data php artisan config:cache
-sudo -u www-data php artisan route:cache
 sudo -u www-data php artisan view:cache
 sudo -u www-data php artisan test
 ```
+
+### Subdirectory deploy (`https://cbp.africacdc.org/warcc`)
+
+If the app is **not** at the domain root (mounted under `/warcc`), set:
+
+```env
+APP_URL=https://cbp.africacdc.org/warcc
+```
+
+**Do not run `php artisan route:cache`** in this setup. Laravel’s route cache breaks the homepage with:
+
+> The GET method is not supported for route /. Supported methods: HEAD.
+
+If you already see that error, fix it immediately:
+
+```bash
+cd /path/to/warcc
+php artisan route:clear
+php artisan optimize:clear
+php artisan config:cache
+php artisan view:cache
+```
+
+In `public/.htaccess`, uncomment and set `RewriteBase /warcc` if Apache rewrite rules need it.
+
+Long-term, prefer a **subdomain** with `DocumentRoot` pointing at `public/` (see `apache-warcc.conf`) instead of a subdirectory path.
 
 ## Troubleshooting
 
