@@ -56,7 +56,7 @@ class StaffClockInTest extends TestCase
         $this->actingAs($staff, 'staff')
             ->get(route('staff.attendance.index'))
             ->assertOk()
-            ->assertSee('id="clock-in-btn"', false)
-            ->assertSee('performClockAction', false);
+            ->assertSee('id="btn-clock-in"', false)
+            ->assertSee('submitClock', false);
     }
 }
