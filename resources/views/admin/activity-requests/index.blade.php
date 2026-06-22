@@ -670,7 +670,7 @@ $(document).ready(function() {
 
         if (selectedIds.length === 0) {
             e.preventDefault();
-            alert('Please select at least one request to process.');
+            WarccDialog.warning('Please select at least one request to process.');
             return false;
         }
 

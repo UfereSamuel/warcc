@@ -158,7 +158,7 @@
             <div class="card-body">
                 @if($position->staff_count === 0)
                     <form method="POST" action="{{ route('admin.positions.destroy', $position) }}" 
-                          onsubmit="return confirm('Are you sure you want to delete this position? This action cannot be undone.')">
+                          data-warcc-confirm="Are you sure you want to delete this position? This action cannot be undone.">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-block">

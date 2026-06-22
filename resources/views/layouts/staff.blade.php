@@ -279,6 +279,8 @@
     }, 5000);
 </script>
 
+@include('partials.warcc-dialogs')
+
 @stack('scripts')
 @yield('js')
 </body>

@@ -517,7 +517,7 @@ $(document).ready(function() {
         
         if (hasError) {
             e.preventDefault();
-            alert('Please fill in all required fields.');
+            WarccDialog.warning('Please fill in all required fields.');
         }
     });
     

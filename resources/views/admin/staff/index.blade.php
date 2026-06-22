@@ -218,13 +218,12 @@
                                     @if($member->id !== auth()->guard('staff')->id())
                                         @if(auth()->guard('staff')->user()->is_admin)
                                             @if(!$member->is_admin && $member->email !== 'admin@africacdc.org')
-                                                <form action="{{ route('admin.staff.promote', $member) }}" method="POST" style="display: inline;">
+                                                <form action="{{ route('admin.staff.promote', $member) }}" method="POST" style="display: inline;" data-warcc-confirm="Promote {{ $member->full_name }} to administrator?">
                                                     @csrf
                                                     @method('PUT')
                                                     <button type="submit" 
                                                             class="btn btn-success btn-sm" 
-                                                            title="Promote to Administrator"
-                                                            onclick="return confirm('Promote {{ $member->full_name }} to administrator?')">
+                                                            title="Promote to Administrator">
                                                         <i class="fas fa-user-plus"></i>
                                                     </button>
                                                 </form>

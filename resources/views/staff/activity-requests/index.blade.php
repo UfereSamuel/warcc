@@ -147,7 +147,7 @@
                                                 </a>
                                                 <form method="POST" action="{{ route('staff.activity-requests.destroy', $request) }}"
                                                       style="display: inline;"
-                                                      onsubmit="return confirm('Are you sure you want to delete this request?')">
+                                                      data-warcc-confirm="Are you sure you want to delete this request?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-danger" title="Delete">

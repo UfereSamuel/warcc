@@ -244,7 +244,7 @@
                                     <a href="{{ route('admin.complaints.download', $complaint->id) }}" class="btn btn-sm btn-success" title="Download PDF">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
-                                    <form action="{{ route('admin.complaints.destroy', $complaint->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this complaint?')">
+                                    <form action="{{ route('admin.complaints.destroy', $complaint->id) }}" method="POST" class="d-inline" data-warcc-confirm="Are you sure you want to delete this complaint?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger" title="Delete">

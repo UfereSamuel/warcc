@@ -88,20 +88,18 @@
                     </div>
                     <div class="col-6">
                         @if($staff->is_admin)
-                            <form action="{{ route('admin.staff.demote', $staff) }}" method="POST" style="display: inline;">
+                            <form action="{{ route('admin.staff.demote', $staff) }}" method="POST" style="display: inline;" data-warcc-confirm="Remove admin privileges?">
                                 @csrf
                                 @method('PUT')
-                                <button type="submit" class="btn btn-secondary btn-block"
-                                        onclick="return confirm('Remove admin privileges?')">
+                                <button type="submit" class="btn btn-secondary btn-block">
                                     <i class="fas fa-user-minus mr-1"></i> Demote
                                 </button>
                             </form>
                         @else
-                            <form action="{{ route('admin.staff.promote', $staff) }}" method="POST" style="display: inline;">
+                            <form action="{{ route('admin.staff.promote', $staff) }}" method="POST" style="display: inline;" data-warcc-confirm="Promote to administrator?">
                                 @csrf
                                 @method('PUT')
-                                <button type="submit" class="btn btn-success btn-block"
-                                        onclick="return confirm('Promote to administrator?')">
+                                <button type="submit" class="btn btn-success btn-block">
                                     <i class="fas fa-user-plus mr-1"></i> Promote
                                 </button>
                             </form>

@@ -132,7 +132,7 @@
                     </a>
                     <form method="POST" action="{{ route('admin.calendar.destroy', $activity) }}"
                           style="display: inline;" class="ml-2"
-                          onsubmit="return confirm('Are you sure you want to delete this activity?')">
+                          data-warcc-confirm="Are you sure you want to delete this activity?">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger">

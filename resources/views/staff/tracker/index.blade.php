@@ -31,9 +31,9 @@
                         </a>
                     @else
                         @if($currentTracker->edit_request_status === 'none')
-                            <form method="POST" action="{{ route('staff.tracker.request-edit', $currentTracker) }}" style="display: inline;" id="request-edit-form">
+                            <form method="POST" action="{{ route('staff.tracker.request-edit', $currentTracker) }}" style="display: inline;" id="request-edit-form" data-warcc-confirm="Are you sure you want to request admin approval to edit this submitted tracker?">
                                 @csrf
-                                <button type="button" class="btn btn-info btn-sm" onclick="showConfirmModal('edit-request', 'Request Edit Approval', 'Are you sure you want to request admin approval to edit this submitted tracker?', function() { document.getElementById(\'request-edit-form\').submit(); })">
+                                <button type="submit" class="btn btn-info btn-sm">
                                     <i class="fas fa-edit mr-1"></i>
                                     Request Edit
                                 </button>
@@ -90,9 +90,9 @@
                         </div>
                         <div class="col-md-4">
                             @if($currentTracker->submission_status === 'draft')
-                                <form method="POST" action="{{ route('staff.tracker.submit', $currentTracker) }}" style="display: inline;" id="submit-tracker-form">
+                                <form method="POST" action="{{ route('staff.tracker.submit', $currentTracker) }}" style="display: inline;" id="submit-tracker-form" data-warcc-confirm="Are you sure you want to submit this tracker? You won't be able to edit it after submission without admin approval.">
                                     @csrf
-                                    <button type="button" class="btn btn-success btn-block" onclick="showConfirmModal('submit-tracker', 'Submit Tracker', 'Are you sure you want to submit this tracker?<br><br><strong>Note:</strong> You won\'t be able to edit it after submission without admin approval.', function() { document.getElementById(\'submit-tracker-form\').submit(); })">
+                                    <button type="submit" class="btn btn-success btn-block">
                                         <i class="fas fa-paper-plane mr-1"></i>
                                         Submit Tracker
                                     </button>
@@ -298,82 +298,6 @@
     </div>
 </div>
 @endsection
-
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="confirmModalLabel">
-                    <i id="confirmModalIcon" class="fas fa-question-circle mr-2"></i>
-                    <span id="confirmModalTitle">Confirm Action</span>
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body text-center">
-                <div id="confirmModalMessage">
-                    <!-- Message will be inserted here -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" id="confirmModalAction" class="btn btn-primary">
-                    Confirm
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-function showConfirmModal(type, title, message, actionCallback) {
-    const modal = $('#confirmModal');
-    const icon = $('#confirmModalIcon');
-    const titleEl = $('#confirmModalTitle');
-    const messageEl = $('#confirmModalMessage');
-    const actionBtn = $('#confirmModalAction');
-
-    // Set icon and colors based on type
-    switch(type) {
-        case 'submit-tracker':
-            icon.removeClass().addClass('fas fa-paper-plane mr-2');
-            modal.find('.modal-header').removeClass('bg-danger bg-warning').addClass('bg-success text-white');
-            actionBtn.removeClass('btn-primary btn-danger').addClass('btn-success');
-            break;
-        case 'edit-request':
-            icon.removeClass().addClass('fas fa-edit mr-2');
-            modal.find('.modal-header').removeClass('bg-danger bg-success').addClass('bg-info text-white');
-            actionBtn.removeClass('btn-primary btn-danger').addClass('btn-info');
-            break;
-        case 'delete':
-            icon.removeClass().addClass('fas fa-trash mr-2');
-            modal.find('.modal-header').removeClass('bg-success bg-info').addClass('bg-danger text-white');
-            actionBtn.removeClass('btn-primary btn-success').addClass('btn-danger');
-            break;
-        default:
-            icon.removeClass().addClass('fas fa-question-circle mr-2');
-            modal.find('.modal-header').removeClass('bg-success bg-danger bg-info').addClass('bg-primary text-white');
-            actionBtn.removeClass('btn-success btn-danger btn-info').addClass('btn-primary');
-    }
-
-    titleEl.text(title);
-    messageEl.html(message);
-
-    // Handle action button
-    actionBtn.off('click').on('click', function() {
-        modal.modal('hide');
-        if (actionCallback) {
-            actionCallback();
-        }
-    });
-
-    modal.modal('show');
-}
-</script>
-@endpush
 
 @push('styles')
 <style>

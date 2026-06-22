@@ -95,7 +95,7 @@
                                     <form action="{{ route('admin.complaints.categories.destroy', $category->id) }}" 
                                           method="POST" 
                                           class="d-inline"
-                                          onsubmit="return confirm('Are you sure? This will fail if the category has complaints.')">
+                                          data-warcc-confirm="Are you sure? This will fail if the category has complaints.">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger">

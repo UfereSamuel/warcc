@@ -238,7 +238,7 @@
                 <div class="card-body">
                     <form action="{{ route('admin.complaints.destroy', $complaint->id) }}" 
                           method="POST" 
-                          onsubmit="return confirm('Are you sure you want to delete this complaint? This action cannot be undone.')">
+                          data-warcc-confirm="Are you sure you want to delete this complaint? This action cannot be undone.">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-block">

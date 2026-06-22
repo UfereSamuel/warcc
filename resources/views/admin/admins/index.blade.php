@@ -260,12 +260,11 @@
                             <!-- Remove Admin Privileges Button (only for non-super admins) -->
                             @if($admin->id !== auth()->guard('staff')->id())
                                 @if(!str_contains($admin->staff_id, 'ADMIN'))
-                                    <form method="POST" action="{{ route('admin.staff.demote', $admin) }}" style="display: inline;">
+                                    <form method="POST" action="{{ route('admin.staff.demote', $admin) }}" style="display: inline;" data-warcc-confirm="Are you sure you want to remove admin privileges from {{ $admin->full_name }}? This action cannot be undone.">
                                         @csrf
                                         @method('PUT')
                                         <button type="submit" 
-                                                class="btn btn-sm btn-warning w-100" 
-                                                onclick="return confirm('Are you sure you want to remove admin privileges from {{ $admin->full_name }}? This action cannot be undone.')">
+                                                class="btn btn-sm btn-warning w-100">
                                             <i class="fas fa-user-minus mr-1"></i> Remove Admin
                                         </button>
                                     </form>

@@ -431,59 +431,77 @@ function updateLeaveEndDateMin() {
 }
 
 // Submit tracker function
-function submitTracker() {
-    if (confirm('Are you sure you want to submit this tracker?\n\nNote: You won\'t be able to edit it after submission without admin approval.')) {
-        const submitBtn = document.getElementById('submit-tracker-btn');
-        const submitForm = document.getElementById('submit-form');
-        
+async function submitTracker() {
+    const result = await WarccDialog.confirm({
+        title: 'Submit Tracker',
+        html: 'Are you sure you want to submit this tracker?<br><br><strong>Note:</strong> You won\'t be able to edit it after submission without admin approval.',
+        icon: 'question',
+        confirmText: 'Submit',
+    });
+
+    if (!result.isConfirmed) {
+        return;
+    }
+
+    const submitBtn = document.getElementById('submit-tracker-btn');
+    const submitForm = document.getElementById('submit-form');
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Submitting...';
+    }
+
+    if (submitForm) {
+        submitForm.submit();
+    } else {
+        WarccDialog.error('Could not submit tracker. Please refresh the page and try again.');
         if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Submitting...';
-        }
-        
-        if (submitForm) {
-            submitForm.submit();
-        } else {
-            alert('Error: Could not submit tracker. Please refresh the page and try again.');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i>Submit Tracker';
-            }
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i>Submit Tracker';
         }
     }
 }
 
 // Request edit function
-function requestEdit() {
-    if (confirm('Request permission to edit this submitted tracker?\n\nAn admin will need to approve your request before you can make changes.')) {
-        const editForm = document.getElementById('edit-request-form');
-        if (editForm) {
-            editForm.submit();
-        } else {
-            alert('Error: Could not submit edit request. Please refresh the page and try again.');
-        }
+async function requestEdit() {
+    const result = await WarccDialog.confirm({
+        title: 'Request Edit Approval',
+        html: 'Request permission to edit this submitted tracker?<br><br>An admin will need to approve your request before you can make changes.',
+        icon: 'question',
+        confirmText: 'Request',
+    });
+
+    if (!result.isConfirmed) {
+        return;
+    }
+
+    const editForm = document.getElementById('edit-request-form');
+    if (editForm) {
+        editForm.submit();
+    } else {
+        WarccDialog.error('Could not submit edit request. Please refresh the page and try again.');
     }
 }
 
 // File upload validation
 function validateFileUpload(input, maxFiles = 1) {
     if (input.files.length > maxFiles) {
-        alert(`You can only upload up to ${maxFiles} file(s).`);
+        WarccDialog.warning(`You can only upload up to ${maxFiles} file(s).`);
         input.value = '';
         return false;
     }
-    
+
     for (let i = 0; i < input.files.length; i++) {
         const file = input.files[i];
         const maxSize = 5 * 1024 * 1024; // 5MB
-        
+
         if (file.size > maxSize) {
-            alert(`File "${file.name}" is too large. Maximum file size is 5MB.`);
+            WarccDialog.warning(`File "${file.name}" is too large. Maximum file size is 5MB.`);
             input.value = '';
             return false;
         }
     }
-    
+
     return true;
 }
 

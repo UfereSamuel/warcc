@@ -624,7 +624,7 @@
                     </button>
                 </form>
                 <form method="POST" action="{{ route('admin.email.reminders.activity-reports') }}" class="d-inline ml-2"
-                      onsubmit="return confirm('Send activity report reminder emails now?');">
+                      data-warcc-confirm="Send activity report reminder emails now?">
                     @csrf
                     <button type="submit" class="btn btn-primary" {{ !$remindersEnabled ? 'disabled' : '' }}>
                         <i class="fas fa-paper-plane mr-1"></i> Send Reminders Now
@@ -668,9 +668,16 @@
     }
 
     function clearForm() {
-        if (confirm('Are you sure you want to reset the form? All unsaved changes will be lost.')) {
-            document.querySelector('form').reset();
-        }
+        WarccDialog.confirm({
+            title: 'Reset form?',
+            text: 'All unsaved changes will be lost.',
+            icon: 'warning',
+            confirmText: 'Reset',
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                document.querySelector('form').reset();
+            }
+        });
     }
 
     // Auto-fill from address when username changes

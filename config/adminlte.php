@@ -574,6 +574,26 @@ return [
                 ],
             ],
         ],
+        'WarccDialogs' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'vendor/sweetalert2/sweetalert2.css',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/sweetalert2/sweetalert2.all.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'js/warcc-dialogs.js',
+                ],
+            ],
+        ],
         'Pace' => [
             'active' => false,
             'files' => [

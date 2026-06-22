@@ -145,13 +145,13 @@
                                                 </a>
                                                 <form method="POST"
                                                       action="{{ route('staff.missions.destroy', $mission) }}"
-                                                      style="display: inline;">
+                                                      style="display: inline;"
+                                                      data-warcc-confirm="Are you sure you want to delete this mission?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit"
                                                             class="btn btn-sm btn-danger"
-                                                            title="Delete"
-                                                            onclick="return confirm('Are you sure you want to delete this mission?')">
+                                                            title="Delete">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>

@@ -391,10 +391,11 @@
 @endsection
 
 @section('scripts')
+@include('partials.warcc-dialogs')
 <script>
 function copyToClipboard() {
     navigator.clipboard.writeText(window.location.href).then(function() {
-        alert('Event link copied to clipboard!');
+        WarccDialog.success('Event link copied to clipboard!');
     });
 }
 

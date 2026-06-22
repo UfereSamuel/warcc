@@ -204,11 +204,11 @@
                                         <!-- Delete Button (only if no staff assigned) -->
                                         @if($position->staff_count === 0)
                                             <form method="POST" action="{{ route('admin.positions.destroy', $position) }}" 
-                                                  style="display: inline;">
+                                                  style="display: inline;"
+                                                  data-warcc-confirm="Are you sure you want to delete the position &quot;{{ $position->title }}&quot;? This action cannot be undone.">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger btn-sm"
-                                                        onclick="return confirm('Are you sure you want to delete the position \"{{ $position->title }}\"? This action cannot be undone.')">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
                                                     <i class="fas fa-trash"></i> Delete
                                                 </button>
                                             </form>

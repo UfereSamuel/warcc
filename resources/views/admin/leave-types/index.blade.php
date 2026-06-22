@@ -79,7 +79,7 @@
                                             </a>
                                             <form method="POST" action="{{ route('admin.leave-types.destroy', $leaveType) }}"
                                                   style="display: inline;"
-                                                  onsubmit="return confirm('Are you sure you want to delete this leave type?')">
+                                                  data-warcc-confirm="Are you sure you want to delete this leave type?">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Delete">

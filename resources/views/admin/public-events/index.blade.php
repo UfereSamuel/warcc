@@ -229,7 +229,7 @@
                                             </button>
                                             <form method="POST" action="{{ route('admin.public-events.destroy', $event) }}"
                                                   style="display: inline;"
-                                                  onsubmit="return confirm('Are you sure you want to delete this event?')">
+                                                  data-warcc-confirm="Are you sure you want to delete this event?">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Delete">
@@ -321,12 +321,12 @@ function toggleStatus(eventId) {
         if (data.success) {
             location.reload();
         } else {
-            alert('Error updating status');
+            WarccDialog.error('Error updating status');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error updating status');
+        WarccDialog.error('Error updating status');
     });
 }
 
@@ -344,23 +344,37 @@ function toggleFeatured(eventId) {
         if (data.success) {
             location.reload();
         } else {
-            alert('Error updating featured status');
+            WarccDialog.error('Error updating featured status');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error updating featured status');
+        WarccDialog.error('Error updating featured status');
     });
 }
 
 // Bulk action form validation
 document.getElementById('bulk-action-form').addEventListener('submit', function(e) {
     const action = this.querySelector('select[name="action"]').value;
-    if (action === 'delete') {
-        if (!confirm('Are you sure you want to delete the selected events? This action cannot be undone.')) {
-            e.preventDefault();
-        }
+    if (action !== 'delete') {
+        return;
     }
+
+    e.preventDefault();
+    const form = this;
+
+    WarccDialog.confirm({
+        title: 'Delete selected events?',
+        text: 'Are you sure you want to delete the selected events? This action cannot be undone.',
+        icon: 'warning',
+        confirmText: 'Delete',
+        confirmColor: '#782C2D',
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            form.dataset.warccConfirmed = '1';
+            form.submit();
+        }
+    });
 });
 </script>
 @stop

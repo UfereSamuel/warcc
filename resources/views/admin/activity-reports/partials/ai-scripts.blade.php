@@ -61,7 +61,7 @@
 
         merge(reportIds) {
             if (!reportIds || reportIds.length < 2) {
-                alert('Select at least two reports to merge.');
+                WarccDialog.warning('Select at least two reports to merge.');
                 return;
             }
             this.openLoading('Merging Reports', 'Synthesizing ' + reportIds.length + ' reports...');

@@ -60,7 +60,7 @@
                     Keep this link private — anyone with it can view RCC activities.
                 </small>
                 <form method="POST" action="{{ route('staff.calendar.feed.regenerate') }}"
-                      onsubmit="return confirm('Regenerating will invalidate your current link. You must re-subscribe in Outlook/Google. Continue?');">
+                      data-warcc-confirm="Regenerating will invalidate your current link. You must re-subscribe in Outlook/Google. Continue?">
                     @csrf
                     <button type="submit" class="btn btn-outline-warning btn-sm">
                         <i class="fas fa-sync-alt mr-1"></i> Regenerate Link

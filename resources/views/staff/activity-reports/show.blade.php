@@ -97,9 +97,9 @@
                     <a href="{{ route('staff.activity-reports.edit', $activityReport) }}" class="btn btn-warning">
                         <i class="fas fa-edit mr-1"></i> Edit Draft
                     </a>
-                    <form method="POST" action="{{ route('staff.activity-reports.submit', $activityReport) }}" class="d-inline">
+                    <form method="POST" action="{{ route('staff.activity-reports.submit', $activityReport) }}" class="d-inline" data-warcc-confirm="Submit this report for admin review?">
                         @csrf
-                        <button type="submit" class="btn btn-primary" onclick="return confirm('Submit this report for admin review?')">
+                        <button type="submit" class="btn btn-primary">
                             <i class="fas fa-paper-plane mr-1"></i> Submit for Review
                         </button>
                     </form>

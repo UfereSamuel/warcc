@@ -166,7 +166,7 @@
                             <form method="POST" 
                                   action="{{ route('admin.roles.destroy', $role) }}" 
                                   style="display: inline;"
-                                  onsubmit="return confirm('Are you sure you want to delete the {{ $role->name }} role?')">
+                                  data-warcc-confirm="Are you sure you want to delete the {{ $role->name }} role?">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-action delete" title="Delete Role">

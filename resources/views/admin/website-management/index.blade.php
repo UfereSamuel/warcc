@@ -369,7 +369,7 @@
                                     </button>
                                     <form action="{{ route('admin.website-management.countries.destroy', $country->id) }}"
                                           method="POST" class="d-inline"
-                                          onsubmit="return confirm('Delete {{ $country->name }}?')">
+                                          data-warcc-confirm="Delete {{ $country->name }}?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger">
