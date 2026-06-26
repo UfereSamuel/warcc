@@ -168,12 +168,15 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin', 'admin.permission'
 
     // Admin Dashboard
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/staff-roster', [AdminController::class, 'staffRoster'])->name('staff-roster.index');
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
     Route::get('/reports/export', [AdminController::class, 'exportReports'])->name('reports.export');
 
     // Export Routes
     Route::get('/export/attendance', [AdminController::class, 'exportAttendance'])->name('export.attendance');
     Route::get('/export/weekly-trackers', [AdminController::class, 'exportWeeklyTrackers'])->name('export.weekly-trackers');
+    Route::get('/export/staff-roster', [AdminController::class, 'exportStaffRoster'])->name('export.staff-roster');
+    Route::get('/export/staff-roster-summary', [AdminController::class, 'exportStaffRosterSummary'])->name('export.staff-roster-summary');
     Route::get('/export/dashboard-analytics', [AdminController::class, 'exportDashboardAnalytics'])->name('export.dashboard-analytics');
 
     // System Settings
@@ -191,6 +194,7 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin', 'admin.permission'
         Route::post('/configure-graph', [AdminController::class, 'configureMicrosoftGraph'])->name('configure.graph');
         Route::post('/test-graph', [AdminController::class, 'testMicrosoftGraph'])->name('test.graph');
         Route::post('/reminders/activity-reports', [AdminController::class, 'sendActivityReportReminders'])->name('reminders.activity-reports');
+        Route::post('/reminders/weekly-trackers', [AdminController::class, 'sendWeeklyTrackerReminders'])->name('reminders.weekly-trackers');
     });
 
     // Admin Management

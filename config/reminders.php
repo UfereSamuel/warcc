@@ -17,6 +17,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Weekly tracker submission reminders
+    |--------------------------------------------------------------------------
+    */
+    'weekly_trackers' => [
+        'sunday_enabled' => env('REMINDER_WEEKLY_TRACKER_SUNDAY_ENABLED', true),
+        'daily_enabled' => env('REMINDER_WEEKLY_TRACKER_DAILY_ENABLED', true),
+        'sunday_at' => env('REMINDER_WEEKLY_TRACKER_SUNDAY_AT', '18:00'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Microsoft Graph sender
     |--------------------------------------------------------------------------
     |

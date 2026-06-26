@@ -29,6 +29,7 @@
                 </h3>
             </div>
             <div class="card-body">
+                @include('admin.partials.export-date-presets')
                 <form method="GET" action="{{ route('admin.reports.index') }}" class="form-inline">
                     <div class="form-group mr-3">
                         <label for="start_date" class="mr-2">From:</label>

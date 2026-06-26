@@ -17,4 +17,13 @@ class SchedulerTest extends TestCase
 
         $this->assertTrue($matched, 'Expected reminders:activity-reports to be scheduled.');
     }
+
+    public function test_weekly_tracker_reminder_commands_are_scheduled(): void
+    {
+        $schedule = app(Schedule::class);
+        $commands = collect($schedule->events())->pluck('command')->filter()->implode(' ');
+
+        $this->assertStringContainsString('reminders:weekly-trackers --type=sunday', $commands);
+        $this->assertStringContainsString('reminders:weekly-trackers --type=daily', $commands);
+    }
 }

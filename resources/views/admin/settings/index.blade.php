@@ -76,6 +76,12 @@
                             </a>
                         </li>
                         <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="notifications-tab" data-toggle="tab" href="#notifications" role="tab">
+                                <i class="fas fa-bell mr-1"></i>
+                                Notifications
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
                             <a class="nav-link" id="system-tab" data-toggle="tab" href="#system" role="tab">
                                 <i class="fas fa-cog mr-1"></i>
                                 System
@@ -362,6 +368,59 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Notification Settings -->
+                        <div class="tab-pane fade" id="notifications" role="tabpanel">
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-bell text-primary mr-2"></i>
+                                        Staff Email Notifications
+                                    </h5>
+                                    <p class="text-muted mb-4">
+                                        Control automated reminder emails sent to staff via Microsoft Graph.
+                                        Requires Graph credentials on the <a href="{{ route('admin.email.test') }}">Email Test</a> page.
+                                    </p>
+                                    <div class="alert alert-info">
+                                        <strong>Schedule:</strong>
+                                        Sunday weekly tracker reminder ·
+                                        Weekday mornings at {{ env('REMINDER_DAILY_AT', '08:00') }} ({{ config('app.timezone') }}) for pending trackers ·
+                                        Daily activity report reminders at the same weekday time.
+                                    </div>
+                                </div>
+                            </div>
+
+                            @forelse($notificationSettings as $setting)
+                                <div class="form-group row">
+                                    <label for="{{ $setting->key }}" class="col-sm-3 col-form-label">
+                                        {{ $setting->label }}
+                                    </label>
+                                    <div class="col-sm-9">
+                                        @if($setting->type === 'boolean')
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input"
+                                                       id="{{ $setting->key }}"
+                                                       name="settings[{{ $setting->key }}]"
+                                                       value="1"
+                                                       {{ old('settings.'.$setting->key, $setting->value) == '1' ? 'checked' : '' }}>
+                                                <label class="custom-control-label" for="{{ $setting->key }}">
+                                                    {{ $setting->description }}
+                                                </label>
+                                            </div>
+                                        @else
+                                            <input type="text" class="form-control"
+                                                   id="{{ $setting->key }}"
+                                                   name="settings[{{ $setting->key }}]"
+                                                   value="{{ old('settings.'.$setting->key, $setting->value) }}">
+                                        @endif
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="alert alert-warning">
+                                    Notification settings are not loaded yet. Save defaults using <strong>Reset to Default</strong> or reload this page.
+                                </div>
+                            @endforelse
                         </div>
 
                         <!-- System Settings -->

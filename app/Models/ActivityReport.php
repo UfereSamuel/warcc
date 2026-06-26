@@ -89,4 +89,40 @@ class ActivityReport extends Model
     {
         return $this->status === 'draft';
     }
+
+    public function isMissionReport(): bool
+    {
+        return $this->weekly_tracker_id !== null;
+    }
+
+    public function getReportTypeLabelAttribute(): string
+    {
+        if ($this->weekly_tracker_id) {
+            return 'Mission Report';
+        }
+
+        if ($this->activity_calendar_id) {
+            return 'Calendar Activity';
+        }
+
+        return 'Standalone';
+    }
+
+    public function getReportTypeBadgeClassAttribute(): string
+    {
+        if ($this->weekly_tracker_id) {
+            return 'success';
+        }
+
+        if ($this->activity_calendar_id) {
+            return 'info';
+        }
+
+        return 'secondary';
+    }
+
+    public function scopeMissionReports($query)
+    {
+        return $query->whereNotNull('weekly_tracker_id');
+    }
 }

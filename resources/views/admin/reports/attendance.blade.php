@@ -30,6 +30,7 @@
                 </h3>
             </div>
             <div class="card-body">
+                @include('admin.partials.export-date-presets')
                 <form method="GET" action="{{ route('admin.reports.attendance') }}" class="form-horizontal">
                     <div class="row">
                         <div class="col-md-3">
@@ -66,6 +67,15 @@
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-search mr-1"></i> Apply Filters
                                     </button>
+                                    <a href="{{ route('admin.export.attendance', array_filter([
+                                        'start_date' => $startDate,
+                                        'end_date' => $endDate,
+                                        'position_id' => $position_id,
+                                        'format' => 'csv',
+                                    ])) }}"
+                                       class="btn btn-outline-success ml-2">
+                                        <i class="fas fa-file-csv mr-1"></i> Export CSV
+                                    </a>
                                     <a href="{{ route('admin.reports.attendance') }}" class="btn btn-secondary ml-2">
                                         <i class="fas fa-times mr-1"></i> Clear
                                     </a>

@@ -184,6 +184,44 @@ class SettingsSeeder extends Seeder
                 'sort_order' => 3,
             ],
 
+            // Email / notification settings (admin-controlled)
+            [
+                'key' => 'notifications_enabled',
+                'value' => '1',
+                'type' => 'boolean',
+                'group' => 'notifications',
+                'label' => 'Email Notifications (Master Switch)',
+                'description' => 'Turn off all automated staff email reminders sent by WARCC',
+                'sort_order' => 1,
+            ],
+            [
+                'key' => 'weekly_tracker_sunday_reminders_enabled',
+                'value' => '1',
+                'type' => 'boolean',
+                'group' => 'notifications',
+                'label' => 'Sunday Weekly Tracker Reminder',
+                'description' => 'Email staff each Sunday to submit their weekly tracker for the new week',
+                'sort_order' => 2,
+            ],
+            [
+                'key' => 'weekly_tracker_daily_reminders_enabled',
+                'value' => '1',
+                'type' => 'boolean',
+                'group' => 'notifications',
+                'label' => 'Weekday Morning Tracker Reminder',
+                'description' => 'Email staff on weekday mornings if their weekly tracker is still not submitted',
+                'sort_order' => 3,
+            ],
+            [
+                'key' => 'activity_report_reminders_enabled',
+                'value' => '1',
+                'type' => 'boolean',
+                'group' => 'notifications',
+                'label' => 'Activity Report Reminders',
+                'description' => 'Email staff when a completed calendar activity still needs a post-activity report',
+                'sort_order' => 4,
+            ],
+
             // YouTube/Media Settings
             [
                 'key' => 'youtube_channel_id',

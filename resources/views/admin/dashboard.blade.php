@@ -140,10 +140,20 @@
             <div class="metric-subtitle">Awaiting Review</div>
             <div class="metric-detail">
                 {{ $activityReportStats['reviewed'] }} reviewed total
+                @if($activityReportStats['mission_submitted'] > 0)
+                    <br>
+                    <a href="{{ route('admin.activity-reports.index', ['mission' => 'yes', 'status' => 'submitted']) }}" class="text-dark">
+                        {{ $activityReportStats['mission_submitted'] }} mission report{{ $activityReportStats['mission_submitted'] === 1 ? '' : 's' }} pending
+                    </a>
+                @endif
             </div>
         </div>
     </div>
 </div>
+
+@include('admin.partials.staff-status-decision-panel')
+
+@include('admin.partials.mission-compliance-panel', ['missionCompliance' => $missionCompliance])
 
 <!-- Charts Section -->
 <div class="row mb-4">
@@ -161,33 +171,6 @@
             </div>
             <div class="chart-body">
                 <canvas id="attendanceChart" height="300"></canvas>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="chart-card">
-            <div class="chart-header">
-                <h3 class="chart-title">
-                    <i class="fas fa-chart-pie mr-2"></i>Staff Status
-                </h3>
-            </div>
-            <div class="chart-body">
-                <canvas id="staffStatusChart" height="300"></canvas>
-            </div>
-            <div class="status-legend">
-                <div class="legend-item">
-                    <span class="legend-color" style="background: #28a745;"></span>
-                    <span class="legend-text">At Office ({{ $staffStatusData['at_office'] }})</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: #ffc107;"></span>
-                    <span class="legend-text">On Mission ({{ $staffStatusData['on_mission'] }})</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background: #17a2b8;"></span>
-                    <span class="legend-text">On Leave ({{ $staffStatusData['on_leave'] }})</span>
-                </div>
             </div>
         </div>
     </div>
@@ -254,6 +237,7 @@
                                         <div class="d-flex align-items-center flex-wrap mb-1">
                                             <h5 class="mb-0 mr-2">{{ $report->title }}</h5>
                                             <span class="badge badge-warning">Submitted</span>
+                                            @include('admin.activity-reports.partials.report-type-badge', ['report' => $report])
                                         </div>
                                         <p class="text-muted mb-2 small">
                                             <i class="fas fa-user mr-1"></i>{{ $report->staff->full_name ?? 'Unknown' }}
@@ -264,7 +248,14 @@
                                                 Submitted {{ $report->submitted_at->diffForHumans() }}
                                             @endif
                                         </p>
-                                        @if($report->activity)
+                                        @if($report->weeklyTracker)
+                                            <p class="mb-2">
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-plane mr-1"></i>{{ $report->weeklyTracker->mission_title }}
+                                                </span>
+                                                <small class="text-muted d-block">{{ $report->weeklyTracker->week_range }}</small>
+                                            </p>
+                                        @elseif($report->activity)
                                             <p class="mb-2">
                                                 <span class="badge badge-info">
                                                     <i class="fas fa-link mr-1"></i>{{ $report->activity->title }}
@@ -393,17 +384,21 @@
                             <option value="dashboard-analytics">Dashboard Analytics</option>
                         </select>
                     </div>
+                    @include('admin.partials.export-date-presets', [
+                        'startInputId' => 'export_start_date',
+                        'endInputId' => 'export_end_date',
+                    ])
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Start Date</label>
-                                <input type="date" class="form-control" name="start_date" value="{{ now()->startOfMonth()->format('Y-m-d') }}">
+                                <input type="date" class="form-control" id="export_start_date" name="start_date" value="{{ now()->startOfMonth()->format('Y-m-d') }}">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>End Date</label>
-                                <input type="date" class="form-control" name="end_date" value="{{ now()->endOfMonth()->format('Y-m-d') }}">
+                                <input type="date" class="form-control" id="export_end_date" name="end_date" value="{{ now()->endOfMonth()->format('Y-m-d') }}">
                             </div>
                         </div>
                     </div>
@@ -647,6 +642,71 @@
     color: #495057;
 }
 
+.staff-status-hub-card .chart-header {
+    gap: 12px;
+}
+
+.staff-status-kpi {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px 18px;
+    background: #fff;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.staff-status-kpi:hover,
+.staff-status-kpi.is-active {
+    border-color: var(--kpi-color);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.staff-status-kpi.is-active {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+}
+
+.staff-status-kpi .kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--kpi-color);
+    line-height: 1.1;
+}
+
+.staff-status-kpi .kpi-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+.staff-status-kpi .kpi-icon {
+    font-size: 1.5rem;
+    color: var(--kpi-color);
+    opacity: 0.35;
+}
+
+.legend-button {
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 4px 6px !important;
+}
+
+.legend-button:hover {
+    background: #e9ecef !important;
+}
+
+.drilldown-panel-wrap {
+    min-height: 320px;
+}
+
+.drilldown-panel-wrap.is-empty .drilldown-content {
+    display: none !important;
+}
+
+.drilldown-table td {
+    vertical-align: middle;
+}
+
 /* Department Performance */
 .department-performance-card {
     background: white;
@@ -771,28 +831,64 @@ new Chart(attendanceCtx, {
     }
 });
 
-// Staff Status Pie Chart
+// Staff Status Pie Chart (decision hub drill-down)
+const statusKeys = ['at_duty_station', 'on_mission', 'on_leave', 'not_submitted'];
 const statusCtx = document.getElementById('staffStatusChart').getContext('2d');
-new Chart(statusCtx, {
+const staffStatusChart = new Chart(statusCtx, {
     type: 'doughnut',
     data: {
-        labels: ['At Office', 'On Mission', 'On Leave'],
+        labels: ['At Duty Station', 'On Mission', 'On Leave', 'Not Submitted'],
         datasets: [{
             data: [
-                {{ $staffStatusData['at_office'] }},
+                {{ $staffStatusData['at_duty_station'] }},
                 {{ $staffStatusData['on_mission'] }},
-                {{ $staffStatusData['on_leave'] }}
+                {{ $staffStatusData['on_leave'] }},
+                {{ $staffStatusData['not_submitted'] }}
             ],
-            backgroundColor: ['#28a745', '#ffc107', '#17a2b8'],
+            backgroundColor: ['#28a745', '#ffc107', '#17a2b8', '#6c757d'],
             borderWidth: 0
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
+        plugins: { legend: { display: false } },
+        onClick: function(event, elements) {
+            if (elements.length > 0) {
+                const index = elements[0]._index !== undefined ? elements[0]._index : elements[0].index;
+                showStaffStatusDrilldown(statusKeys[index]);
+            }
+        }
     }
 });
+
+function showStaffStatusDrilldown(statusKey) {
+    const wrap = document.getElementById('staffStatusDrilldown');
+    const placeholder = document.getElementById('staffStatusDrilldownPlaceholder');
+    if (!wrap || !statusKey) return;
+
+    wrap.classList.remove('is-empty');
+    if (placeholder) placeholder.classList.add('d-none');
+
+    document.querySelectorAll('.drilldown-content').forEach(el => el.classList.add('d-none'));
+    const panel = document.getElementById('drilldown-' + statusKey);
+    if (panel) panel.classList.remove('d-none');
+
+    document.querySelectorAll('.staff-status-kpi').forEach(btn => {
+        btn.classList.toggle('is-active', btn.dataset.status === statusKey);
+    });
+
+    const hub = document.getElementById('staff-status-hub');
+    if (hub) hub.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.querySelectorAll('.staff-status-kpi, .legend-button').forEach(btn => {
+    btn.addEventListener('click', () => showStaffStatusDrilldown(btn.dataset.status));
+});
+
+@if(request('status'))
+showStaffStatusDrilldown(@json(request('status')));
+@endif
 
 // Weekly Tracker Chart
 const trackerCtx = document.getElementById('trackerChart').getContext('2d');

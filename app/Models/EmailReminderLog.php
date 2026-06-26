@@ -10,6 +10,7 @@ class EmailReminderLog extends Model
     protected $fillable = [
         'staff_id',
         'activity_calendar_id',
+        'week_start_date',
         'reminder_type',
         'recipient_email',
         'sent_at',
@@ -17,9 +18,14 @@ class EmailReminderLog extends Model
 
     protected $casts = [
         'sent_at' => 'datetime',
+        'week_start_date' => 'date',
     ];
 
     public const TYPE_ACTIVITY_REPORT_DUE = 'activity_report_due';
+
+    public const TYPE_WEEKLY_TRACKER_SUNDAY = 'weekly_tracker_sunday';
+
+    public const TYPE_WEEKLY_TRACKER_DAILY = 'weekly_tracker_daily';
 
     public function staff(): BelongsTo
     {

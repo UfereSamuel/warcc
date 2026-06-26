@@ -19,7 +19,7 @@ class ActivityReportAiService
      */
     public function summarize(ActivityReport $report): array
     {
-        $report->loadMissing(['staff', 'activity']);
+        $report->loadMissing(['staff', 'activity', 'weeklyTracker']);
 
         $systemPrompt = <<<'PROMPT'
 You are an assistant for Africa CDC regional staff administrators. Summarize activity reports clearly and professionally for leadership review. Use markdown headings and bullet points. Be factual—only use information from the report provided.
@@ -58,7 +58,7 @@ PROMPT;
             throw new RuntimeException("You can merge at most {$max} reports at once.");
         }
 
-        $reports->loadMissing(['staff', 'activity']);
+        $reports->loadMissing(['staff', 'activity', 'weeklyTracker']);
 
         $systemPrompt = <<<'PROMPT'
 You are an assistant for Africa CDC regional staff administrators. Merge multiple activity reports into one coherent briefing. Identify shared themes, consolidated outcomes, overlapping challenges, and unified recommendations. Note any gaps or contradictions between reports. Use markdown headings and bullet points. Be factual—only use information from the reports provided.
@@ -91,11 +91,29 @@ PROMPT;
     {
         $lines = [
             'Title: ' . $report->title,
+            'Report Type: ' . $report->report_type_label,
             'Staff: ' . ($report->staff?->full_name ?? 'Unknown') . ' (' . ($report->staff?->staff_id ?? 'N/A') . ')',
             'Report Date: ' . $report->report_date->format('Y-m-d'),
             'Status: ' . $report->status_label,
-            'Calendar Activity: ' . ($report->activity?->title ?? 'Standalone (not linked)'),
+            'Calendar Activity: ' . ($report->activity?->title ?? 'Not linked'),
         ];
+
+        if ($report->weeklyTracker) {
+            $tracker = $report->weeklyTracker;
+            $lines[] = 'Weekly Tracker Mission: ' . $tracker->mission_title;
+            if ($tracker->mission_type) {
+                $lines[] = 'Mission Type: ' . ucfirst($tracker->mission_type);
+            }
+            if ($tracker->mission_start_date && $tracker->mission_end_date) {
+                $lines[] = 'Mission Dates: '
+                    . $tracker->mission_start_date->format('Y-m-d')
+                    . ' to '
+                    . $tracker->mission_end_date->format('Y-m-d');
+            }
+            if ($tracker->mission_purpose) {
+                $lines[] = 'Mission Purpose: ' . $tracker->mission_purpose;
+            }
+        }
 
         if ($report->activity) {
             $lines[] = 'Activity Dates: '

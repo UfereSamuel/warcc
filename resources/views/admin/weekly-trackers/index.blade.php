@@ -71,7 +71,13 @@
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-search mr-1"></i> Filter
                                     </button>
-                                    <a href="{{ route('admin.export.weekly-trackers', ['start_date' => $weekStart->format('Y-m-d'), 'end_date' => $weekEnd->format('Y-m-d'), 'position_id' => $position_id]) }}"
+                                    <a href="{{ route('admin.export.weekly-trackers', array_filter([
+                                        'start_date' => $weekStart->format('Y-m-d'),
+                                        'end_date' => $weekEnd->format('Y-m-d'),
+                                        'position_id' => $position_id,
+                                        'status' => $status,
+                                        'format' => 'csv',
+                                    ])) }}"
                                        class="btn btn-success ml-2">
                                         <i class="fas fa-download mr-1"></i> Export CSV
                                     </a>
@@ -151,6 +157,8 @@
     </div>
 </div>
 
+@include('admin.partials.mission-compliance-panel', ['missionCompliance' => $missionCompliance])
+
 <!-- Tracker Submissions -->
 <div class="row">
     <div class="col-md-9">
@@ -173,6 +181,7 @@
                                 <th>Position</th>
                                 <th class="text-center">Status</th>
                                 <th class="text-center">Submission Status</th>
+                                <th class="text-center">Mission Report</th>
                                 <th class="text-center">Details</th>
                                 <th class="text-center">Actions</th>
                             </tr>
@@ -232,6 +241,13 @@
                                                 <span class="badge badge-danger">Rejected</span>
                                                 @break
                                         @endswitch
+                                    </td>
+                                    <td class="text-center">
+                                        @if($tracker->status === 'on_mission' && $tracker->submission_status === 'submitted')
+                                            @include('admin.weekly-trackers.partials.mission-report-status', ['tracker' => $tracker])
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
                                     </td>
                                     <td class="text-center">
                                         @if($tracker->status === 'on_mission')

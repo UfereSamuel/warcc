@@ -223,6 +223,40 @@
                     @endif
                 </div>
             </div>
+
+            @if($missionComplianceItem)
+                <div class="card border-{{ app(\App\Services\MissionComplianceService::class)->reportStatusBadgeClass($missionComplianceItem['report_status']) }}">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-file-alt mr-2"></i>
+                            Mission Activity Report
+                        </h3>
+                        <div class="card-tools">
+                            <span class="badge badge-{{ app(\App\Services\MissionComplianceService::class)->reportStatusBadgeClass($missionComplianceItem['report_status']) }} badge-lg">
+                                {{ app(\App\Services\MissionComplianceService::class)->reportStatusLabel($missionComplianceItem['report_status']) }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if($missionComplianceItem['report'])
+                            <p class="mb-2">
+                                <strong>{{ $missionComplianceItem['report']->title }}</strong>
+                                @if($missionComplianceItem['report']->submitted_at)
+                                    <span class="text-muted"> · Submitted {{ $missionComplianceItem['report']->submitted_at->format('M d, Y') }}</span>
+                                @endif
+                            </p>
+                            <a href="{{ route('admin.activity-reports.show', $missionComplianceItem['report']) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye mr-1"></i> View Report
+                            </a>
+                        @else
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-exclamation-circle mr-1"></i>
+                                No mission activity report has been filed for this weekly tracker yet.
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            @endif
         @elseif($tracker->status === 'on_leave')
             <div class="card">
                 <div class="card-header">

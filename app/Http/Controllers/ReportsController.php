@@ -68,7 +68,13 @@ class ReportsController extends Controller
         }
 
         if ($status) {
-            $query->where('status', $status);
+            $weeklyStatuses = ['at_duty_station', 'on_mission', 'on_leave'];
+
+            if (in_array($status, $weeklyStatuses, true)) {
+                $query->where('status', $status);
+            } else {
+                $query->where('submission_status', $status);
+            }
         }
 
         $allTrackers = (clone $query)->get();

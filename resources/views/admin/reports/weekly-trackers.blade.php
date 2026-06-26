@@ -30,6 +30,7 @@
                 </h3>
             </div>
             <div class="card-body">
+                @include('admin.partials.export-date-presets')
                 <form method="GET" action="{{ route('admin.reports.weekly-trackers') }}" class="form-horizontal">
                     <div class="row">
                         <div class="col-md-2">
@@ -79,6 +80,16 @@
                                     <button type="submit" class="btn btn-info">
                                         <i class="fas fa-search mr-1"></i> Apply Filters
                                     </button>
+                                    <a href="{{ route('admin.export.weekly-trackers', array_filter([
+                                        'start_date' => $startDate,
+                                        'end_date' => $endDate,
+                                        'position_id' => $position_id,
+                                        'status' => $status,
+                                        'format' => 'csv',
+                                    ])) }}"
+                                       class="btn btn-outline-info ml-2">
+                                        <i class="fas fa-file-csv mr-1"></i> Export CSV
+                                    </a>
                                     <a href="{{ route('admin.reports.weekly-trackers') }}" class="btn btn-secondary ml-2">
                                         <i class="fas fa-times mr-1"></i> Clear
                                     </a>

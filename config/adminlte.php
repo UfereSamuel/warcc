@@ -361,6 +361,12 @@ return [
             'can' => 'view_attendance',
         ],
         [
+            'text' => 'Staff Roster',
+            'route' => 'admin.staff-roster.index',
+            'icon' => 'fas fa-fw fa-users',
+            'can' => 'view_analytics',
+        ],
+        [
             'text' => 'Weekly Trackers',
             'route' => 'admin.weekly-trackers.index',
             'icon' => 'fas fa-fw fa-calendar-week',

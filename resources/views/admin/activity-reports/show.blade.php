@@ -25,7 +25,8 @@
             <div class="card-header">
                 <h3 class="card-title">Report Content</h3>
                 <div class="card-tools">
-                    <span class="badge badge-{{ $activityReport->status_color }}">{{ $activityReport->status_label }}</span>
+                    @include('admin.activity-reports.partials.report-type-badge', ['report' => $activityReport])
+                    <span class="badge badge-{{ $activityReport->status_color }} ml-1">{{ $activityReport->status_label }}</span>
                 </div>
             </div>
             <div class="card-body">
@@ -42,6 +43,16 @@
                             <a href="{{ route('admin.calendar.edit', $activityReport->activity) }}">{{ $activityReport->activity->title }}</a>
                         @else
                             <span class="text-muted">Standalone report</span>
+                        @endif
+                    </dd>
+
+                    <dt class="col-sm-4">Weekly Tracker Mission</dt>
+                    <dd class="col-sm-8">
+                        @if($activityReport->weeklyTracker)
+                            <span class="badge badge-success">{{ $activityReport->weeklyTracker->mission_title }}</span>
+                            <small class="text-muted d-block">{{ $activityReport->weeklyTracker->week_range }}</small>
+                        @else
+                            <span class="text-muted">Not linked to a weekly tracker mission</span>
                         @endif
                     </dd>
 
@@ -78,6 +89,8 @@
                 @endif
             </div>
         </div>
+
+        @include('admin.activity-reports.partials.mission-context', ['activityReport' => $activityReport])
     </div>
 
     <div class="col-md-4">

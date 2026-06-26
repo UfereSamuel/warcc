@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityReport;
 use App\Models\Staff;
 use App\Services\ActivityReportAiService;
+use App\Services\ActivityReportAnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +15,7 @@ class ActivityReportController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ActivityReport::with(['staff', 'activity'])->recentFirst();
+        $query = ActivityReport::with(['staff', 'activity', 'weeklyTracker'])->recentFirst();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -32,6 +33,14 @@ class ActivityReportController extends Controller
             }
         }
 
+        if ($request->filled('mission')) {
+            if ($request->mission === 'yes') {
+                $query->whereNotNull('weekly_tracker_id');
+            } elseif ($request->mission === 'no') {
+                $query->whereNull('weekly_tracker_id');
+            }
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -41,18 +50,20 @@ class ActivityReportController extends Controller
                         $staffQuery->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%")
                             ->orWhere('staff_id', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('weeklyTracker', function ($trackerQuery) use ($search) {
+                        $trackerQuery->where('mission_title', 'like', "%{$search}%")
+                            ->orWhere('mission_purpose', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('activity', function ($activityQuery) use ($search) {
+                        $activityQuery->where('title', 'like', "%{$search}%");
                     });
             });
         }
 
         $reports = $query->paginate(20)->withQueryString();
 
-        $stats = [
-            'total' => ActivityReport::count(),
-            'draft' => ActivityReport::where('status', 'draft')->count(),
-            'submitted' => ActivityReport::where('status', 'submitted')->count(),
-            'reviewed' => ActivityReport::where('status', 'reviewed')->count(),
-        ];
+        $stats = app(ActivityReportAnalyticsService::class)->getIndexStats();
 
         $staffMembers = Staff::where('status', 'active')->orderBy('first_name')->get(['id', 'first_name', 'last_name', 'staff_id']);
 
@@ -63,7 +74,7 @@ class ActivityReportController extends Controller
 
     public function show(ActivityReport $activityReport)
     {
-        $activityReport->load(['staff', 'activity', 'reviewer']);
+        $activityReport->load(['staff', 'activity', 'reviewer', 'weeklyTracker']);
 
         $aiConfigured = app(ActivityReportAiService::class)->isConfigured();
 

@@ -19,21 +19,30 @@ use App\Models\PublicEvent;
 use App\Models\ActivityRequest;
 use App\Models\ActivityReport;
 use App\Services\ActivityReportAiService;
+use App\Services\ActivityReportAnalyticsService;
 use App\Services\HomepageContentService;
+use App\Services\MissionComplianceService;
+use App\Services\StaffStatusAnalyticsService;
+use App\Services\StaffRosterExportService;
 use App\Models\Setting;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
     /**
      * Show admin dashboard with comprehensive analytics
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         // Get current date ranges
         $today = now();
+        $selectedWeekStart = $request->filled('week')
+            ? Carbon::parse($request->week)->startOfWeek(Carbon::MONDAY)
+            : $today->copy()->startOfWeek(Carbon::MONDAY);
+
         $currentWeek = [
-            'start' => $today->startOfWeek()->copy(),
-            'end' => $today->endOfWeek()->copy()
+            'start' => $selectedWeekStart->copy(),
+            'end' => $selectedWeekStart->copy()->endOfWeek(Carbon::MONDAY),
         ];
         $currentMonth = [
             'start' => $today->startOfMonth()->copy(),
@@ -58,43 +67,24 @@ class AdminController extends Controller
             'month_average' => $this->getMonthlyAttendanceAverage(),
         ];
 
-        // Weekly tracker analytics
+        $weekStart = $selectedWeekStart->copy();
+        $weekOptions = collect(range(0, 11))->map(
+            fn (int $i) => now()->startOfWeek(Carbon::MONDAY)->subWeeks($i)
+        );
+
         $weeklyTrackerStats = [
-            'this_week_submitted' => WeeklyTracker::whereBetween('week_start_date', [$currentWeek['start'], $currentWeek['end']])
-                ->where('status', 'submitted')
+            'this_week_submitted' => WeeklyTracker::whereDate('week_start_date', $weekStart)
+                ->where('submission_status', 'submitted')
                 ->count(),
-            'this_week_pending' => WeeklyTracker::whereBetween('week_start_date', [$currentWeek['start'], $currentWeek['end']])
-                ->whereIn('status', ['draft', 'pending'])
-                ->count(),
+            'this_week_pending' => $this->getWeeklyTrackerPendingCount($weekStart),
             'completion_rate' => $this->getWeeklyTrackerCompletionRate(),
             'monthly_trends' => $this->getMonthlyTrackerTrends(),
         ];
 
-        // Staff status distribution
-        $staffStatusData = [
-            'at_office' => Staff::whereDoesntHave('missions', function($q) {
-                $q->where('status', 'approved')
-                  ->where('start_date', '<=', today())
-                  ->where('end_date', '>=', today());
-            })->whereDoesntHave('leaveRequests', function($q) {
-                $q->where('status', 'approved')
-                  ->where('start_date', '<=', today())
-                  ->where('end_date', '>=', today());
-            })->count(),
-            'on_mission' => Staff::whereHas('missions', function($q) {
-                $q->where('status', 'approved')
-                  ->where('start_date', '<=', today())
-                  ->where('end_date', '>=', today());
-            })->count(),
-            'on_leave' => Staff::whereHas('leaveRequests', function($q) {
-                $q->where('status', 'approved')
-                  ->where('start_date', '<=', today())
-                  ->where('end_date', '>=', today());
-            })->count(),
-        ];
-
-
-
+        $statusAnalytics = app(StaffStatusAnalyticsService::class);
+        $staffStatusData = $statusAnalytics->getDashboardStaffStatusData($weekStart);
+        $staffRoster = $statusAnalytics->getStaffRosterWidgetData($weekStart);
+        $missionCompliance = app(MissionComplianceService::class)->getMissionComplianceForWeek($weekStart);
         // Recent activity requests
         $recentActivityRequests = ActivityRequest::with(['requester'])
             ->pending()
@@ -103,13 +93,9 @@ class AdminController extends Controller
             ->get();
 
         // Submitted activity reports awaiting review
-        $activityReportStats = [
-            'submitted' => ActivityReport::where('status', 'submitted')->count(),
-            'reviewed' => ActivityReport::where('status', 'reviewed')->count(),
-            'total' => ActivityReport::count(),
-        ];
+        $activityReportStats = app(ActivityReportAnalyticsService::class)->getDashboardStats();
 
-        $recentSubmittedReports = ActivityReport::with(['staff', 'activity'])
+        $recentSubmittedReports = ActivityReport::with(['staff', 'activity', 'weeklyTracker'])
             ->where('status', 'submitted')
             ->recentFirst()
             ->take(5)
@@ -133,6 +119,10 @@ class AdminController extends Controller
             'attendanceStats', 
             'weeklyTrackerStats',
             'staffStatusData',
+            'staffRoster',
+            'missionCompliance',
+            'selectedWeekStart',
+            'weekOptions',
             'positionStats',
             'recentActivityRequests',
             'activityReportStats',
@@ -140,6 +130,98 @@ class AdminController extends Controller
             'aiConfigured',
             'chartData'
         ));
+    }
+
+    /**
+     * Staff roster for the selected week (from submitted weekly trackers).
+     */
+    public function staffRoster(Request $request)
+    {
+        $context = $this->buildStaffRosterContext($request);
+
+        $positions = \App\Models\Position::orderBy('title')->get();
+        $statuses = array_keys($context['statusAnalytics']->statusLabels());
+
+        return view('admin.staff-roster.index', [
+            'staffRoster' => $context['staffRoster'],
+            'entries' => $context['entries'],
+            'positions' => $positions,
+            'statuses' => $statuses,
+            'weekStart' => $context['weekStart'],
+            'status' => $context['status'],
+            'positionId' => $context['positionId'],
+            'search' => $context['search'],
+        ]);
+    }
+
+    /**
+     * Export filtered staff roster detail as CSV.
+     */
+    public function exportStaffRoster(Request $request)
+    {
+        $context = $this->buildStaffRosterContext($request);
+
+        return app(StaffRosterExportService::class)->streamDetailCsv(
+            $context['entries'],
+            $context['staffRoster']
+        );
+    }
+
+    /**
+     * Export weekly status summary counts as CSV.
+     */
+    public function exportStaffRosterSummary(Request $request)
+    {
+        $weekStart = $request->filled('week')
+            ? Carbon::parse($request->week)->startOfWeek(Carbon::MONDAY)
+            : now()->startOfWeek(Carbon::MONDAY);
+
+        $weeks = (int) $request->get('weeks', 12);
+        $summaries = app(StaffRosterExportService::class)->getWeeklyStatusSummaries($weekStart, $weeks);
+
+        return app(StaffRosterExportService::class)->streamSummaryCsv($summaries);
+    }
+
+    /**
+     * @return array{
+     *     weekStart: \Carbon\Carbon,
+     *     statusAnalytics: StaffStatusAnalyticsService,
+     *     staffRoster: array<string, mixed>,
+     *     status: ?string,
+     *     positionId: ?int,
+     *     search: ?string,
+     *     entries: \Illuminate\Support\Collection
+     * }
+     */
+    private function buildStaffRosterContext(Request $request): array
+    {
+        $weekStart = $request->filled('week')
+            ? Carbon::parse($request->week)->startOfWeek(Carbon::MONDAY)
+            : now()->startOfWeek(Carbon::MONDAY);
+
+        $statusAnalytics = app(StaffStatusAnalyticsService::class);
+        $staffRoster = $statusAnalytics->getStaffRosterWidgetData($weekStart);
+
+        $status = $request->input('status');
+        $positionId = $request->filled('position_id') ? (int) $request->position_id : null;
+        $search = $request->input('search');
+
+        $entries = $statusAnalytics->filterRosterGroups(
+            $staffRoster['groups'],
+            $status,
+            $positionId,
+            $search
+        );
+
+        return compact(
+            'weekStart',
+            'statusAnalytics',
+            'staffRoster',
+            'status',
+            'positionId',
+            'search',
+            'entries'
+        );
     }
 
     /**
@@ -176,7 +258,7 @@ class AdminController extends Controller
             // Calculate weekly tracker submission rate
             $weeklyTrackers = WeeklyTracker::whereDate('week_start_date', $startOfWeek)
                 ->whereIn('staff_id', $activeStaff->pluck('id'))
-                ->where('status', '!=', 'draft')
+                ->where('submission_status', 'submitted')
                 ->count();
             $trackerRate = round(($weeklyTrackers / $totalStaff) * 100, 1);
             
@@ -237,12 +319,18 @@ class AdminController extends Controller
     {
         $currentWeekStart = now()->startOfWeek();
         $totalStaff = Staff::where('status', 'active')->count();
-        
-        $submittedTrackers = WeeklyTracker::where('week_start_date', $currentWeekStart)
-            ->where('status', 'submitted')
+
+        $submittedTrackers = WeeklyTracker::whereDate('week_start_date', $currentWeekStart)
+            ->where('submission_status', 'submitted')
             ->count();
-            
+
         return $totalStaff > 0 ? round(($submittedTrackers / $totalStaff) * 100, 1) : 0;
+    }
+
+    private function getWeeklyTrackerPendingCount(Carbon $weekStart): int
+    {
+        return app(StaffStatusAnalyticsService::class)
+            ->countActiveStaffWithoutSubmittedTracker($weekStart);
     }
 
     /**
@@ -253,8 +341,8 @@ class AdminController extends Controller
         $trends = [];
         for ($i = 0; $i < 4; $i++) {
             $weekStart = now()->subWeeks($i)->startOfWeek();
-            $submitted = WeeklyTracker::where('week_start_date', $weekStart)
-                ->where('status', 'submitted')
+            $submitted = WeeklyTracker::whereDate('week_start_date', $weekStart)
+                ->where('submission_status', 'submitted')
                 ->count();
             $trends[] = $submitted;
         }
@@ -1057,7 +1145,7 @@ class AdminController extends Controller
         $weekStart = \Carbon\Carbon::parse($week)->startOfWeek();
         $weekEnd = $weekStart->copy()->endOfWeek();
 
-        $query = WeeklyTracker::with(['staff.position', 'leaveType', 'activity'])
+        $query = WeeklyTracker::with(['staff.position', 'leaveType', 'activity', 'activityReport'])
             ->whereDate('week_start_date', $weekStart);
 
         if ($position_id) {
@@ -1102,10 +1190,11 @@ class AdminController extends Controller
 
         $positions = \App\Models\Position::orderBy('title')->get();
         $statuses = ['at_duty_station', 'on_mission', 'on_leave'];
+        $missionCompliance = app(MissionComplianceService::class)->getMissionComplianceForWeek($weekStart);
 
         return view('admin.weekly-trackers.index', compact(
             'trackers', 'missingStaff', 'stats', 'positions', 'statuses',
-            'week', 'weekStart', 'weekEnd', 'position_id', 'status'
+            'week', 'weekStart', 'weekEnd', 'position_id', 'status', 'missionCompliance'
         ));
     }
 
@@ -1114,9 +1203,13 @@ class AdminController extends Controller
      */
     public function weeklyTrackerShow(WeeklyTracker $tracker)
     {
-        $tracker->load('staff.position', 'leaveType', 'activity', 'reviewer');
+        $tracker->load('staff.position', 'leaveType', 'activity', 'reviewer', 'activityReport');
 
-        return view('admin.weekly-trackers.show', compact('tracker'));
+        $missionComplianceItem = $tracker->status === 'on_mission'
+            ? app(MissionComplianceService::class)->buildComplianceItem($tracker)
+            : null;
+
+        return view('admin.weekly-trackers.show', compact('tracker', 'missionComplianceItem'));
     }
 
     /**
@@ -2290,34 +2383,17 @@ class AdminController extends Controller
      */
     public function exportAttendance(Request $request)
     {
-        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->get('end_date', now()->endOfMonth()->format('Y-m-d'));
-        $format = $request->get('format', 'csv');
-
-        $attendances = Attendance::with(['staff.position'])
-            ->whereBetween('date', [$startDate, $endDate])
-            ->orderBy('date', 'desc')
-            ->get();
-
-        if ($format === 'csv') {
-            return $this->exportAttendanceCSV($attendances, $startDate, $endDate);
-        } else {
-            return $this->exportAttendancePDF($attendances, $startDate, $endDate);
-        }
-    }
-
-    /**
-     * Export weekly trackers data
-     */
-    public function exportWeeklyTrackers(Request $request)
-    {
-        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->get('end_date', now()->endOfMonth()->format('Y-m-d'));
+        [$startDate, $endDate] = $this->resolveExportDateRange($request);
         $format = $request->get('format', 'csv');
         $position_id = $request->get('position_id');
 
-        $query = WeeklyTracker::with(['staff.position', 'leaveType', 'activity'])
-            ->whereBetween('week_start_date', [$startDate, $endDate]);
+        $query = Attendance::with(['staff.position']);
+
+        if ($startDate === $endDate) {
+            $query->whereDate('date', $startDate);
+        } else {
+            $query->whereBetween('date', [$startDate, $endDate]);
+        }
 
         if ($position_id) {
             $query->whereHas('staff', function ($q) use ($position_id) {
@@ -2325,13 +2401,91 @@ class AdminController extends Controller
             });
         }
 
+        $attendances = $query->orderBy('date', 'desc')->get();
+
+        if ($format === 'csv') {
+            return $this->exportAttendanceCSV($attendances, $startDate, $endDate);
+        }
+
+        return $this->exportAttendancePDF($attendances, $startDate, $endDate);
+    }
+
+    /**
+     * Export weekly trackers data
+     */
+    public function exportWeeklyTrackers(Request $request)
+    {
+        [$startDate, $endDate] = $this->resolveExportDateRange(
+            $request,
+            now()->startOfMonth()->format('Y-m-d'),
+            now()->endOfMonth()->format('Y-m-d')
+        );
+        $format = $request->get('format', 'csv');
+
+        $query = WeeklyTracker::with(['staff.position', 'leaveType', 'activity'])
+            ->whereBetween('week_start_date', [$startDate, $endDate]);
+
+        $this->applyWeeklyTrackerExportFilters($query, $request);
+
         $trackers = $query->orderBy('week_start_date', 'desc')->get();
 
         if ($format === 'csv') {
             return $this->exportTrackersCSV($trackers, $startDate, $endDate);
-        } else {
-            return $this->exportTrackersPDF($trackers, $startDate, $endDate);
         }
+
+        return $this->exportTrackersPDF($trackers, $startDate, $endDate);
+    }
+
+    /**
+     * Resolve export date range from request (single-day `date` or start/end range).
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function resolveExportDateRange(
+        Request $request,
+        ?string $defaultStart = null,
+        ?string $defaultEnd = null
+    ): array {
+        if ($request->filled('date')) {
+            $date = Carbon::parse($request->date)->format('Y-m-d');
+
+            return [$date, $date];
+        }
+
+        return [
+            $request->get('start_date', $defaultStart ?? now()->startOfMonth()->format('Y-m-d')),
+            $request->get('end_date', $defaultEnd ?? now()->endOfMonth()->format('Y-m-d')),
+        ];
+    }
+
+    /**
+     * Apply position and status filters shared by weekly tracker exports.
+     */
+    private function applyWeeklyTrackerExportFilters($query, Request $request): void
+    {
+        $position_id = $request->get('position_id');
+
+        if ($position_id) {
+            $query->whereHas('staff', function ($q) use ($position_id) {
+                $q->where('position_id', $position_id);
+            });
+        }
+
+        $status = $request->get('status');
+
+        if (! $status) {
+            return;
+        }
+
+        $weeklyStatuses = ['at_duty_station', 'on_mission', 'on_leave'];
+
+        if (in_array($status, $weeklyStatuses, true)) {
+            $query->where('status', $status);
+
+            return;
+        }
+
+        $query->where('submission_status', $status);
     }
 
     /**
@@ -2535,6 +2689,9 @@ class AdminController extends Controller
         if (\App\Models\Setting::count() === 0) {
             (new \Database\Seeders\SettingsSeeder())->run();
             \App\Models\Setting::clearCache();
+        } elseif (\App\Models\Setting::where('group', 'notifications')->count() === 0) {
+            (new \Database\Seeders\SettingsSeeder())->run();
+            \App\Models\Setting::clearCache();
         }
 
         $generalSettings = \App\Models\Setting::getByGroup('general');
@@ -2542,13 +2699,15 @@ class AdminController extends Controller
         $socialSettings = \App\Models\Setting::getByGroup('social');
         $mediaSettings = \App\Models\Setting::getByGroup('media');
         $systemSettings = \App\Models\Setting::getByGroup('system');
+        $notificationSettings = \App\Models\Setting::getByGroup('notifications');
 
         return view('admin.settings.index', compact(
             'generalSettings',
             'contactSettings',
             'socialSettings',
             'mediaSettings',
-            'systemSettings'
+            'systemSettings',
+            'notificationSettings'
         ));
     }
 
@@ -2583,6 +2742,15 @@ class AdminController extends Controller
                     $setting->update(['value' => $value]);
                 }
             }
+
+            \App\Models\Setting::where('type', 'boolean')
+                ->whereIn('group', ['system', 'media', 'notifications'])
+                ->get()
+                ->each(function (\App\Models\Setting $setting) use ($request) {
+                    if (! $request->has("settings.{$setting->key}")) {
+                        $setting->update(['value' => '0']);
+                    }
+                });
 
             // Clear cache
             \App\Models\Setting::clearCache();
@@ -2634,13 +2802,25 @@ class AdminController extends Controller
         ];
 
         $reminderService = app(\App\Services\ActivityReportReminderService::class);
+        $weeklyTrackerReminderService = app(\App\Services\WeeklyTrackerReminderService::class);
+        $reminderSettings = app(\App\Services\ReminderSettingsService::class);
         $reminderPreview = $reminderService->previewDueReminders();
+        $weeklyTrackerSundayPreview = $weeklyTrackerReminderService->previewPendingReminders(
+            \App\Models\EmailReminderLog::TYPE_WEEKLY_TRACKER_SUNDAY
+        );
+        $weeklyTrackerDailyPreview = $weeklyTrackerReminderService->previewPendingReminders(
+            \App\Models\EmailReminderLog::TYPE_WEEKLY_TRACKER_DAILY
+        );
         $remindersEnabled = $reminderService->isEnabled();
+        $weeklyTrackerSundayEnabled = $weeklyTrackerReminderService->isSundayRunEnabled();
+        $weeklyTrackerDailyEnabled = $weeklyTrackerReminderService->isDailyRunEnabled();
         $reminderConfig = [
             'cooldown_days' => config('reminders.activity_reports.cooldown_days'),
             'send_as' => config('reminders.microsoft.send_as'),
             'daily_at' => env('REMINDER_DAILY_AT', '08:00'),
+            'sunday_at' => env('REMINDER_WEEKLY_TRACKER_SUNDAY_AT', '18:00'),
             'graph_configured' => app(\App\Services\MicrosoftGraphService::class)->isConfigured(),
+            'settings' => $reminderSettings->summary(),
         ];
 
         $graphConfig = [
@@ -2650,14 +2830,20 @@ class AdminController extends Controller
             'mail_from' => config('reminders.microsoft.send_as') ?: config('mail.from.address'),
             'secret_configured' => ! empty(config('services.microsoft.client_secret')),
             'configured' => app(\App\Services\MicrosoftGraphService::class)->isConfigured(),
-            'reminders_enabled' => (bool) config('reminders.enabled'),
-            'activity_reports_enabled' => (bool) config('reminders.activity_reports.enabled'),
+            'reminders_enabled' => $reminderSettings->masterEnabled(),
+            'activity_reports_enabled' => $reminderSettings->activityReportsEnabled(),
+            'weekly_tracker_sunday_enabled' => $reminderSettings->weeklyTrackerSundayEnabled(),
+            'weekly_tracker_daily_enabled' => $reminderSettings->weeklyTrackerDailyEnabled(),
         ];
 
         return view('admin.email.test', compact(
             'currentConfig',
             'reminderPreview',
+            'weeklyTrackerSundayPreview',
+            'weeklyTrackerDailyPreview',
             'remindersEnabled',
+            'weeklyTrackerSundayEnabled',
+            'weeklyTrackerDailyEnabled',
             'reminderConfig',
             'graphConfig'
         ));
@@ -2894,6 +3080,33 @@ class AdminController extends Controller
 
         return redirect()->route('admin.email.test')
             ->with('success', ($dryRun ? 'Dry run completed. ' : 'Reminders sent successfully. ') . $summary);
+    }
+
+    /**
+     * Manually send weekly tracker reminders via Microsoft Graph.
+     */
+    public function sendWeeklyTrackerReminders(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|in:sunday,daily',
+            'dry_run' => 'nullable|boolean',
+        ]);
+
+        $reminderService = app(\App\Services\WeeklyTrackerReminderService::class);
+        $dryRun = $request->boolean('dry_run');
+        $result = $request->input('type') === 'sunday'
+            ? $reminderService->sendSundayReminders($dryRun)
+            : $reminderService->sendDailyReminders($dryRun);
+
+        $summary = "Sent: {$result['sent']}, Skipped: {$result['skipped']}, Failed: {$result['failed']}";
+
+        if ($result['failed'] > 0) {
+            return redirect()->route('admin.email.test')
+                ->with('error', ($dryRun ? 'Dry run completed with issues. ' : 'Weekly tracker reminder run completed with failures. ') . $summary);
+        }
+
+        return redirect()->route('admin.email.test')
+            ->with('success', ($dryRun ? 'Dry run completed. ' : 'Weekly tracker reminders sent successfully. ') . $summary);
     }
 
     /**

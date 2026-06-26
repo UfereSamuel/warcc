@@ -12,14 +12,13 @@ class ActivityReportReminderService
 {
     public function __construct(
         private readonly ActivityWorkflowService $workflow,
-        private readonly MicrosoftGraphService $graph
+        private readonly MicrosoftGraphService $graph,
+        private readonly ReminderSettingsService $settings
     ) {}
 
     public function isEnabled(): bool
     {
-        return (bool) config('reminders.enabled')
-            && (bool) config('reminders.activity_reports.enabled')
-            && $this->graph->isConfigured();
+        return $this->settings->activityReportsEnabled() && $this->graph->isConfigured();
     }
 
     /**

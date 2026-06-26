@@ -566,15 +566,15 @@
                 @if($remindersEnabled)
                     <div class="alert alert-success">
                         <i class="fas fa-check-circle mr-2"></i>
-                        Reminders are <strong>enabled</strong>. Scheduled daily at <strong>{{ $reminderConfig['daily_at'] }}</strong>
+                        Activity report reminders are <strong>enabled</strong>. Scheduled daily at <strong>{{ $reminderConfig['daily_at'] }}</strong>
                         ({{ config('app.timezone') }}). Cooldown: {{ $reminderConfig['cooldown_days'] }} days between repeats.
                         Send as: <code>{{ $reminderConfig['send_as'] ?: 'not set' }}</code>
                     </div>
                 @else
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle mr-2"></i>
-                        Reminders are <strong>disabled</strong> or Microsoft Graph is not fully configured.
-                        Use the <strong>Microsoft Graph</strong> form above to save credentials.
+                        Activity report reminders are <strong>disabled</strong> or Microsoft Graph is not fully configured.
+                        Toggle them under <a href="{{ route('admin.settings.index') }}#notifications">System Settings → Notifications</a>.
                     </div>
                 @endif
 
@@ -632,6 +632,116 @@
                 </form>
                 <small class="text-muted ml-3">
                     CLI: <code>php artisan reminders:activity-reports --dry-run</code>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Weekly Tracker Reminders -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card card-success card-outline">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-calendar-week mr-2"></i>
+                    Weekly Tracker Email Reminders
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        @if($weeklyTrackerSundayEnabled)
+                            <div class="alert alert-success mb-md-0">
+                                <strong>Sunday reminder:</strong> enabled · Sundays at {{ $reminderConfig['sunday_at'] }} ({{ config('app.timezone') }})
+                            </div>
+                        @else
+                            <div class="alert alert-warning mb-md-0">
+                                <strong>Sunday reminder:</strong> disabled
+                            </div>
+                        @endif
+                    </div>
+                    <div class="col-md-6">
+                        @if($weeklyTrackerDailyEnabled)
+                            <div class="alert alert-success mb-0">
+                                <strong>Weekday morning reminder:</strong> enabled · Mon–Fri at {{ $reminderConfig['daily_at'] }} ({{ config('app.timezone') }})
+                            </div>
+                        @else
+                            <div class="alert alert-warning mb-0">
+                                <strong>Weekday morning reminder:</strong> disabled
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <p class="text-muted">
+                    Staff who have not <strong>submitted</strong> their weekly tracker for the current week receive reminder emails.
+                    Manage toggles under <a href="{{ route('admin.settings.index') }}#notifications">System Settings → Notifications</a>.
+                </p>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Sunday run preview</h6>
+                        @if($weeklyTrackerSundayPreview->count())
+                            <ul class="mb-0 pl-3">
+                                @foreach($weeklyTrackerSundayPreview as $staff)
+                                    <li>{{ $staff->full_name }} <span class="text-muted">({{ $staff->email }})</span></li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-muted mb-0">No Sunday reminders due right now.</p>
+                        @endif
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Weekday run preview</h6>
+                        @if($weeklyTrackerDailyPreview->count())
+                            <ul class="mb-0 pl-3">
+                                @foreach($weeklyTrackerDailyPreview as $staff)
+                                    <li>{{ $staff->full_name }} <span class="text-muted">({{ $staff->email }})</span></li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-muted mb-0">No weekday reminders due right now.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <form method="POST" action="{{ route('admin.email.reminders.weekly-trackers') }}" class="d-inline">
+                    @csrf
+                    <input type="hidden" name="type" value="sunday">
+                    <input type="hidden" name="dry_run" value="1">
+                    <button type="submit" class="btn btn-outline-secondary" {{ !$weeklyTrackerSundayEnabled ? 'disabled' : '' }}>
+                        <i class="fas fa-eye mr-1"></i> Dry Run (Sunday)
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('admin.email.reminders.weekly-trackers') }}" class="d-inline ml-2"
+                      data-warcc-confirm="Send Sunday weekly tracker reminders now?">
+                    @csrf
+                    <input type="hidden" name="type" value="sunday">
+                    <button type="submit" class="btn btn-success" {{ !$weeklyTrackerSundayEnabled ? 'disabled' : '' }}>
+                        <i class="fas fa-paper-plane mr-1"></i> Send Sunday Reminders
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('admin.email.reminders.weekly-trackers') }}" class="d-inline ml-3">
+                    @csrf
+                    <input type="hidden" name="type" value="daily">
+                    <input type="hidden" name="dry_run" value="1">
+                    <button type="submit" class="btn btn-outline-secondary" {{ !$weeklyTrackerDailyEnabled ? 'disabled' : '' }}>
+                        <i class="fas fa-eye mr-1"></i> Dry Run (Weekday)
+                    </button>
+                </form>
+                <form method="POST" action="{{ route('admin.email.reminders.weekly-trackers') }}" class="d-inline ml-2"
+                      data-warcc-confirm="Send weekday weekly tracker reminders now?">
+                    @csrf
+                    <input type="hidden" name="type" value="daily">
+                    <button type="submit" class="btn btn-outline-success" {{ !$weeklyTrackerDailyEnabled ? 'disabled' : '' }}>
+                        <i class="fas fa-paper-plane mr-1"></i> Send Weekday Reminders
+                    </button>
+                </form>
+                <small class="text-muted d-block mt-2">
+                    CLI: <code>php artisan reminders:weekly-trackers --type=sunday --dry-run</code> ·
+                    <code>php artisan reminders:weekly-trackers --type=daily --dry-run</code>
                 </small>
             </div>
         </div>

@@ -7,6 +7,9 @@
 return [
 
     'admin.dashboard' => 'view_analytics',
+    'admin.staff-roster.*' => 'view_analytics',
+    'admin.export.staff-roster' => 'export_reports',
+    'admin.export.staff-roster-summary' => 'export_reports',
 
     'admin.roles.*' => 'manage_system',
 
