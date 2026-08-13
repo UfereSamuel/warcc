@@ -43,9 +43,9 @@
                     <div class="alert alert-light border mb-4">
                         <strong>Where to edit what:</strong>
                         <ul class="mb-0 mt-2">
-                            <li><strong>This page</strong> — site name, contact details, social links, YouTube, and system options.</li>
-                            <li><a href="{{ route('admin.website-management.index') }}">Website Management</a> — homepage hero, mission, vision, core values, and countries (super admin).</li>
-                            <li><a href="{{ route('admin.content.homepage') }}">Homepage Content</a> and <a href="{{ route('admin.content.about') }}">About Page</a> — public page copy and sections.</li>
+                            <li><strong>This page</strong> — site name, contact details, social links, homepage images, YouTube, and system options.</li>
+                            <li><a href="{{ route('admin.website-management.index') }}">Website Management</a> — homepage hero text, mission, vision, core values, and countries (super admin).</li>
+                            <li><a href="{{ route('admin.content.hero-slides.index') }}">Hero Slides</a> — homepage slider photos (keep titles short for this internal portal).</li>
                         </ul>
                     </div>
 
@@ -73,6 +73,12 @@
                             <a class="nav-link" id="media-tab" data-toggle="tab" href="#media" role="tab">
                                 <i class="fab fa-youtube mr-1"></i>
                                 Media & YouTube
+                            </a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="homepage-images-tab" data-toggle="tab" href="#homepage-images" role="tab">
+                                <i class="fas fa-images mr-1"></i>
+                                Homepage Images
                             </a>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -120,7 +126,7 @@
                                         @elseif($setting->type === 'image')
                                             @if($setting->value)
                                                 <div class="mb-2">
-                                                    <img src="{{ asset('storage/' . $setting->value) }}" alt="{{ $setting->label }}" class="img-thumbnail" style="max-height: 100px;">
+                                                    <img src="{{ \App\Services\HomepageContentService::mediaUrl($setting->value) }}" alt="{{ $setting->label }}" class="img-thumbnail" style="max-height: 100px;">
                                                 </div>
                                             @endif
                                             <input type="file" class="form-control-file @error('files.'.$setting->key) is-invalid @enderror" 
@@ -368,6 +374,68 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Homepage Images -->
+                        <div class="tab-pane fade" id="homepage-images" role="tabpanel">
+                            <div class="row mt-4">
+                                <div class="col-md-12">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-images text-success mr-2"></i>
+                                        Homepage Images
+                                    </h5>
+                                    <p class="text-muted mb-2">
+                                        Upload photos shown on the public homepage. Hero slider images are managed separately under
+                                        <a href="{{ route('admin.content.hero-slides.index') }}">Content → Hero Slides</a>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            @forelse($homepageImageSettings as $setting)
+                                <div class="form-group row">
+                                    <label for="{{ $setting->key }}" class="col-sm-3 col-form-label">
+                                        {{ $setting->label }}
+                                        @if($setting->description)
+                                            <i class="fas fa-info-circle text-muted ml-1" title="{{ $setting->description }}"></i>
+                                        @endif
+                                    </label>
+                                    <div class="col-sm-9">
+                                        @if($setting->type === 'image')
+                                            @if($setting->value)
+                                                <div class="mb-2">
+                                                    <img src="{{ \App\Services\HomepageContentService::mediaUrl($setting->value) }}" alt="{{ $setting->label }}" class="img-thumbnail" style="max-height: 140px;">
+                                                </div>
+                                            @endif
+                                            <input type="file" class="form-control-file @error('files.'.$setting->key) is-invalid @enderror"
+                                                   id="{{ $setting->key }}"
+                                                   name="files[{{ $setting->key }}]"
+                                                   accept="image/*">
+                                            <input type="hidden" name="settings[{{ $setting->key }}]" value="{{ $setting->value }}">
+                                        @else
+                                            <input type="text" class="form-control @error('settings.'.$setting->key) is-invalid @enderror"
+                                                   id="{{ $setting->key }}"
+                                                   name="settings[{{ $setting->key }}]"
+                                                   value="{{ old('settings.'.$setting->key, $setting->value) }}"
+                                                   placeholder="{{ $setting->description }}">
+                                        @endif
+
+                                        @if($setting->description)
+                                            <small class="form-text text-muted">{{ $setting->description }}</small>
+                                        @endif
+
+                                        @error('settings.'.$setting->key)
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        @error('files.'.$setting->key)
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="alert alert-warning">
+                                    No homepage image settings found. Click <strong>Reset to Default</strong> above to load them.
+                                </div>
+                            @endforelse
                         </div>
 
                         <!-- Notification Settings -->

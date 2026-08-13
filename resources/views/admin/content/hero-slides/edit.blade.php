@@ -62,8 +62,8 @@
                             <span class="invalid-feedback d-block">{{ $message }}</span>
                         @enderror
                         <small class="form-text text-muted">
-                            Leave empty to keep current image. Recommended size: 1920x600px. Maximum file size: 5MB.
-                            Supported formats: JPEG, PNG, JPG, WebP
+                            Leave empty to keep current image. Keep titles short — subtitle/description are optional and not shown on the public slider overlay.
+                            Recommended size: 1920×900px. Max 5MB. JPEG, PNG, WebP.
                         </small>
 
                         <!-- Current Image Preview -->

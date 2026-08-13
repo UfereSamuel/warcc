@@ -61,8 +61,8 @@
                             <span class="invalid-feedback d-block">{{ $message }}</span>
                         @enderror
                         <small class="form-text text-muted">
-                            Recommended size: 1920x600px. Maximum file size: 5MB.
-                            Supported formats: JPEG, PNG, JPG, WebP
+                            Keep the title short (this is an internal portal). Subtitle and description are optional and not shown on the public slider overlay.
+                            Recommended image size: 1920×900px. Max 5MB. JPEG, PNG, WebP.
                         </small>
                     </div>
 

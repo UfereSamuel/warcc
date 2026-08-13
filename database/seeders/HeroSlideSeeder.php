@@ -24,34 +24,34 @@ class HeroSlideSeeder extends Seeder
 
         $slides = [
             [
-                'title' => 'Africa CDC Western RCC',
-                'subtitle' => 'Strengthening Health Security',
-                'description' => 'Leading regional collaboration in disease surveillance and health emergency preparedness across West Africa.',
-                'image_path' => 'hero_default_1.jpg', // Placeholder - admin will upload real images
-                'button_text' => 'Learn More',
-                'button_link' => route('public.about'),
+                'title' => 'Western RCC',
+                'subtitle' => null,
+                'description' => null,
+                'image_path' => 'placeholder_hero_1.png',
+                'button_text' => null,
+                'button_link' => null,
                 'order_index' => 1,
                 'status' => 'active',
                 'created_by' => $admin->id,
             ],
             [
-                'title' => 'Building Resilient Health Systems',
-                'subtitle' => 'Capacity Building Excellence',
-                'description' => 'Empowering health professionals and institutions across 15 West African countries through innovative training programs.',
-                'image_path' => 'hero_default_2.jpg', // Placeholder
-                'button_text' => 'Contact Us',
-                'button_link' => route('public.contact'),
+                'title' => 'Health security across West Africa',
+                'subtitle' => null,
+                'description' => null,
+                'image_path' => 'placeholder_hero_2.png',
+                'button_text' => null,
+                'button_link' => null,
                 'order_index' => 2,
                 'status' => 'active',
                 'created_by' => $admin->id,
             ],
             [
-                'title' => 'Regional Health Collaboration',
-                'subtitle' => 'United for Better Health',
-                'description' => 'Fostering partnerships and coordination among West African nations for improved health outcomes and emergency response.',
-                'image_path' => 'hero_default_3.jpg', // Placeholder
-                'button_text' => 'Our Mission',
-                'button_link' => route('public.about'),
+                'title' => 'Advancing the AHSS Agenda',
+                'subtitle' => null,
+                'description' => null,
+                'image_path' => 'placeholder_hero_3.png',
+                'button_text' => null,
+                'button_link' => null,
                 'order_index' => 3,
                 'status' => 'active',
                 'created_by' => $admin->id,
@@ -59,10 +59,13 @@ class HeroSlideSeeder extends Seeder
         ];
 
         foreach ($slides as $slide) {
-            HeroSlide::create($slide);
+            HeroSlide::updateOrCreate(
+                ['order_index' => $slide['order_index']],
+                $slide
+            );
         }
 
         $this->command->info('Hero slides seeded successfully!');
-        $this->command->warn('Note: Placeholder images are used. Admin should upload real images through the admin panel.');
+        $this->command->warn('Placeholder hero images are committed under public/images/hero-slides. Replace via Admin → Content → Hero Slides.');
     }
 }

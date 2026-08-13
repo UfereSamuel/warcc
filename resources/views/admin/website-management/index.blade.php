@@ -164,6 +164,70 @@
         </form>
     </div>
 
+    <div class="card card-outline card-success mb-4">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-shield-alt mr-2"></i> AHSS Agenda (Africa Health Security &amp; Sovereignty)</h3>
+        </div>
+        <form method="POST" action="{{ route('admin.website-management.ahss-section.update') }}">
+            @csrf
+            @method('PUT')
+            <div class="card-body">
+                <p class="text-muted">
+                    Shown on the homepage. Official reference:
+                    <a href="https://africacdc.org/africas-health-security-sovereignty-agenda/" target="_blank" rel="noopener">Africa CDC AHSS page</a>.
+                </p>
+                <div class="form-group">
+                    <label for="ahss_title">Section Title</label>
+                    <input type="text" class="form-control" id="ahss_title" name="ahss_title"
+                           value="{{ old('ahss_title', $content['ahss_title']) }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="ahss_lead">Section Lead</label>
+                    <textarea class="form-control" id="ahss_lead" name="ahss_lead" rows="3" required>{{ old('ahss_lead', $content['ahss_lead']) }}</textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="ahss_link_label">Learn-more Link Label</label>
+                            <input type="text" class="form-control" id="ahss_link_label" name="ahss_link_label"
+                                   value="{{ old('ahss_link_label', $content['ahss_link_label']) }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="ahss_link_url">Learn-more Link URL</label>
+                            <input type="url" class="form-control" id="ahss_link_url" name="ahss_link_url"
+                                   value="{{ old('ahss_link_url', $content['ahss_link_url']) }}" required>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <h5 class="mb-3">Five AHSS Pillars</h5>
+                @foreach($content['ahss_pillars'] as $pillar)
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <h6 class="text-muted">Pillar {{ $pillar['number'] }}</h6>
+                        <div class="form-group mb-2">
+                            <label for="ahss_pillar_{{ $pillar['number'] }}_title">Title</label>
+                            <input type="text" class="form-control" id="ahss_pillar_{{ $pillar['number'] }}_title"
+                                   name="ahss_pillar_{{ $pillar['number'] }}_title"
+                                   value="{{ old('ahss_pillar_'.$pillar['number'].'_title', $pillar['title']) }}" required>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label for="ahss_pillar_{{ $pillar['number'] }}_text">Description</label>
+                            <textarea class="form-control" id="ahss_pillar_{{ $pillar['number'] }}_text"
+                                      name="ahss_pillar_{{ $pillar['number'] }}_text" rows="2" required>{{ old('ahss_pillar_'.$pillar['number'].'_text', $pillar['text']) }}</textarea>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="card-footer text-right">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save mr-1"></i> Save AHSS Section
+                </button>
+            </div>
+        </form>
+    </div>
+
     <div class="card card-outline card-primary mb-4">
         <div class="card-header">
             <h3 class="card-title"><i class="fas fa-bullseye mr-2"></i> Mission Focus Areas</h3>

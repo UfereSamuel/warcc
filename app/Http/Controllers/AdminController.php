@@ -2689,7 +2689,10 @@ class AdminController extends Controller
         if (\App\Models\Setting::count() === 0) {
             (new \Database\Seeders\SettingsSeeder())->run();
             \App\Models\Setting::clearCache();
-        } elseif (\App\Models\Setting::where('group', 'notifications')->count() === 0) {
+        } elseif (
+            \App\Models\Setting::where('group', 'notifications')->count() === 0
+            || \App\Models\Setting::where('group', 'homepage_images')->count() === 0
+        ) {
             (new \Database\Seeders\SettingsSeeder())->run();
             \App\Models\Setting::clearCache();
         }
@@ -2698,6 +2701,7 @@ class AdminController extends Controller
         $contactSettings = \App\Models\Setting::getByGroup('contact');
         $socialSettings = \App\Models\Setting::getByGroup('social');
         $mediaSettings = \App\Models\Setting::getByGroup('media');
+        $homepageImageSettings = \App\Models\Setting::getByGroup('homepage_images');
         $systemSettings = \App\Models\Setting::getByGroup('system');
         $notificationSettings = \App\Models\Setting::getByGroup('notifications');
 
@@ -2706,6 +2710,7 @@ class AdminController extends Controller
             'contactSettings',
             'socialSettings',
             'mediaSettings',
+            'homepageImageSettings',
             'systemSettings',
             'notificationSettings'
         ));

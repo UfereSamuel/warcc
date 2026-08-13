@@ -30,4 +30,14 @@ class WebsiteSettingsTest extends TestCase
             ->assertSee('contact_email')
             ->assertSee('Organization Name');
     }
+
+    public function test_settings_page_shows_homepage_images_tab(): void
+    {
+        $this->actingAsSuperAdmin()
+            ->get(route('admin.settings.index'))
+            ->assertOk()
+            ->assertSee('Homepage Images', false)
+            ->assertSee('Gallery Image 1', false)
+            ->assertSee('Mission and Vision Image', false);
+    }
 }

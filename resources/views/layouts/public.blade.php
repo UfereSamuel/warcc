@@ -77,14 +77,22 @@
             --yellow: #E08F2A;
             --brown: #6B4C24;
             --orange: #C45B39;
+            --forest: #1B3D24;
+            --ink: #142018;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
         }
 
         .navbar-brand img {
             height: 40px;
+            width: auto;
+            background: #fff;
+            border-radius: 0.5rem;
+            padding: 0.2rem 0.35rem;
+            box-shadow: 0 1px 2px rgba(15, 36, 22, 0.08);
         }
 
         .hero-section {
@@ -141,9 +149,12 @@
 
     @yield('styles')
 </head>
-<body>
+<body class="@yield('body_class')">
+@php
+    $africaCdcUrl = setting('contact_website') ?: 'https://africacdc.org';
+@endphp
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm @yield('nav_class')" id="siteNavbar">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 @if(setting('site_logo'))
@@ -176,6 +187,11 @@
                     @endif
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('public.contact') }}">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ $africaCdcUrl }}" target="_blank" rel="noopener noreferrer">
+                            Africa CDC <i class="fas fa-external-link-alt fa-xs ms-1 opacity-75"></i>
+                        </a>
                     </li>
                 </ul>
 
@@ -240,7 +256,10 @@
                         @endif
                         <span class="fw-bold">{{ setting('contact_organization', 'Africa CDC Western RCC') }}</span>
                     </div>
-                    <p class="mb-0">{{ setting('site_description', 'Strengthening health security and disease surveillance across West Africa through collaborative partnerships and innovative solutions.') }}</p>
+                    <p class="mb-3">{{ setting('site_description', 'Strengthening health security and disease surveillance across West Africa through collaborative partnerships and innovative solutions.') }}</p>
+                    <a href="{{ $africaCdcUrl }}" target="_blank" rel="noopener noreferrer" class="text-light text-decoration-none fw-semibold">
+                        Visit Africa CDC website <i class="fas fa-external-link-alt fa-xs ms-1"></i>
+                    </a>
                 </div>
 
                 <div class="col-lg-2 mb-4">
@@ -253,6 +272,7 @@
                         <li><a href="{{ route('public.media') }}" class="text-light text-decoration-none">Media</a></li>
                         @endif
                         <li><a href="{{ route('public.contact') }}" class="text-light text-decoration-none">Contact</a></li>
+                        <li><a href="{{ $africaCdcUrl }}" target="_blank" rel="noopener noreferrer" class="text-light text-decoration-none">Africa CDC</a></li>
                     </ul>
                 </div>
 
@@ -281,10 +301,14 @@
             <hr class="my-4">
 
             <div class="row align-items-center">
-                <div class="col-md-6">
-                    <p class="mb-0">&copy; {{ date('Y') }} {{ setting('contact_organization', 'Africa CDC Western RCC') }}. All rights reserved.</p>
+                <div class="col-md-7">
+                    <p class="mb-1">&copy; {{ date('Y') }} {{ setting('contact_organization', 'Africa CDC Western RCC') }}. All rights reserved.</p>
+                    <p class="mb-0 small opacity-75">
+                        A Regional Collaborating Centre of
+                        <a href="{{ $africaCdcUrl }}" target="_blank" rel="noopener noreferrer" class="text-light text-decoration-underline">Africa CDC</a>
+                    </p>
                 </div>
-                <div class="col-md-6 text-md-end">
+                <div class="col-md-5 text-md-end">
                     <small>{{ setting('site_name', 'Staff Management System') }} v1.0</small>
                     @if(setting('social_facebook') || setting('social_twitter') || setting('social_linkedin') || setting('social_instagram') || setting('social_youtube'))
                         <div class="mt-2">

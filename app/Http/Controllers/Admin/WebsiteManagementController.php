@@ -123,4 +123,33 @@ class WebsiteManagementController extends Controller
 
         return back()->with('success', 'Featured events section updated successfully.');
     }
+
+    public function updateAhssSection(Request $request)
+    {
+        $rules = [
+            'ahss_title' => 'required|string|max:255',
+            'ahss_lead' => 'required|string|max:2000',
+            'ahss_link_label' => 'required|string|max:255',
+            'ahss_link_url' => 'required|url|max:500',
+        ];
+
+        for ($i = 1; $i <= 5; $i++) {
+            $rules["ahss_pillar_{$i}_title"] = 'required|string|max:255';
+            $rules["ahss_pillar_{$i}_text"] = 'required|string|max:1000';
+        }
+
+        $validated = $request->validate($rules);
+
+        Setting::set('homepage_ahss_title', $validated['ahss_title']);
+        Setting::set('homepage_ahss_lead', $validated['ahss_lead']);
+        Setting::set('homepage_ahss_link_label', $validated['ahss_link_label']);
+        Setting::set('homepage_ahss_link_url', $validated['ahss_link_url']);
+
+        for ($i = 1; $i <= 5; $i++) {
+            Setting::set("homepage_ahss_pillar_{$i}_title", $validated["ahss_pillar_{$i}_title"]);
+            Setting::set("homepage_ahss_pillar_{$i}_text", $validated["ahss_pillar_{$i}_text"]);
+        }
+
+        return back()->with('success', 'AHSS Agenda section updated successfully.');
+    }
 }

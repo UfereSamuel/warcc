@@ -39,7 +39,12 @@ class HomepagePublicContentTest extends TestCase
             ->assertSee('Asokoro', false)
             ->assertSee('Federal Capital Territory', false)
             ->assertDontSee('University of Ghana', false)
-            ->assertDontSee('Legon, Accra', false);
+            ->assertDontSee('Legon, Accra', false)
+            ->assertSee('africacdc.org', false)
+            ->assertSee('Visit africacdc.org', false)
+            ->assertSee('AHSS', false)
+            ->assertSee('Africa Health Security and Sovereignty', false)
+            ->assertSee('Local manufacturing', false);
 
         $this->get(route('public.contact'))
             ->assertOk()

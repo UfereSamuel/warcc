@@ -39,6 +39,21 @@ class HomepageContentSeeder extends Seeder
             ['key' => 'homepage_core_values_card_2_text', 'value' => $defaults['core_values_card_2_text'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'Core Values Card 2 Text', 'sort_order' => 24],
             ['key' => 'homepage_core_values_card_3_title', 'value' => $defaults['core_values_card_3_title'], 'type' => 'text', 'group' => 'homepage', 'label' => 'Core Values Card 3 Title', 'sort_order' => 25],
             ['key' => 'homepage_core_values_card_3_text', 'value' => $defaults['core_values_card_3_text'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'Core Values Card 3 Text', 'sort_order' => 26],
+            ['key' => 'homepage_ahss_title', 'value' => $defaults['ahss_title'], 'type' => 'text', 'group' => 'homepage', 'label' => 'AHSS Section Title', 'sort_order' => 27],
+            ['key' => 'homepage_ahss_lead', 'value' => $defaults['ahss_lead'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'AHSS Section Lead', 'sort_order' => 28],
+            ['key' => 'homepage_ahss_link_label', 'value' => $defaults['ahss_link_label'], 'type' => 'text', 'group' => 'homepage', 'label' => 'AHSS Link Label', 'sort_order' => 29],
+            ['key' => 'homepage_ahss_link_url', 'value' => $defaults['ahss_link_url'], 'type' => 'url', 'group' => 'homepage', 'label' => 'AHSS Link URL', 'sort_order' => 30],
+            ['key' => 'homepage_ahss_pillar_1_title', 'value' => $defaults['ahss_pillar_1_title'], 'type' => 'text', 'group' => 'homepage', 'label' => 'AHSS Pillar 1 Title', 'sort_order' => 31],
+            ['key' => 'homepage_ahss_pillar_1_text', 'value' => $defaults['ahss_pillar_1_text'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'AHSS Pillar 1 Text', 'sort_order' => 32],
+            ['key' => 'homepage_ahss_pillar_2_title', 'value' => $defaults['ahss_pillar_2_title'], 'type' => 'text', 'group' => 'homepage', 'label' => 'AHSS Pillar 2 Title', 'sort_order' => 33],
+            ['key' => 'homepage_ahss_pillar_2_text', 'value' => $defaults['ahss_pillar_2_text'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'AHSS Pillar 2 Text', 'sort_order' => 34],
+            ['key' => 'homepage_ahss_pillar_3_title', 'value' => $defaults['ahss_pillar_3_title'], 'type' => 'text', 'group' => 'homepage', 'label' => 'AHSS Pillar 3 Title', 'sort_order' => 35],
+            ['key' => 'homepage_ahss_pillar_3_text', 'value' => $defaults['ahss_pillar_3_text'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'AHSS Pillar 3 Text', 'sort_order' => 36],
+            ['key' => 'homepage_ahss_pillar_4_title', 'value' => $defaults['ahss_pillar_4_title'], 'type' => 'text', 'group' => 'homepage', 'label' => 'AHSS Pillar 4 Title', 'sort_order' => 37],
+            ['key' => 'homepage_ahss_pillar_4_text', 'value' => $defaults['ahss_pillar_4_text'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'AHSS Pillar 4 Text', 'sort_order' => 38],
+            ['key' => 'homepage_ahss_pillar_5_title', 'value' => $defaults['ahss_pillar_5_title'], 'type' => 'text', 'group' => 'homepage', 'label' => 'AHSS Pillar 5 Title', 'sort_order' => 39],
+            ['key' => 'homepage_ahss_pillar_5_text', 'value' => $defaults['ahss_pillar_5_text'], 'type' => 'textarea', 'group' => 'homepage', 'label' => 'AHSS Pillar 5 Text', 'sort_order' => 40],
+            ['key' => 'about_hero_lead', 'value' => HomepageContentService::aboutDefaults()['about_hero_lead'], 'type' => 'textarea', 'group' => 'about', 'label' => 'About Hero Lead', 'sort_order' => 2],
         ];
 
         foreach ($settings as $setting) {

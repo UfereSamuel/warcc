@@ -211,6 +211,7 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin', 'admin.permission'
         Route::put('/mission-section', [WebsiteManagementController::class, 'updateMissionSection'])->name('mission-section.update');
         Route::put('/core-values-section', [WebsiteManagementController::class, 'updateCoreValuesSection'])->name('core-values-section.update');
         Route::put('/featured-events-section', [WebsiteManagementController::class, 'updateFeaturedEventsSection'])->name('featured-events-section.update');
+        Route::put('/ahss-section', [WebsiteManagementController::class, 'updateAhssSection'])->name('ahss-section.update');
 
         Route::prefix('countries')->name('countries.')->group(function () {
             Route::post('/', [\App\Http\Controllers\Admin\CountryController::class, 'store'])->name('store');
