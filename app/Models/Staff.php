@@ -164,9 +164,29 @@ class Staff extends Model implements Authenticatable, Authorizable
         return $query->where('status', 'active');
     }
 
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
     public function scopeAdmins($query)
     {
         return $query->where('is_admin', true);
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'active' || $this->is_admin;
     }
 
     // Helper methods

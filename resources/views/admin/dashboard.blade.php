@@ -49,6 +49,29 @@
 @stop
 
 @section('content')
+@if(($staffStats['pending'] ?? 0) > 0)
+    <div class="alert alert-warning alert-dismissible fade show shadow-sm mb-4" role="alert">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <div class="alert-icon-bg mr-3 p-2 bg-warning rounded text-white">
+                    <i class="fas fa-user-clock fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading mb-1 font-weight-bold">
+                        <i class="fas fa-exclamation-circle mr-1"></i> Pending Staff Approvals ({{ $staffStats['pending'] }})
+                    </h5>
+                    <p class="mb-0">
+                        There {{ $staffStats['pending'] === 1 ? 'is' : 'are' }} <strong>{{ $staffStats['pending'] }}</strong> staff {{ $staffStats['pending'] === 1 ? 'account' : 'accounts' }} registered via Microsoft SSO awaiting admin verification.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('admin.staff.index', ['status' => 'pending']) }}" class="btn btn-warning font-weight-bold ml-3 text-dark">
+                <i class="fas fa-user-check mr-1"></i> Review Pending Approvals
+            </a>
+        </div>
+    </div>
+@endif
+
 <!-- Key Metrics -->
 <div class="analytics-grid">
     <!-- Staff Overview -->

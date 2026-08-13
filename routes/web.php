@@ -85,14 +85,15 @@ Route::prefix('auth')->name('auth.')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-// Profile Completion Routes (No profile.complete middleware to avoid circular dependency)
+// Profile Completion & Pending Approval Routes (No profile.complete middleware to avoid circular dependency)
 Route::middleware(['auth:staff'])->prefix('staff')->name('staff.')->group(function () {
+    Route::get('/pending-approval', [StaffController::class, 'pendingApproval'])->name('pending-approval');
     Route::get('/profile/complete', [StaffController::class, 'showProfileCompletion'])->name('profile.complete');
     Route::post('/profile/complete', [StaffController::class, 'completeProfile'])->name('profile.complete.post');
 });
 
-// Protected Routes (Requires Authentication and Profile Completion)
-Route::middleware(['auth:staff', 'profile.complete', 'restrict.superadmin'])->prefix('staff')->name('staff.')->group(function () {
+// Protected Routes (Requires Authentication, Account Approval, and Profile Completion)
+Route::middleware(['auth:staff', 'account.approved', 'profile.complete', 'restrict.superadmin'])->prefix('staff')->name('staff.')->group(function () {
 
     // Staff Dashboard
     Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('dashboard');
@@ -264,6 +265,8 @@ Route::middleware(['auth:staff', 'profile.complete', 'admin', 'admin.permission'
         Route::put('/{staff}/promote', [AdminController::class, 'promoteStaff'])->name('promote');
         Route::put('/{staff}/demote', [AdminController::class, 'demoteStaff'])->name('demote');
         Route::put('/{staff}/leave-balance', [AdminController::class, 'updateLeaveBalance'])->name('leave-balance');
+        Route::post('/{staff}/approve', [AdminController::class, 'approveStaff'])->name('approve');
+        Route::post('/{staff}/reject', [AdminController::class, 'rejectStaff'])->name('reject');
     });
 
     // Reports & Analytics Routes

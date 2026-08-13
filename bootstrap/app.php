@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'account.approved' => \App\Http\Middleware\EnsureAccountApproved::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'admin.permission' => \App\Http\Middleware\ResolveAdminPermission::class,
             'dev.login' => \App\Http\Middleware\EnsureDevLoginEnabled::class,

@@ -55,6 +55,7 @@ class AdminController extends Controller
             'regular' => Staff::where('is_admin', false)->count(),
             'admins' => Staff::where('is_admin', true)->count(),
             'active' => Staff::where('status', 'active')->count(),
+            'pending' => Staff::where('status', 'pending')->count(),
         ];
 
         // Attendance analytics
@@ -746,10 +747,11 @@ class AdminController extends Controller
 
         // Get filter options
         $positions = \App\Models\Position::orderBy('title')->get();
-        $statuses = ['active', 'inactive'];
+        $statuses = ['active', 'pending', 'inactive'];
         $genders = ['male', 'female', 'other'];
+        $pendingCount = Staff::where('status', 'pending')->where('is_admin', false)->count();
 
-        return view('admin.staff.index', compact('staff', 'positions', 'statuses', 'genders'));
+        return view('admin.staff.index', compact('staff', 'positions', 'statuses', 'genders', 'pendingCount'));
     }
 
     /**
@@ -1006,6 +1008,52 @@ class AdminController extends Controller
 
         return redirect()->route('admin.staff.show', $staff)
             ->with('success', 'Leave balance updated successfully.');
+    }
+
+    /**
+     * Approve pending staff member
+     */
+    public function approveStaff(Staff $staff)
+    {
+        $currentUser = auth()->guard('staff')->user();
+        if (!$currentUser->is_admin) {
+            return redirect()->back()
+                ->with('error', 'You do not have permission to approve staff.');
+        }
+
+        $staff->status = 'active';
+        $staff->save();
+
+        \Log::info('Staff account approved by admin', [
+            'staff_id' => $staff->staff_id,
+            'approved_by' => $currentUser->email,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Staff account for ' . $staff->full_name . ' has been approved successfully.');
+    }
+
+    /**
+     * Reject pending staff member
+     */
+    public function rejectStaff(Staff $staff)
+    {
+        $currentUser = auth()->guard('staff')->user();
+        if (!$currentUser->is_admin) {
+            return redirect()->back()
+                ->with('error', 'You do not have permission to reject staff.');
+        }
+
+        $staff->status = 'inactive';
+        $staff->save();
+
+        \Log::info('Staff account rejected by admin', [
+            'staff_id' => $staff->staff_id,
+            'rejected_by' => $currentUser->email,
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Staff account for ' . $staff->full_name . ' has been set to inactive.');
     }
 
     /**

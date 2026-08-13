@@ -257,4 +257,22 @@ class StaffController extends Controller
                 ->with('success', 'Welcome! Your profile has been completed successfully.');
         }
     }
+
+    /**
+     * Show pending approval page for SSO registered staff awaiting admin verification
+     */
+    public function pendingApproval()
+    {
+        $staff = Auth::guard('staff')->user();
+
+        // If staff is already active/approved, redirect appropriately
+        if (!$staff || !$staff->isPending()) {
+            if ($staff && $staff->needsProfileCompletion()) {
+                return redirect()->route('staff.profile.complete');
+            }
+            return redirect()->route('staff.dashboard');
+        }
+
+        return view('staff.pending-approval', compact('staff'));
+    }
 }

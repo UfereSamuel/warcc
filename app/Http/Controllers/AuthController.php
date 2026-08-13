@@ -81,6 +81,12 @@ class AuthController extends Controller
             // Login the staff member
             Auth::guard('staff')->login($staff);
 
+            // Check if staff account is pending approval
+            if ($staff->isPending() && !$staff->is_admin) {
+                return redirect()->route('staff.pending-approval')
+                    ->with('info', 'Your account has been registered via Microsoft SSO and is awaiting administrator verification.');
+            }
+
             // Check if profile needs completion
             if ($staff->needsProfileCompletion()) {
                 return redirect()->route('staff.profile.complete')
@@ -189,7 +195,7 @@ class AuthController extends Controller
             'microsoft_id' => $microsoftUser->id,
             'position_id' => null, // Will be set during profile completion
             'hire_date' => now()->toDateString(),
-            'status' => 'active',
+            'status' => 'pending',
             'is_admin' => false,
             'annual_leave_balance' => 28,
         ]);

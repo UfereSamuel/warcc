@@ -180,6 +180,8 @@
                             <td>
                                 @if($member->status === 'active')
                                     <span class="badge badge-success">Active</span>
+                                @elseif($member->status === 'pending')
+                                    <span class="badge badge-warning"><i class="fas fa-clock mr-1"></i>Pending Approval</span>
                                 @else
                                     <span class="badge badge-secondary">Inactive</span>
                                 @endif
@@ -205,6 +207,20 @@
                             </td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
+                                     @if($member->status === 'pending')
+                                        <form action="{{ route('admin.staff.approve', $member) }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success btn-sm" title="Approve Staff Member">
+                                                <i class="fas fa-check-circle mr-1"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('admin.staff.reject', $member) }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm" title="Reject Staff Member">
+                                                <i class="fas fa-times-circle mr-1"></i> Reject
+                                            </button>
+                                        </form>
+                                    @endif
                                     <a href="{{ route('admin.staff.show', $member) }}"
                                        class="btn btn-info btn-sm"
                                        title="View Details">
