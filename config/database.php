@@ -2,6 +2,17 @@
 
 use Illuminate\Support\Str;
 
+/*
+| PHP 8.5 deprecated PDO::MYSQL_ATTR_SSL_CA in favor of Pdo\Mysql::ATTR_SSL_CA.
+| Resolve the option key without referencing the deprecated constant on 8.5+.
+*/
+$pdoMysqlSslCaKey = null;
+if (extension_loaded('pdo_mysql')) {
+    $pdoMysqlSslCaKey = class_exists(\Pdo\Mysql::class)
+        ? constant(\Pdo\Mysql::class.'::ATTR_SSL_CA')
+        : constant('PDO::MYSQL_ATTR_SSL_CA');
+}
+
 return [
 
     /*
@@ -57,8 +68,8 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            'options' => $pdoMysqlSslCaKey !== null ? array_filter([
+                $pdoMysqlSslCaKey => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -77,8 +88,8 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            'options' => $pdoMysqlSslCaKey !== null ? array_filter([
+                $pdoMysqlSslCaKey => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 

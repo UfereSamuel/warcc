@@ -74,7 +74,7 @@
                     </div>
                     <h5 class="fw-bold">Our Location</h5>
                     <p class="text-muted mb-0">
-                        {!! setting('contact_address', 'University of Ghana Medical School<br>College of Health Sciences<br>Korle-Bu, Accra<br>Ghana') !!}
+                        {!! nl2br(e(setting('contact_address', "Plot 114 Yakubu Gowon Cres, Asokoro\nAso 900103, Federal Capital Territory\nNigeria"))) !!}
                     </p>
                 </div>
             </div>
@@ -110,7 +110,7 @@
                         @if(setting('contact_email'))
                             General: <a href="mailto:{{ setting('contact_email') }}" class="text-primary">{{ setting('contact_email') }}</a><br>
                         @else
-                            General: <a href="mailto:info@africacdc-western.org" class="text-primary">info@africacdc-western.org</a><br>
+                            General: <a href="mailto:westernrcc@africacdc.org" class="text-primary">westernrcc@africacdc.org</a><br>
                         @endif
                         @if(setting('contact_website'))
                             Website: <a href="{{ setting('contact_website') }}" target="_blank" class="text-primary">{{ setting('contact_website') }}</a>
@@ -182,13 +182,14 @@
                 <h3 class="fw-bold text-primary text-center mb-5">Find Us</h3>
                 <div class="map-container">
                     <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.7267719636916!2d-0.2058686!3d5.614818!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf9084b2b7a773%3A0x6b8b7c0ec5f6d8a7!2sUniversity%20of%20Ghana%20Medical%20School!5e0!3m2!1sen!2sgh!4v1640995200000!5m2!1sen!2sgh"
+                        src="{{ setting('contact_map_embed_url', 'https://maps.google.com/maps?q=Plot+114+Yakubu+Gowon+Cres,+Asokoro,+Abuja,+Nigeria&output=embed') }}"
                         width="100%"
                         height="400"
                         style="border:0;"
                         allowfullscreen=""
                         loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade">
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Western RCC office location">
                     </iframe>
                 </div>
             </div>
